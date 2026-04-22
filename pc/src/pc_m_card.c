@@ -39,19 +39,40 @@
 #include <direct.h>  /* _mkdir */
 #endif
 #include <dolphin/os.h>  /* OSReport */
+#ifdef TARGET_ANDROID
+#include <SDL.h>  /* SDL_AndroidGetExternalStoragePath */
+#endif
 
 /* --- Path constants --- */
-#define PC_CARD_A_DIR     "save/card_a"
-#define PC_CARD_B_DIR     "save/card_b"
 #define PC_GCI_FILENAME   "DobutsunomoriP_MURA.gci"
-#define PC_GCI_PATH       PC_CARD_A_DIR "/" PC_GCI_FILENAME
-#define PC_GCI_TMP_PATH   PC_CARD_A_DIR "/" PC_GCI_FILENAME ".tmp"
-#define PC_SAVE_DIR       "save"
 #define PC_SAVE_MAX_BACKUPS 3
 
+#ifdef TARGET_ANDROID
+/* On Android, paths are built at runtime from SDL_AndroidGetExternalStoragePath() */
+static char s_save_dir[512];
+static char s_card_a_dir[512];
+static char s_card_b_dir[512];
+static char s_gci_path[512];
+static char s_gci_tmp_path[512];
+static char s_gci_path_legacy[512];
+static char s_gci_tmp_path_legacy[512];
+#define PC_SAVE_DIR       s_save_dir
+#define PC_CARD_A_DIR     s_card_a_dir
+#define PC_CARD_B_DIR     s_card_b_dir
+#define PC_GCI_PATH       s_gci_path
+#define PC_GCI_TMP_PATH   s_gci_tmp_path
+#define PC_GCI_PATH_LEGACY     s_gci_path_legacy
+#define PC_GCI_TMP_PATH_LEGACY s_gci_tmp_path_legacy
+#else
+#define PC_SAVE_DIR       "save"
+#define PC_CARD_A_DIR     "save/card_a"
+#define PC_CARD_B_DIR     "save/card_b"
+#define PC_GCI_PATH       PC_CARD_A_DIR "/" PC_GCI_FILENAME
+#define PC_GCI_TMP_PATH   PC_CARD_A_DIR "/" PC_GCI_FILENAME ".tmp"
 /* Legacy paths for migration from flat save/ layout */
 #define PC_GCI_PATH_LEGACY     "save/DobutsunomoriP_MURA.gci"
 #define PC_GCI_TMP_PATH_LEGACY "save/DobutsunomoriP_MURA.gci.tmp"
+#endif
 
 #define GCI_HEADER_SIZE      sizeof(CARDDir)        /* 64 bytes */
 #define GCI_FILE_DATA_SIZE   mCD_LAND_SAVE_SIZE     /* 0x72000 */
@@ -222,7 +243,24 @@ static void pc_save_rotate_backups(const char* base_path) {
 }
 
 static void pc_ensure_save_dirs(void) {
-#ifdef _WIN32
+#ifdef TARGET_ANDROID
+    /* Build all path strings from Android external storage root (one-time init) */
+    if (s_save_dir[0] == '\0') {
+        const char* base = SDL_AndroidGetExternalStoragePath();
+        if (!base) base = SDL_AndroidGetInternalStoragePath();
+        if (!base) base = ".";
+        snprintf(s_save_dir, sizeof(s_save_dir), "%s/save", base);
+        snprintf(s_card_a_dir, sizeof(s_card_a_dir), "%s/save/card_a", base);
+        snprintf(s_card_b_dir, sizeof(s_card_b_dir), "%s/save/card_b", base);
+        snprintf(s_gci_path, sizeof(s_gci_path), "%s/" PC_GCI_FILENAME, s_card_a_dir);
+        snprintf(s_gci_tmp_path, sizeof(s_gci_tmp_path), "%s/" PC_GCI_FILENAME ".tmp", s_card_a_dir);
+        snprintf(s_gci_path_legacy, sizeof(s_gci_path_legacy), "%s/" PC_GCI_FILENAME, s_save_dir);
+        snprintf(s_gci_tmp_path_legacy, sizeof(s_gci_tmp_path_legacy), "%s/" PC_GCI_FILENAME ".tmp", s_save_dir);
+    }
+    mkdir(PC_SAVE_DIR, 0755);
+    mkdir(PC_CARD_A_DIR, 0755);
+    mkdir(PC_CARD_B_DIR, 0755);
+#elif defined(_WIN32)
     _mkdir(PC_SAVE_DIR);
     _mkdir(PC_CARD_A_DIR);
     _mkdir(PC_CARD_B_DIR);
@@ -622,18 +660,20 @@ static void pc_save_migrate_legacy(void) {
 
 static int pc_save_scan_gci_dir(void) {
     /* Try common AC save filenames in card_a/ */
-    static const char* gci_names[] = {
-        PC_CARD_A_DIR "/DobutsunomoriP_MURA.gci",
-        PC_CARD_A_DIR "/8P-GAFE-DobutsunomoriP_MURA.gci",
+    static const char* gci_suffixes[] = {
+        "/DobutsunomoriP_MURA.gci",
+        "/8P-GAFE-DobutsunomoriP_MURA.gci",
         NULL
     };
     int i;
     struct stat st;
 
-    for (i = 0; gci_names[i] != NULL; i++) {
-        if (stat(gci_names[i], &st) == 0) {
-            OSReport("[PC] GCI scan: found '%s'\n", gci_names[i]);
-            if (pc_save_read_gci(gci_names[i])) {
+    for (i = 0; gci_suffixes[i] != NULL; i++) {
+        char path[512];
+        snprintf(path, sizeof(path), "%s%s", PC_CARD_A_DIR, gci_suffixes[i]);
+        if (stat(path, &st) == 0) {
+            OSReport("[PC] GCI scan: found '%s'\n", path);
+            if (pc_save_read_gci(path)) {
                 return TRUE;
             }
         }

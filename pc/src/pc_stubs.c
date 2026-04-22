@@ -1,6 +1,7 @@
 /* pc_stubs.c - stub definitions for symbols the decomp declares but we don't need */
 #include <stdarg.h>
 #include <stddef.h>  /* size_t */
+#include <string.h>  /* memcmp, memmove, memset */
 #include "types.h"
 
 typedef s32 OSPriority;
@@ -80,6 +81,13 @@ int CARDGetAttributes(int chan, int fileNo, u8* attr) { (void)chan; (void)fileNo
 int CARDSetAttributes(int chan, int fileNo, u8 attr) { (void)chan; (void)fileNo; (void)attr; return -1; }
 int CARDFastOpen(int chan, int fileNo, void* fileInfo) { (void)chan; (void)fileNo; (void)fileInfo; return -1; }
 int bcmp(const void* a, const void* b, unsigned int n) { return memcmp(a, b, n); }
+#ifdef TARGET_ANDROID
+/* Android bionic provides bcopy/bzero as macros, not functions.
+   We undef them in libultra.h so the decomp struct field 'errno' trick
+   works, but callers need real function definitions. */
+void bcopy(void* src, void* dst, size_t n) { memmove(dst, src, n); }
+void bzero(void* ptr, size_t n) { memset(ptr, 0, n); }
+#endif
 
 /* nesinfo — now provided by famicom_nesinfo.cpp */
 

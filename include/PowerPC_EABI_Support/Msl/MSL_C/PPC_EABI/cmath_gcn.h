@@ -1,6 +1,9 @@
 #ifdef TARGET_PC
 /* On PC, system <cmath> provides all needed functions */
 #include <math.h>
+#ifdef __cplusplus
+#include <cmath>  /* std::sqrtf, std::sinf */
+#endif
 #ifndef HALF_PI
 #define HALF_PI    1.5707964f
 #endif

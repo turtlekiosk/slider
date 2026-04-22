@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 project(ac_pc C CXX)
 
-set(CMAKE_C_STANDARD 11)
+if(ANDROID)
+    # C23 allows declarations after case labels (decomp code relies on this GCC extension)
+    set(CMAKE_C_STANDARD 23)
+else()
+    set(CMAKE_C_STANDARD 11)
+endif()
 set(CMAKE_CXX_STANDARD 17)
 
 # Do NOT set a default build type. Any optimization level (-O1, -O2) exposes
@@ -39,8 +44,14 @@ add_compile_definitions(
     BUGFIXES        # Fix OOB reads in letter scoring tables (m_mail_check_ovl.c).
     _LANGUAGE_C    # Required for N64 GBI/ultratypes headers
     PC_ENHANCEMENTS   # Optional visual improvements (MSAA, etc). Remove to get pure PC port.
-    KEYBOARD_TYPING   # Physical keyboard typing in text editor. Remove for platforms without keyboards.
 )
+if(ANDROID)
+    add_compile_definitions(TARGET_ANDROID)
+else()
+    add_compile_definitions(
+        KEYBOARD_TYPING   # Physical keyboard typing in text editor. Remove for platforms without keyboards.
+    )
+endif()
 
 # Common compiler flags (applied to all sources)
 if(MSVC)
@@ -49,7 +60,17 @@ else()
     add_compile_options(
         -fno-strict-aliasing
         -fwrapv
+        -Wno-unused-parameter
     )
+    if(ANDROID)
+        # ARM32 may emit multi-word loads requiring 4-byte alignment for structs
+        # that are only 2-byte aligned (e.g. s_xyz: 3×s16, 6 bytes). The decomp
+        # code assumes unaligned access is transparent (true on PowerPC/x86).
+        add_compile_options(-mno-unaligned-access)
+        # Decomp callbacks are defined as () (unspecified params) but assigned to
+        # typed function pointers. Clang 16+ treats this as an error by default.
+        add_compile_options(-Wno-incompatible-function-pointer-types)
+    endif()
 endif()
 
 # =============================================================================
@@ -67,76 +88,86 @@ include_directories(
     # Project root needed for includes like "src/actor/npc/event/file.c_inc"
     ${DECOMP_ROOT}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/include
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/fixnes
     # .inc assets are loaded at runtime from disc image (no build/GAFE01_00 needed)
 )
+if(NOT ANDROID)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/include)
+endif()
 
 # =============================================================================
 # Find SDL2
 # =============================================================================
-# Try system SDL2 first, then fall back to platform-specific locations
-if(WIN32)
-    set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2/cmake" CACHE PATH "SDL2 cmake dir")
-endif()
-find_package(SDL2 QUIET)
-if(NOT SDL2_FOUND)
-    # Try pkg-config (works on both Linux and MSYS2)
-    find_package(PkgConfig QUIET)
-    if(PKG_CONFIG_FOUND)
-        pkg_check_modules(SDL2 QUIET sdl2)
-    endif()
-endif()
-if(NOT SDL2_FOUND)
+if(ANDROID)
+    # Build SDL2 from source for Android
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2-src SDL2-build)
+    message(STATUS "SDL2: Building from source for Android")
+else()
+    # Try system SDL2 first, then fall back to platform-specific locations
     if(WIN32)
-        # Windows-specific fallback paths
-        # MSYS2 32-bit location
-        set(SDL2_MSYS2_DIR "C:/msys64/mingw32")
-        if(EXISTS "${SDL2_MSYS2_DIR}/include/SDL2/SDL.h")
-            set(SDL2_FOUND TRUE)
-            set(SDL2_INCLUDE_DIRS "${SDL2_MSYS2_DIR}/include/SDL2")
-            set(SDL2_LIBRARIES "${SDL2_MSYS2_DIR}/lib/libSDL2.a")
-        else()
-            # Downloaded SDL2 MinGW dev package (32-bit)
-            set(SDL2_DOWNLOAD_DIR "${DECOMP_ROOT}/../SDL2-2.30.10/i686-w64-mingw32")
-            if(EXISTS "${SDL2_DOWNLOAD_DIR}/include/SDL2/SDL.h")
+        set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2/cmake" CACHE PATH "SDL2 cmake dir")
+    endif()
+    find_package(SDL2 QUIET)
+    if(NOT SDL2_FOUND)
+        # Try pkg-config (works on both Linux and MSYS2)
+        find_package(PkgConfig QUIET)
+        if(PKG_CONFIG_FOUND)
+            pkg_check_modules(SDL2 QUIET sdl2)
+        endif()
+    endif()
+    if(NOT SDL2_FOUND)
+        if(WIN32)
+            # Windows-specific fallback paths
+            # MSYS2 32-bit location
+            set(SDL2_MSYS2_DIR "C:/msys64/mingw32")
+            if(EXISTS "${SDL2_MSYS2_DIR}/include/SDL2/SDL.h")
                 set(SDL2_FOUND TRUE)
-                set(SDL2_INCLUDE_DIRS "${SDL2_DOWNLOAD_DIR}/include/SDL2")
-                set(SDL2_LIBRARIES "${SDL2_DOWNLOAD_DIR}/lib/libSDL2.a")
+                set(SDL2_INCLUDE_DIRS "${SDL2_MSYS2_DIR}/include/SDL2")
+                set(SDL2_LIBRARIES "${SDL2_MSYS2_DIR}/lib/libSDL2.a")
             else()
-                # Last resort: vendored SDL2 in lib/
-                set(SDL2_LOCAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2")
-                if(EXISTS "${SDL2_LOCAL_DIR}/include/SDL.h")
+                # Downloaded SDL2 MinGW dev package (32-bit)
+                set(SDL2_DOWNLOAD_DIR "${DECOMP_ROOT}/../SDL2-2.30.10/i686-w64-mingw32")
+                if(EXISTS "${SDL2_DOWNLOAD_DIR}/include/SDL2/SDL.h")
                     set(SDL2_FOUND TRUE)
-                    set(SDL2_INCLUDE_DIRS "${SDL2_LOCAL_DIR}/include")
-                    set(SDL2_LIBRARIES "${SDL2_LOCAL_DIR}/lib/libSDL2.a")
+                    set(SDL2_INCLUDE_DIRS "${SDL2_DOWNLOAD_DIR}/include/SDL2")
+                    set(SDL2_LIBRARIES "${SDL2_DOWNLOAD_DIR}/lib/libSDL2.a")
+                else()
+                    # Last resort: vendored SDL2 in lib/
+                    set(SDL2_LOCAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2")
+                    if(EXISTS "${SDL2_LOCAL_DIR}/include/SDL.h")
+                        set(SDL2_FOUND TRUE)
+                        set(SDL2_INCLUDE_DIRS "${SDL2_LOCAL_DIR}/include")
+                        set(SDL2_LIBRARIES "${SDL2_LOCAL_DIR}/lib/libSDL2.a")
+                    endif()
                 endif()
             endif()
         endif()
-    endif()
 
-    if(NOT SDL2_FOUND)
-        message(FATAL_ERROR
-            "SDL2 not found!\n"
-            "  Linux:         sudo apt install libsdl2-dev:i386  (Debian/Ubuntu)\n"
-            "                 sudo dnf install SDL2-devel.i686   (Fedora)\n"
-            "  Windows/MSYS2: pacman -S mingw-w64-i686-SDL2\n"
-            "  Or download SDL2 development libraries to ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2")
+        if(NOT SDL2_FOUND)
+            message(FATAL_ERROR
+                "SDL2 not found!\n"
+                "  Linux:         sudo apt install libsdl2-dev:i386  (Debian/Ubuntu)\n"
+                "                 sudo dnf install SDL2-devel.i686   (Fedora)\n"
+                "  Windows/MSYS2: pacman -S mingw-w64-i686-SDL2\n"
+                "  Or download SDL2 development libraries to ${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2")
+        endif()
     endif()
+    include_directories(${SDL2_INCLUDE_DIRS})
+    message(STATUS "SDL2 include: ${SDL2_INCLUDE_DIRS}")
+    message(STATUS "SDL2 libraries: ${SDL2_LIBRARIES}")
 endif()
-include_directories(${SDL2_INCLUDE_DIRS})
-message(STATUS "SDL2 include: ${SDL2_INCLUDE_DIRS}")
-message(STATUS "SDL2 libraries: ${SDL2_LIBRARIES}")
 
 # =============================================================================
-# GLAD (OpenGL 3.3 loader - generated by glad2)
+# GLAD (OpenGL 3.3 loader - desktop only, Android uses GLES3 system headers)
 # =============================================================================
-add_library(glad STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/src/gl.c
-)
-target_include_directories(glad PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/include
-)
+if(NOT ANDROID)
+    add_library(glad STATIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/src/gl.c
+    )
+    target_include_directories(glad PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/include
+    )
+endif()
 
 # =============================================================================
 # Collect game source files
@@ -293,6 +324,7 @@ set(PC_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pc_stubs_cpp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pc_assets.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/pc_disc.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pc_vmem.c
 )
 
 # =============================================================================
@@ -374,9 +406,26 @@ add_compile_options($<$<COMPILE_LANGUAGE:C>:-Dnullptr=NULL>)
 # =============================================================================
 # Decomp code: suppress all warnings (fires heavily on decompiled code)
 set(DECOMP_WARN_FLAGS "-w;-fpermissive")
+if(ANDROID)
+    # NDK Clang promotes some warnings to errors even with -w; suppress them explicitly
+    list(APPEND DECOMP_WARN_FLAGS "-Wno-error=return-type" "-Wno-error=format-security"
+                                   "-Wno-error=implicit-function-declaration"
+                                   "-Wno-register" "-Wno-c++11-narrowing")
+endif()
 set_source_files_properties(${GAME_C_SOURCES} ${GAME_CXX_SOURCES}
     PROPERTIES COMPILE_OPTIONS "${DECOMP_WARN_FLAGS}"
 )
+
+# Force-include android_enum_fixup.h for all decomp C++ TUs on Android.
+# NDK Clang rejects implicit int→enum conversions (e.g. SEEK_SET passed to JSUStreamSeekFrom
+# parameters). The header overrides the POSIX macros with typed casts. Using force-include
+# here means no source file needs a #ifdef TARGET_ANDROID block for this.
+if(ANDROID)
+    set_source_files_properties(${GAME_CXX_SOURCES}
+        PROPERTIES COMPILE_FLAGS
+        "-include ${CMAKE_CURRENT_SOURCE_DIR}/include/android_enum_fixup.h"
+    )
+endif()
 
 # PC port code: enable warnings to catch bugs in code we control
 set(PC_C_SOURCES ${PC_SOURCES})
@@ -385,7 +434,11 @@ set(PC_CXX_SOURCES ${PC_SOURCES})
 list(FILTER PC_CXX_SOURCES INCLUDE REGEX "\\.cpp$")
 # Note: -Wno-comment/-Wno-unused-function/-Wno-builtin-declaration-mismatch suppress
 # warnings from decomp headers (types.h, gfxprint.h, OSRtc.h, libultra.h) that we can't modify.
-set(PC_WARN_SUPPRESS "-Wno-unused-parameter;-Wno-sign-compare;-Wno-comment;-Wno-unused-function;-Wno-builtin-declaration-mismatch")
+set(PC_WARN_SUPPRESS "-Wno-unused-parameter;-Wno-sign-compare;-Wno-comment;-Wno-unused-function")
+if(NOT ANDROID)
+    # GCC-specific flag, not supported by NDK Clang
+    list(APPEND PC_WARN_SUPPRESS "-Wno-builtin-declaration-mismatch")
+endif()
 set_source_files_properties(${PC_C_SOURCES}
     PROPERTIES COMPILE_OPTIONS "-Wall;-Wextra;${PC_WARN_SUPPRESS}"
 )
@@ -401,90 +454,104 @@ if(WIN32)
 endif()
 
 # =============================================================================
-# Build executable
+# Build target
 # =============================================================================
-add_executable(ac_pc
-    ${PC_SOURCES}
-    ${FIXNES_SOURCES}
-    ${GAME_C_SOURCES}
-    ${GAME_CXX_SOURCES}
-    ${RC_FILE}
-)
-
-# Link SDL2 without SDL2main (we define SDL_MAIN_HANDLED)
-if(TARGET SDL2::SDL2)
-    target_link_libraries(ac_pc glad SDL2::SDL2)
-else()
-    list(FILTER SDL2_LIBRARIES EXCLUDE REGEX "SDL2main")
-    target_link_libraries(ac_pc glad ${SDL2_LIBRARIES})
-endif()
-
-if(WIN32)
-    target_link_libraries(ac_pc opengl32 winmm imm32 version setupapi)
-else()
-    find_package(OpenGL REQUIRED)
-    target_link_libraries(ac_pc OpenGL::GL dl pthread m)
-endif()
-
-set_target_properties(ac_pc PROPERTIES
-    OUTPUT_NAME "AnimalCrossing"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
-)
-
-# Copy shader files to output directory (loaded at runtime, with embedded fallback)
-add_custom_command(TARGET ac_pc POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/bin/shaders"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/default.vert"
-        "${CMAKE_CURRENT_SOURCE_DIR}/shaders/default.frag"
-        "${CMAKE_BINARY_DIR}/bin/shaders/"
-    COMMENT "Copying shader files to bin/shaders/"
-)
-
-# Copy SDL2.dll next to executable so users don't need it on PATH
-if(WIN32)
-    find_file(SDL2_DLL_PATH SDL2.dll PATHS
-        "${SDL2_MSYS2_DIR}/bin"
-        "${SDL2_DOWNLOAD_DIR}/bin"
-        "${SDL2_LOCAL_DIR}/bin"
-        "$ENV{MINGW_PREFIX}/bin"
+if(ANDROID)
+    # Android: shared library loaded by SDLActivity via System.loadLibrary()
+    add_library(ac_pc SHARED
+        ${PC_SOURCES}
+        ${FIXNES_SOURCES}
+        ${GAME_C_SOURCES}
+        ${GAME_CXX_SOURCES}
     )
-    if(SDL2_DLL_PATH)
-        add_custom_command(TARGET ac_pc POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${SDL2_DLL_PATH}" "${CMAKE_BINARY_DIR}/bin/"
-            COMMENT "Copying SDL2.dll to bin/"
+    target_link_libraries(ac_pc SDL2 GLESv3 EGL android log m)
+else()
+    # Desktop: standalone executable
+    add_executable(ac_pc
+        ${PC_SOURCES}
+        ${FIXNES_SOURCES}
+        ${GAME_C_SOURCES}
+        ${GAME_CXX_SOURCES}
+        ${RC_FILE}
+    )
+
+    # Link SDL2 without SDL2main (we define SDL_MAIN_HANDLED)
+    if(TARGET SDL2::SDL2)
+        target_link_libraries(ac_pc glad SDL2::SDL2)
+    else()
+        list(FILTER SDL2_LIBRARIES EXCLUDE REGEX "SDL2main")
+        target_link_libraries(ac_pc glad ${SDL2_LIBRARIES})
+    endif()
+
+    if(WIN32)
+        target_link_libraries(ac_pc opengl32 winmm imm32 version setupapi)
+    else()
+        find_package(OpenGL REQUIRED)
+        target_link_libraries(ac_pc OpenGL::GL dl pthread m)
+    endif()
+
+    set_target_properties(ac_pc PROPERTIES
+        OUTPUT_NAME "AnimalCrossing"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+
+    # Copy shader files to output directory (loaded at runtime, with embedded fallback)
+    add_custom_command(TARGET ac_pc POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/bin/shaders"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/shaders/default.vert"
+            "${CMAKE_CURRENT_SOURCE_DIR}/shaders/default.frag"
+            "${CMAKE_BINARY_DIR}/bin/shaders/"
+        COMMENT "Copying shader files to bin/shaders/"
+    )
+
+    # Copy SDL2.dll next to executable so users don't need it on PATH
+    if(WIN32)
+        find_file(SDL2_DLL_PATH SDL2.dll PATHS
+            "${SDL2_MSYS2_DIR}/bin"
+            "${SDL2_DOWNLOAD_DIR}/bin"
+            "${SDL2_LOCAL_DIR}/bin"
+            "$ENV{MINGW_PREFIX}/bin"
         )
+        if(SDL2_DLL_PATH)
+            add_custom_command(TARGET ac_pc POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${SDL2_DLL_PATH}" "${CMAKE_BINARY_DIR}/bin/"
+                COMMENT "Copying SDL2.dll to bin/"
+            )
+        endif()
     endif()
-endif()
 
-# Static link MinGW runtime (no libgcc_s_dw2-1.dll, libstdc++-6.dll, libwinpthread-1.dll)
-# Strip version.o from winpthread to prevent its version resource from overriding app.rc
-if(MINGW)
-    find_file(WINPTHREAD_LIB libwinpthread.a PATHS ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES} /mingw32/lib NO_DEFAULT_PATH)
-    if(NOT WINPTHREAD_LIB)
-        find_file(WINPTHREAD_LIB libwinpthread.a)
+    # Static link MinGW runtime (no libgcc_s_dw2-1.dll, libstdc++-6.dll, libwinpthread-1.dll)
+    # Strip version.o from winpthread to prevent its version resource from overriding app.rc
+    if(MINGW)
+        find_file(WINPTHREAD_LIB libwinpthread.a PATHS ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES} /mingw32/lib NO_DEFAULT_PATH)
+        if(NOT WINPTHREAD_LIB)
+            find_file(WINPTHREAD_LIB libwinpthread.a)
+        endif()
+        set(WINPTHREAD_STRIPPED "${CMAKE_CURRENT_BINARY_DIR}/libwinpthread_stripped.a")
+        if(WINPTHREAD_LIB AND NOT EXISTS "${WINPTHREAD_STRIPPED}")
+            file(COPY_FILE ${WINPTHREAD_LIB} ${WINPTHREAD_STRIPPED})
+            execute_process(COMMAND ${CMAKE_AR} d "${WINPTHREAD_STRIPPED}" version.o)
+            message(STATUS "Stripped version.o from winpthread: ${WINPTHREAD_STRIPPED}")
+        endif()
+        target_link_options(ac_pc PRIVATE -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive "${WINPTHREAD_STRIPPED}" -Wl,-Bdynamic,--no-whole-archive)
     endif()
-    set(WINPTHREAD_STRIPPED "${CMAKE_CURRENT_BINARY_DIR}/libwinpthread_stripped.a")
-    if(WINPTHREAD_LIB AND NOT EXISTS "${WINPTHREAD_STRIPPED}")
-        file(COPY_FILE ${WINPTHREAD_LIB} ${WINPTHREAD_STRIPPED})
-        execute_process(COMMAND ${CMAKE_AR} d "${WINPTHREAD_STRIPPED}" version.o)
-        message(STATUS "Stripped version.o from winpthread: ${WINPTHREAD_STRIPPED}")
-    endif()
-    target_link_options(ac_pc PRIVATE -static-libgcc -static-libstdc++ -Wl,-Bstatic,--whole-archive "${WINPTHREAD_STRIPPED}" -Wl,-Bdynamic,--no-whole-archive)
-endif()
 
-# Hide console window on Windows (GUI subsystem)
-# Use -DPC_CONSOLE=ON to keep the console visible for debugging
-if(WIN32 AND NOT PC_CONSOLE)
-    target_link_options(ac_pc PRIVATE -mwindows)
+    # Hide console window on Windows (GUI subsystem)
+    # Use -DPC_CONSOLE=ON to keep the console visible for debugging
+    if(WIN32 AND NOT PC_CONSOLE)
+        target_link_options(ac_pc PRIVATE -mwindows)
+    endif()
 endif()
 
 # =============================================================================
-# Install rules (cmake --install . --prefix <dest>)
+# Install rules (cmake --install . --prefix <dest>) - desktop only
 # =============================================================================
-install(TARGETS ac_pc RUNTIME DESTINATION bin)
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/shaders/"
-    DESTINATION bin/shaders
-    FILES_MATCHING PATTERN "*.vert" PATTERN "*.frag"
-)
+if(NOT ANDROID)
+    install(TARGETS ac_pc RUNTIME DESTINATION bin)
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/shaders/"
+        DESTINATION bin/shaders
+        FILES_MATCHING PATTERN "*.vert" PATTERN "*.frag"
+    )
+endif()

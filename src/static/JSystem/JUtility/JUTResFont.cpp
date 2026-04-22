@@ -63,6 +63,12 @@ bool JUTResFont::protected_initiate(const ResFONT* resource, JKRHeap* heap) {
     if (!resource) {
         return false;
     }
+#ifdef TARGET_PC
+    /* Empty resource (e.g. ROM not found, buffer stays zeroed) */
+    if (resource->mNumBlocks == 0) {
+        return false;
+    }
+#endif
 
     mResource = resource;
     mValid = true;

@@ -3,6 +3,9 @@
 #include "boot.h"
 #include "terminal.h"
 #include "MSL_C/w_math.h"
+#ifdef TARGET_PC
+#include "pc_vmem.h"
+#endif
 
 #ifdef TARGET_PC
 /* Executable image range from pc_main.c — BSS/data can collide with N64 segments */
@@ -27,12 +30,8 @@ static int seg2k0_is_committed(u32 addr) {
             return seg2k0_page_cache[i].committed;
         }
     }
-    /* Cache miss — query the OS */
-    MEMORY_BASIC_INFORMATION mbi;
-    int committed = 0;
-    if (VirtualQuery((void*)addr, &mbi, sizeof(mbi)) > 0 && mbi.State == MEM_COMMIT) {
-        committed = 1;
-    }
+    /* Cache miss — query the OS via platform shim */
+    int committed = pc_vmem_is_page_committed(addr);
     seg2k0_page_cache[seg2k0_cache_next].page = page;
     seg2k0_page_cache[seg2k0_cache_next].committed = committed;
     seg2k0_cache_next = (seg2k0_cache_next + 1) % SEG2K0_PAGE_CACHE_SIZE;

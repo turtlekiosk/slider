@@ -21,7 +21,11 @@ typedef struct xyz_s {
 
 typedef struct s_xyz_s {
     s16 x, y, z;
-} s_xyz;
+}
+#ifdef TARGET_ANDROID
+__attribute__((packed))
+#endif
+s_xyz;
 
 typedef struct s_xz_s {
     s16 x, z;

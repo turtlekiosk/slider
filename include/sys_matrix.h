@@ -48,6 +48,10 @@ extern void suMtxMakeTS(Mtx* m, f32 scaleX, f32 scaleY, f32 scaleZ, f32 translat
 extern void suMtxMakeSRT(Mtx* m, f32 scaleX, f32 scaleY, f32 scaleZ, s16 rotX, s16 rotY, s16 rotZ, f32 translateX, f32 translateY, f32 translateZ);
 extern void suMtxMakeSRT_ZXY(Mtx* m, f32 scaleX, f32 scaleY, f32 scaleZ, s16 rotX, s16 rotY, s16 rotZ, f32 translateX, f32 translateY, f32 translateZ);
 
+#ifdef TARGET_PC
+extern void Matrix_reset_stack(void);
+#endif
+
 #ifdef __cplusplus
 }
 #endif

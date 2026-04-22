@@ -1,5 +1,6 @@
 #include "m_trademark.h"
 
+#include "dolphin/os.h"
 #include "m_scene_table.h"
 #include "m_name_table.h"
 #include "m_npc.h"

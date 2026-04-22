@@ -22,6 +22,16 @@ extern "C" {
 
 typedef u64 Z_OSTime;
 
+/* Android bionic defines bcmp/bcopy/bzero as macros; undef to declare as functions */
+#ifdef bcmp
+#undef bcmp
+#endif
+#ifdef bcopy
+#undef bcopy
+#endif
+#ifdef bzero
+#undef bzero
+#endif
 int bcmp(void* v1, void* v2, u32 size);
 void bcopy(void* src, void* dst, size_t n);
 void bzero(void* ptr, size_t size);

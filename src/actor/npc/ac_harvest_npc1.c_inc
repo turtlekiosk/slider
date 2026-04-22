@@ -95,9 +95,9 @@ static void aHT1_schedule_init_proc(NPC_ACTOR* actorx, GAME_PLAY* play) {
     actor->_998 = -1;
     actor->actor.condition_info.demo_flg = aNPC_COND_DEMO_SKIP_MOVE_RANGE_CHECK | aNPC_COND_DEMO_SKIP_MOVE_CIRCLE_REV;
     actor->actor.actor_class.status_data.weight = MASSTYPE_HEAVY;
-    actor->actor.actor_class.shape_info.rotation.y = aHT1_GetDefaultAngle();
-    actor->actor.actor_class.world.angle.y = aHT1_GetDefaultAngle();
-    actor->actor.movement.mv_angl = aHT1_GetDefaultAngle();
+    actor->actor.actor_class.shape_info.rotation.y = aHT1_GetDefaultAngle(actor);
+    actor->actor.actor_class.world.angle.y = aHT1_GetDefaultAngle(actor);
+    actor->actor.movement.mv_angl = aHT1_GetDefaultAngle(actor);
     NPC_CLIP->think_proc(actorx, play, aNPC_THINK_SPECIAL, aNPC_THINK_TYPE_INIT);
 }
 

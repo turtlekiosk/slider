@@ -25,6 +25,22 @@ void VIFlush(void) {}
 void VIWaitForRetrace(void) {
     if (!perf_freq) perf_freq = SDL_GetPerformanceFrequency();
 
+#ifdef TARGET_ANDROID
+    {
+        static int vi_calls_this_sec = 0;
+        static Uint64 vi_sec_start = 0;
+        if (vi_sec_start == 0) vi_sec_start = SDL_GetPerformanceCounter();
+        vi_calls_this_sec++;
+        Uint64 now = SDL_GetPerformanceCounter();
+        if ((now - vi_sec_start) * 1000 / SDL_GetPerformanceFrequency() >= 2000) {
+            printf("[VI] %d swaps in 2s (%.1f swaps/sec) frame_counter=%u\n",
+                   vi_calls_this_sec, vi_calls_this_sec / 2.0, pc_frame_counter);
+            vi_calls_this_sec = 0;
+            vi_sec_start = now;
+        }
+    }
+#endif
+
     /* --- frame time diagnostic --- */
     Uint64 vi_enter = SDL_GetPerformanceCounter();
     double frame_ms = 0.0;

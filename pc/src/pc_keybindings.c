@@ -167,6 +167,10 @@ static void write_defaults(const char* path) {
 }
 
 void pc_keybindings_load(void) {
+#ifdef TARGET_ANDROID
+    /* No keyboard on Android — use defaults, gamepad handled by SDL2 */
+    return;
+#endif
     FILE* f = fopen(KEYBINDINGS_FILE, "r");
     if (!f) {
         write_defaults(KEYBINDINGS_FILE);

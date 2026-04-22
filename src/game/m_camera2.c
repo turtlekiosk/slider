@@ -255,11 +255,11 @@ static void Camera2_GetBorderScale(GAME_PLAY* play, f32 scale, f32* x_min, f32* 
         mFI_LposInBKtoWpos(&entrance_pos, local_border_base_pos, block_x, block_z);
     }
 
-    *x_min = entrance_pos.x + mFI_GetBlockWidth() - (scale * Camera2_BorderSize(play));
-    *x_max = entrance_pos.x + (scale * Camera2_BorderSize(play));
+    *x_min = entrance_pos.x + mFI_GetBlockWidth() - (scale * Camera2_BorderSize());
+    *x_max = entrance_pos.x + (scale * Camera2_BorderSize());
     *z_max =
-        mFI_GetBlockHeight() + (entrance_pos.z - (scale * (Camera2_BorderSize(play) + Camera2_GetUnderBorderAdjust())));
-    *z_min = entrance_pos.z + (scale * (Camera2_BorderSize(play) + mFI_UT_WORLDSIZE_Z_F));
+        mFI_GetBlockHeight() + (entrance_pos.z - (scale * (Camera2_BorderSize() + Camera2_GetUnderBorderAdjust())));
+    *z_min = entrance_pos.z + (scale * (Camera2_BorderSize() + mFI_UT_WORLDSIZE_Z_F));
 
     if (Camera2_InDoorCheck()) {
         *z_min += -mFI_UT_WORLDSIZE_Z_F;
@@ -578,29 +578,29 @@ static void Camera2_ChangeCameraPos_inBlock(GAME_PLAY* play, const xyz_t* pos, x
     *end_pos = *pos;
 
     if (pos->x < x1) {
-        if (pos->x < x1 - scale * Camera2_BorderSize(play)) {
-            end_pos->x = x1 - (scale + 1.0f) * Camera2_BorderSize(play);
+        if (pos->x < x1 - scale * Camera2_BorderSize()) {
+            end_pos->x = x1 - (scale + 1.0f) * Camera2_BorderSize();
         } else if (end_pos->x < x01) {
             end_pos->x = x01;
         }
     } else if (pos->x > x0) {
-        if (pos->x > x0 + scale * Camera2_BorderSize(play)) {
-            end_pos->x = x0 + (scale + 1.0f) * Camera2_BorderSize(play);
+        if (pos->x > x0 + scale * Camera2_BorderSize()) {
+            end_pos->x = x0 + (scale + 1.0f) * Camera2_BorderSize();
         } else if (end_pos->x > x00) {
             end_pos->x = x00;
         }
     }
 
     if (pos->z < z1) {
-        if (pos->z < z1 - scale * (Camera2_BorderSize(play) + mFI_UT_WORLDSIZE_Z_F)) {
-            end_pos->z = (z1 - ((scale + 1.0f) * Camera2_BorderSize(play)) - (scale * mFI_UT_WORLDSIZE_Z_F)) -
+        if (pos->z < z1 - scale * (Camera2_BorderSize() + mFI_UT_WORLDSIZE_Z_F)) {
+            end_pos->z = (z1 - ((scale + 1.0f) * Camera2_BorderSize()) - (scale * mFI_UT_WORLDSIZE_Z_F)) -
                          Camera2_GetUnderBorderAdjust();
         } else if (end_pos->z < z01) {
             end_pos->z = z01;
         }
     } else if (pos->z > z0) {
-        if (pos->z > scale * (Camera2_BorderSize(play) + Camera2_GetUnderBorderAdjust() + z0)) {
-            end_pos->z = (z0 + (scale + 1.0f) * Camera2_BorderSize(play) + mFI_UT_WORLDSIZE_Z_F) +
+        if (pos->z > scale * (Camera2_BorderSize() + Camera2_GetUnderBorderAdjust() + z0)) {
+            end_pos->z = (z0 + (scale + 1.0f) * Camera2_BorderSize() + mFI_UT_WORLDSIZE_Z_F) +
                          scale * Camera2_GetUnderBorderAdjust();
         } else if (end_pos->z > z00) {
             end_pos->z = z00;

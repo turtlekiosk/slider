@@ -281,7 +281,7 @@ void Nas_HeapInit(ALHeap* heap, u8* p2, s32 p3) {
  */
 void Nas_SzStayClear(SZStay* p1) {
     p1->heap.current = p1->heap.base;
-    p1->heap.count = NULL;
+    p1->heap.count = 0;
     p1->num_entries = 0;
 }
 

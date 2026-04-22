@@ -8,6 +8,25 @@
 #include "pc_disc.h"
 #include "pc_typing.h"
 
+#ifdef TARGET_ANDROID
+#include <android/log.h>
+#include <unistd.h>
+
+static int logcat_pipe_thread(void* arg) {
+    int fd = *(int*)arg;
+    char buf[512];
+    ssize_t n;
+    while ((n = read(fd, buf, sizeof(buf) - 1)) > 0) {
+        buf[n] = '\0';
+        while (n > 0 && (buf[n-1] == '\n' || buf[n-1] == '\r'))
+            buf[--n] = '\0';
+        if (n > 0)
+            __android_log_write(ANDROID_LOG_INFO, "ac_pc", buf);
+    }
+    return 0;
+}
+#endif
+
 /* prefer discrete GPU on laptops */
 #ifdef _WIN32
 __declspec(dllexport) unsigned long NvOptimusEnablement = 1;
@@ -58,12 +77,18 @@ static LONG WINAPI pc_veh_handler(PEXCEPTION_POINTERS ep) {
 }
 #else
 /* POSIX equivalent of VEH — longjmp from signal handler (POSIX-defined for program faults) */
+static unsigned int pc_last_crash_pc = 0;
 static void pc_signal_handler(int sig, siginfo_t* info, void* ucontext) {
-    (void)ucontext;
     if (pc_active_jmpbuf != NULL) {
         pc_last_crash_addr = (unsigned int)(uintptr_t)info->si_addr;
-        pc_last_crash_data_addr = (sig == SIGSEGV) ?
+        pc_last_crash_data_addr = (sig == SIGSEGV || sig == SIGBUS) ?
             (unsigned int)(uintptr_t)info->si_addr : 0;
+#ifdef __arm__
+        {
+            ucontext_t* uc = (ucontext_t*)ucontext;
+            pc_last_crash_pc = (unsigned int)uc->uc_mcontext.arm_pc;
+        }
+#endif
         jmp_buf* buf = pc_active_jmpbuf;
         pc_active_jmpbuf = NULL;
         longjmp(*buf, 1);
@@ -71,6 +96,7 @@ static void pc_signal_handler(int sig, siginfo_t* info, void* ucontext) {
     signal(sig, SIG_DFL);
     raise(sig);
 }
+unsigned int pc_crash_get_pc(void) { return pc_last_crash_pc; }
 #endif
 
 unsigned int pc_crash_get_data_addr(void) {
@@ -88,6 +114,7 @@ void pc_crash_protection_init(void) {
         sa.sa_sigaction = pc_signal_handler;
         sa.sa_flags = SA_SIGINFO;
         sigaction(SIGSEGV, &sa, NULL);
+        sigaction(SIGBUS, &sa, NULL);
         sigaction(SIGILL, &sa, NULL);
         sigaction(SIGFPE, &sa, NULL);
 #endif
@@ -113,9 +140,16 @@ void pc_platform_init(void) {
         exit(1);
     }
 
+#ifdef TARGET_ANDROID
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);  /* Opaque surface — no compositor alpha blending */
+#else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 #ifdef PC_ENHANCEMENTS
@@ -126,6 +160,11 @@ void pc_platform_init(void) {
 #endif
 
     {
+#ifdef TARGET_ANDROID
+        Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN;
+        int win_w = 0;  /* SDL2 picks display resolution on Android */
+        int win_h = 0;
+#else
         Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
         int win_w = g_pc_settings.window_width;
         int win_h = g_pc_settings.window_height;
@@ -134,6 +173,7 @@ void pc_platform_init(void) {
         } else if (g_pc_settings.fullscreen == 2) {
             flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
         }
+#endif
         g_pc_window = SDL_CreateWindow(
             PC_WINDOW_TITLE,
             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -154,6 +194,7 @@ void pc_platform_init(void) {
         exit(1);
     }
 
+#ifndef TARGET_ANDROID
     if (!gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress)) {
         fprintf(stderr, "gladLoadGL failed\n");
         SDL_GL_DeleteContext(g_pc_gl_context);
@@ -161,12 +202,13 @@ void pc_platform_init(void) {
         SDL_Quit();
         exit(1);
     }
+#endif
 
     SDL_GL_SetSwapInterval(g_pc_settings.vsync);
 
     pc_platform_update_window_size();
 
-#ifdef PC_ENHANCEMENTS
+#if defined(PC_ENHANCEMENTS) && !defined(TARGET_ANDROID)
     if (g_pc_settings.msaa > 0) {
         glEnable(GL_MULTISAMPLE);
     }
@@ -300,6 +342,24 @@ int main(int argc, char* argv[]) {
         }
     }
 
+#ifdef TARGET_ANDROID
+    /* Redirect stdout/stderr to logcat via a pipe thread so existing
+     * printf/fprintf diagnostic messages are visible in `adb logcat`. */
+    {
+        int pfd[2];
+        if (pipe(pfd) == 0) {
+            dup2(pfd[1], STDOUT_FILENO);
+            dup2(pfd[1], STDERR_FILENO);
+            close(pfd[1]);
+            static int s_logcat_read_fd;
+            s_logcat_read_fd = pfd[0];
+            SDL_CreateThread(logcat_pipe_thread, "logcat_pipe", &s_logcat_read_fd);
+            setvbuf(stdout, NULL, _IONBF, 0);
+            setvbuf(stderr, NULL, _IONBF, 0);
+        }
+    }
+    printf("[ac_pc] stdout/stderr redirected to logcat\n");
+#else
     /* Redirect stdout/stderr to NUL unless verbose — unbuffered terminal writes
      * are extremely slow on Windows and tank FPS. */
     if (!g_pc_verbose) {
@@ -314,6 +374,7 @@ int main(int argc, char* argv[]) {
         setvbuf(stdout, NULL, _IONBF, 0);
         setvbuf(stderr, NULL, _IONBF, 0);
     }
+#endif
 
     /* exe image range for seg2k0 — BSS can overlap N64 segment addresses */
 #ifdef _WIN32
@@ -348,7 +409,9 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
+#ifndef TARGET_ANDROID
     SDL_SetMainReady();
+#endif
     pc_settings_load();
     pc_keybindings_load();
     pc_platform_init();

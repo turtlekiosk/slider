@@ -208,7 +208,7 @@ static int mSDI_StartInitNew(GAME* game, int player_no, int malloc_flag) {
     mSDI_PullTree();
     mSDI_PullTreeUnderPlayerBlock();
 
-    mFM_SetBlockKindLoadCombi(g);
+    mFM_SetBlockKindLoadCombi();
 
     /* Tree -> Fruit Tree */
     mAGrw_ChangeTree2FruitTree();
@@ -317,7 +317,7 @@ static int mSDI_StartInitNew(GAME* game, int player_no, int malloc_flag) {
     mSDI_PullTree();
     mSDI_PullTreeUnderPlayerBlock();
 
-    mFM_SetBlockKindLoadCombi(g);
+    mFM_SetBlockKindLoadCombi();
 
     /* Tree -> Fruit Tree */
     mAGrw_ChangeTree2FruitTree();
@@ -414,7 +414,7 @@ static int mSDI_StartInitFrom(GAME* game, int player_no, int malloc_flag) {
             if (priv->exists == TRUE) {
                 Common_Set(now_private, priv);
                 Common_Set(player_no, player_no);
-                mFM_SetBlockKindLoadCombi(g);
+                mFM_SetBlockKindLoadCombi();
                 mEv_init_force(&play->event);
                 mHsRm_GetHuusuiRoom(g, player_no);
                 mCkRh_DecideNowGokiFamilyCount(player_no);
@@ -429,7 +429,7 @@ static int mSDI_StartInitFrom(GAME* game, int player_no, int malloc_flag) {
                 priv->exists = TRUE;
                 Common_Set(now_private, priv);
                 Common_Set(player_no, player_no);
-                mFM_SetBlockKindLoadCombi(g);
+                mFM_SetBlockKindLoadCombi();
                 mEv_init_force(&play->event);
                 mHsRm_GetHuusuiRoom(g, player_no);
                 mCkRh_DecideNowGokiFamilyCount(player_no);
@@ -476,11 +476,11 @@ static int mSDI_StartInitNewPlayer(GAME* game, int player_no, int malloc_flag) {
             mCkRh_InitGokiSaveData_InitNewPlayer();
 
             if (malloc_flag == FALSE) {
-                mFM_SetBlockKindLoadCombi(game);
+                mFM_SetBlockKindLoadCombi();
                 mEv_init_force(&play->event);
                 mSP_ExchangeLineUp_InGame(game);
             } else {
-                mFM_SetBlockKindLoadCombi(NULL);
+                mFM_SetBlockKindLoadCombi();
                 mEv_init_force(&play->event);
                 mSP_ExchangeLineUp_InGame(NULL);
             }
@@ -511,7 +511,7 @@ static int mSDI_StartInitPak(GAME* game, int player_no, int malloc_flag) {
     }
 
     if (mFRm_CheckSaveData() == TRUE) {
-        mFM_SetBlockKindLoadCombi(g);
+        mFM_SetBlockKindLoadCombi();
         mEv_init_force(&play->event);
         mHsRm_GetHuusuiRoom(g, player_no);
         mCkRh_DecideNowGokiFamilyCount(player_no);
@@ -546,7 +546,7 @@ extern void mSDI_StartInitAfter(GAME* game, int renew_mode, int malloc_flag) {
     mEv_ClearEventInfo();
     mEnv_DecideWeather_NormalGameStart();
     mMl_start_send_mail();
-    mPO_first_work(play);
+    mPO_first_work();
     mTM_set_season();
     mAGrw_ClearAllShine_Stone();
     mAGrw_RestoreStoneShine(Common_Get(player_no));

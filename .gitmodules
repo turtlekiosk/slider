@@ -1,0 +1,4 @@
+[submodule "pc/lib/SDL2-src"]
+	path = pc/lib/SDL2-src
+	url = https://github.com/libsdl-org/SDL.git
+	branch = release-2.30.x

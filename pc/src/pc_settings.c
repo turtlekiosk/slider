@@ -146,6 +146,14 @@ void pc_settings_apply(void) {
 }
 
 void pc_settings_load(void) {
+#ifdef TARGET_ANDROID
+    /* On Android, use defaults — fullscreen, VSync off (software frame limiter
+     * handles pacing; vsync adds up to 16ms of wasted time on slow frames) */
+    g_pc_settings.fullscreen = 1;
+    g_pc_settings.vsync = 0;
+    g_pc_settings.msaa = 0;  /* MSAA handled at EGL level on Android */
+    return;
+#endif
     FILE* f = fopen(SETTINGS_FILE, "r");
     if (!f) {
         write_defaults(SETTINGS_FILE);

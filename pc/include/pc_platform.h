@@ -8,9 +8,11 @@
 #error "This project must be compiled as 32-bit (pointer size != 4 bytes)"
 #endif
 
+#ifndef TARGET_ANDROID
 #define SDL_MAIN_HANDLED
+#endif
 #include <SDL.h>
-#include <glad/gl.h>
+#include "pc_gles_compat.h"
 
 #include <stdio.h>
 #include <stdlib.h>

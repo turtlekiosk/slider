@@ -7,6 +7,7 @@
 #include "jaudio_NES/dummyprobe.h"
 #include "jaudio_NES/rate.h"
 #include "jaudio_NES/aictrl.h"
+#include "dolphin/ai.h"
 #include "jaudio_NES/dummyrom.h"
 #include "jaudio_NES/neosthread.h"
 #include "jaudio_NES/dvdthread.h"

@@ -261,6 +261,18 @@ void pc_gx_init(void) {
 }
 
 void pc_gx_begin_frame(void) {
+#ifdef TARGET_ANDROID
+    {
+        static int diag_frames = 0;
+        if (diag_frames % 300 == 0 || diag_frames < 5) {
+            printf("[GX] frame=%d window=%dx%d draws=%d cmds=%d tris=%d vtx=%d dl=%d crashes=%d\n",
+                   diag_frames, g_pc_window_w, g_pc_window_h,
+                   pc_gx_draw_call_count, pc_emu64_frame_cmds, pc_emu64_frame_tri_cmds,
+                   pc_emu64_frame_vtx_cmds, pc_emu64_frame_dl_cmds, pc_emu64_frame_crashes);
+        }
+        diag_frames++;
+    }
+#endif
     pc_emu64_frame_cmds = 0;
     pc_emu64_frame_crashes = 0;
     pc_emu64_frame_noop_cmds = 0;
@@ -280,7 +292,11 @@ void pc_gx_begin_frame(void) {
     glViewport(0, 0, g_pc_window_w, g_pc_window_h);
 #endif
     glClearDepth(g_gx.clear_depth);
+#ifdef TARGET_ANDROID
+    glClearColor(g_gx.clear_color[0], g_gx.clear_color[1], g_gx.clear_color[2], 1.0f);
+#else
     glClearColor(g_gx.clear_color[0], g_gx.clear_color[1], g_gx.clear_color[2], g_gx.clear_color[3]);
+#endif
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -587,7 +603,21 @@ void pc_gx_flush_vertices(void) {
 
         if (dirty & PC_GX_DIRTY_PROJECTION) {
             loc = UL(projection);
-            if (loc >= 0) glUniformMatrix4fv(loc, 1, GL_TRUE, (float*)g_gx.projection_mtx);
+            if (loc >= 0) {
+#ifdef TARGET_ANDROID
+                /* GLES 3.0 requires transpose=GL_FALSE; transpose manually */
+                const float* s = (const float*)g_gx.projection_mtx;
+                float t[16] = {
+                    s[0], s[4], s[8],  s[12],
+                    s[1], s[5], s[9],  s[13],
+                    s[2], s[6], s[10], s[14],
+                    s[3], s[7], s[11], s[15]
+                };
+                glUniformMatrix4fv(loc, 1, GL_FALSE, t);
+#else
+                glUniformMatrix4fv(loc, 1, GL_TRUE, (float*)g_gx.projection_mtx);
+#endif
+            }
         }
 
         if (dirty & PC_GX_DIRTY_MODELVIEW) {
@@ -599,10 +629,34 @@ void pc_gx_flush_vertices(void) {
                 mv44[ 4] = src[4]; mv44[ 5] = src[5]; mv44[ 6] = src[6]; mv44[ 7] = src[7];
                 mv44[ 8] = src[8]; mv44[ 9] = src[9]; mv44[10] = src[10]; mv44[11] = src[11];
                 mv44[12] = 0.0f;   mv44[13] = 0.0f;   mv44[14] = 0.0f;    mv44[15] = 1.0f;
+#ifdef TARGET_ANDROID
+                /* GLES 3.0 requires transpose=GL_FALSE; transpose manually */
+                float t[16] = {
+                    mv44[0], mv44[4], mv44[8],  mv44[12],
+                    mv44[1], mv44[5], mv44[9],  mv44[13],
+                    mv44[2], mv44[6], mv44[10], mv44[14],
+                    mv44[3], mv44[7], mv44[11], mv44[15]
+                };
+                glUniformMatrix4fv(loc, 1, GL_FALSE, t);
+#else
                 glUniformMatrix4fv(loc, 1, GL_TRUE, mv44);
+#endif
             }
             loc = UL(normal_mtx);
-            if (loc >= 0) glUniformMatrix3fv(loc, 1, GL_TRUE, (const float*)g_gx.nrm_mtx[g_gx.current_mtx]);
+            if (loc >= 0) {
+#ifdef TARGET_ANDROID
+                /* GLES 3.0 requires transpose=GL_FALSE; transpose 3x3 manually */
+                const float* n = (const float*)g_gx.nrm_mtx[g_gx.current_mtx];
+                float nt[9] = {
+                    n[0], n[3], n[6],
+                    n[1], n[4], n[7],
+                    n[2], n[5], n[8]
+                };
+                glUniformMatrix3fv(loc, 1, GL_FALSE, nt);
+#else
+                glUniformMatrix3fv(loc, 1, GL_TRUE, (const float*)g_gx.nrm_mtx[g_gx.current_mtx]);
+#endif
+            }
         }
 
         if (dirty & PC_GX_DIRTY_TEV_COLORS) {
@@ -890,6 +944,35 @@ void pc_gx_flush_vertices(void) {
         glDrawArrays(gl_prim, 0, count);
         PC_GL_CHECK("glDrawArrays");
     }
+
+#ifdef TARGET_ANDROID
+    {
+        static int diag_done = 0;
+        /* Log detailed state on the 1st draw of a frame that has draws (after boot) */
+        if (!diag_done && pc_gx_draw_call_count == 1 && count > 0) {
+            static int skip_frames = 0;
+            skip_frames++;
+            if (skip_frames >= 60) {
+                diag_done = 1;
+                GLenum err = glGetError();
+                printf("[GL_DIAG] shader=%u prim=%d verts=%d err=0x%X\n",
+                       g_gx.current_shader, g_gx.current_primitive, count, err);
+                printf("[GL_DIAG] proj=[%.3f,%.3f,%.3f,%.3f][%.3f,%.3f,%.3f,%.3f][%.3f,%.3f,%.3f,%.3f][%.3f,%.3f,%.3f,%.3f]\n",
+                       g_gx.projection_mtx[0][0], g_gx.projection_mtx[0][1], g_gx.projection_mtx[0][2], g_gx.projection_mtx[0][3],
+                       g_gx.projection_mtx[1][0], g_gx.projection_mtx[1][1], g_gx.projection_mtx[1][2], g_gx.projection_mtx[1][3],
+                       g_gx.projection_mtx[2][0], g_gx.projection_mtx[2][1], g_gx.projection_mtx[2][2], g_gx.projection_mtx[2][3],
+                       g_gx.projection_mtx[3][0], g_gx.projection_mtx[3][1], g_gx.projection_mtx[3][2], g_gx.projection_mtx[3][3]);
+                printf("[GL_DIAG] vtx[0] pos=(%.2f,%.2f,%.2f) col=(%u,%u,%u,%u)\n",
+                       g_gx.vertex_buffer[0].position[0], g_gx.vertex_buffer[0].position[1], g_gx.vertex_buffer[0].position[2],
+                       g_gx.vertex_buffer[0].color0[0], g_gx.vertex_buffer[0].color0[1], g_gx.vertex_buffer[0].color0[2], g_gx.vertex_buffer[0].color0[3]);
+                printf("[GL_DIAG] viewport=(%.0f,%.0f,%.0f,%.0f) depth=(%.3f,%.3f)\n",
+                       g_gx.viewport[0], g_gx.viewport[1], g_gx.viewport[2], g_gx.viewport[3], g_gx.viewport[4], g_gx.viewport[5]);
+                printf("[GL_DIAG] num_tev=%d z_cmp=%d z_func=%d blend=%d cull=%d\n",
+                       g_gx.num_tev_stages, g_gx.z_compare_enable, g_gx.z_compare_func, g_gx.blend_mode, g_gx.cull_mode);
+            }
+        }
+    }
+#endif
 
     if (g_gx.blend_mode == GX_BM_SUBTRACT)
         glBlendEquation(GL_FUNC_ADD);
@@ -1542,7 +1625,11 @@ void GXSetTexCoordGen2(u32 dst, u32 func, u32 src, u32 mtx, GXBool normalize, u3
     }
 }
 void GXSetLineWidth(u8 width, u32 texOffsets) { glLineWidth(width / 16.0f); }
-void GXSetPointSize(u8 size, u32 texOffsets) { glPointSize(size / 16.0f); }
+void GXSetPointSize(u8 size, u32 texOffsets) {
+#ifndef TARGET_ANDROID
+    glPointSize(size / 16.0f);
+#endif
+}
 void GXEnableTexOffsets(u32 coord, GXBool line, GXBool point) {
     (void)coord; (void)line; (void)point;
 }

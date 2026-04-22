@@ -691,6 +691,10 @@ static void xxhash64_selftest(void) {
 }
 
 void pc_texture_pack_init(void) {
+#ifdef TARGET_ANDROID
+    /* Texture packs use BC7/S3TC compressed formats not available in GLES 3.0 */
+    return;
+#endif
     g_texpack_count = 0;
     g_texpack_active = 0;
     g_stat_lookups = g_stat_hits = g_stat_loaded = g_stat_cache_hits = g_stat_neg_hits = 0;

@@ -13,7 +13,11 @@ typedef union {
               xz, yz, zz, wz,
               xw, yw, zw, ww;
     };
-} MtxF;
+}
+#ifdef TARGET_ANDROID
+__attribute__((packed))
+#endif
+MtxF;
 
 typedef struct {
     f32 x, y, z;

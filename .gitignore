@@ -24,6 +24,13 @@ build32/
 .ninja_*
 build.ninja
 
+# Android build outputs and caches
+pc/android/.gradle/
+pc/android/app/build/
+pc/android/app/.cxx/
+pc/android/build/
+pc/android/local.properties
+
 # decompctx output
 ctx.*
 *.ctx
@@ -36,6 +43,7 @@ compile_commands.json
 /*.txt
 !requirements.txt
 *.exe
+*.DS_Store
 
 # For saving work files into (like IDB)
 temp/

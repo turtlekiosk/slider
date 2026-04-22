@@ -489,7 +489,7 @@ extern void play_init(GAME* game) {
     VR_Box_ct(play);
     mMmd_MakeMuseumDisplayData();
     Actor_info_ct(game, &play->actor_info, play->player_data);
-    play->draw_chk_proc = none_proc1;
+    play->draw_chk_proc = (DRAW_CHK_PROC)none_proc1;
     mMsg_ct(game);
     mEv_2nd_init(&play->event);
     mTD_player_keydata_init(play);

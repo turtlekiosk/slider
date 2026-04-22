@@ -33,7 +33,7 @@
 
 /* Now include GL via SDL2 (avoid pc_platform.h which pulls in game types.h) */
 #include <SDL2/SDL.h>
-#include <glad/gl.h>
+#include "pc_gles_compat.h"
 #include "fm2play.h"
 #include "audio.h"
 
@@ -111,6 +111,22 @@ static GLuint fixnes_compile_shader(GLenum type, const char *src) {
 }
 
 static void fixnes_init_gl(void) {
+#ifdef TARGET_ANDROID
+    const char *vs =
+        "#version 300 es\n"
+        "precision highp float;\n"
+        "layout(location=0) in vec2 pos;\n"
+        "layout(location=1) in vec2 uv;\n"
+        "out vec2 v_uv;\n"
+        "void main() { gl_Position = vec4(pos, 0, 1); v_uv = uv; }\n";
+    const char *fs =
+        "#version 300 es\n"
+        "precision mediump float;\n"
+        "in vec2 v_uv;\n"
+        "out vec4 fragColor;\n"
+        "uniform sampler2D tex;\n"
+        "void main() { fragColor = texture(tex, v_uv); }\n";
+#else
     const char *vs =
         "#version 330 core\n"
         "layout(location=0) in vec2 pos;\n"
@@ -123,6 +139,7 @@ static void fixnes_init_gl(void) {
         "out vec4 fragColor;\n"
         "uniform sampler2D tex;\n"
         "void main() { fragColor = texture(tex, v_uv); }\n";
+#endif
 
     GLuint v = fixnes_compile_shader(GL_VERTEX_SHADER, vs);
     GLuint f = fixnes_compile_shader(GL_FRAGMENT_SHADER, fs);
@@ -379,11 +396,25 @@ void pc_fixnes_render_frame(uint16_t *fb) {
     if (!fixnes_shader) fixnes_init_gl();
 
     /* Upload framebuffer — fixNES outputs RGB565 with COL_TEX_BSWAP
-     * (R in low bits) — upload with GL_UNSIGNED_SHORT_5_6_5_REV.
-     * Skip top 8 rows (often garbage), show 224 lines. */
+     * (R in low bits). Skip top 8 rows (often garbage), show 224 lines. */
     glBindTexture(GL_TEXTURE_2D, fixnes_texture);
+#ifdef TARGET_ANDROID
+    /* GLES 3.0 lacks GL_UNSIGNED_SHORT_5_6_5_REV — byte-swap to standard order */
+    {
+        static uint16_t swapped[256 * 224];
+        uint16_t *src = fb + 256 * 8;
+        for (int i = 0; i < 256 * 224; i++) {
+            uint16_t p = src[i];
+            /* REV has R in low 5 bits; standard 5_6_5 has R in high 5 bits */
+            swapped[i] = ((p & 0x001F) << 11) | (p & 0x07E0) | ((p >> 11) & 0x001F);
+        }
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 224, 0,
+                     GL_RGB, GL_UNSIGNED_SHORT_5_6_5, swapped);
+    }
+#else
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 256, 224, 0,
                  GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, fb + 256 * 8);
+#endif
 
     /* 0 = stretch to window, 1 = centered 4:3 with pillar/letterbox. */
     int win_w = g_pc_window_w;

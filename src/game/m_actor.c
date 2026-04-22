@@ -510,7 +510,6 @@ extern void Actor_info_draw_actor(GAME_PLAY* play, Actor_info* actor_info) {
         int do_not_draw;
 
         for (actor = list->actor; actor != NULL; actor = actor->next_actor) {
-            /* Apply projection matrix to actor position */
             Skin_Matrix_PrjMulVector(&play->projection_matrix, &actor->world.position, &actor->camera_position,
                                      &actor->camera_w);
 

@@ -3,6 +3,7 @@
 #ifdef TARGET_PC
 #include "pc_platform.h"
 #include "pc_diag.h"
+#include "sys_matrix.h"
 extern int g_pc_model_viewer;
 #endif
 
@@ -155,9 +156,17 @@ extern void game_main(GAME* this) {
         pc_crash_set_jmpbuf(&game_exec_jmpbuf);
         if (setjmp(game_exec_jmpbuf) != 0) {
             /* Recovered from crash in game exec */
-            printf("[PC] CRASH in game exec! doing_point=%d specific=0x%02X addr=0x%08X data=0x%08X\n",
-                this->doing_point, this->doing_point_specific,
-                pc_crash_get_addr(), pc_crash_get_data_addr());
+            {
+                extern unsigned int pc_crash_get_pc(void);
+                static int crash_log_count = 0;
+                if (crash_log_count < 5) {
+                    printf("[PC] CRASH in game exec! doing_point=%d specific=0x%02X addr=0x%08X data=0x%08X pc=0x%08X\n",
+                        this->doing_point, this->doing_point_specific,
+                        pc_crash_get_addr(), pc_crash_get_data_addr(), pc_crash_get_pc());
+                    crash_log_count++;
+                }
+            }
+            Matrix_reset_stack();
         } else {
             this->exec(this);
         }

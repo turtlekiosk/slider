@@ -1,5 +1,6 @@
 static void aID_change_player_demo_standing_train(GAME* game) {
-    if (mPlib_get_player_actor_main_index(game) != mPlayer_INDEX_DEMO_STANDING_TRAIN) {
+    int idx = mPlib_get_player_actor_main_index(game);
+    if (idx != mPlayer_INDEX_DEMO_STANDING_TRAIN) {
         mPlib_request_main_demo_standing_train_type1(game);
     }
 }

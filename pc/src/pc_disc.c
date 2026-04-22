@@ -8,6 +8,9 @@
 #include <dirent.h>
 #include "types.h"
 #include "pc_disc.h"
+#ifdef TARGET_ANDROID
+#include <SDL.h>
+#endif
 
 extern int g_pc_verbose;
 
@@ -285,10 +288,8 @@ static int str_ends_ci(const char* s, const char* suffix) {
     return 1;
 }
 
-static int find_disc_image(char* out_path, int out_sz) {
-    static const char* dirs[] = { ".", "orig", "rom", NULL };
+static int search_disc_dirs(char* out_path, int out_sz, const char** dirs) {
     int d;
-
     for (d = 0; dirs[d]; d++) {
         DIR* dp = opendir(dirs[d]);
         struct dirent* ent;
@@ -308,6 +309,24 @@ static int find_disc_image(char* out_path, int out_sz) {
         closedir(dp);
     }
     return 0;
+}
+
+static int find_disc_image(char* out_path, int out_sz) {
+#ifdef TARGET_ANDROID
+    /* Search Android app-specific external storage first, then internal */
+    const char* ext = SDL_AndroidGetExternalStoragePath();
+    const char* intl = SDL_AndroidGetInternalStoragePath();
+    char dir_buf[4][512];
+    snprintf(dir_buf[0], sizeof(dir_buf[0]), "%s/rom", ext ? ext : "");
+    snprintf(dir_buf[1], sizeof(dir_buf[1]), "%s", ext ? ext : "");
+    snprintf(dir_buf[2], sizeof(dir_buf[2]), "%s/rom", intl ? intl : "");
+    snprintf(dir_buf[3], sizeof(dir_buf[3]), "%s", intl ? intl : "");
+    const char* android_dirs[] = { dir_buf[0], dir_buf[1], dir_buf[2], dir_buf[3], NULL };
+    return search_disc_dirs(out_path, out_sz, android_dirs);
+#else
+    static const char* dirs[] = { ".", "orig", "rom", NULL };
+    return search_disc_dirs(out_path, out_sz, dirs);
+#endif
 }
 
 /* ---- public API ---- */

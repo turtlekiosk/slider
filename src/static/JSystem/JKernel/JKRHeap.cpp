@@ -296,24 +296,24 @@ bool JKRHeap::isSubHeap(JKRHeap* heap) const {
     return false;
 }
 
-void* operator new(u32 byteCount) {
-    return JKRHeap::alloc(byteCount, 4, nullptr);
+void* operator new(size_t byteCount) {
+    return JKRHeap::alloc((u32)byteCount, 4, nullptr);
 }
-void* operator new(u32 byteCount, int alignment) {
-    return JKRHeap::alloc(byteCount, alignment, nullptr);
+void* operator new(size_t byteCount, int alignment) {
+    return JKRHeap::alloc((u32)byteCount, alignment, nullptr);
 }
-void* operator new(u32 byteCount, JKRHeap* heap, int alignment) {
-    return JKRHeap::alloc(byteCount, alignment, heap);
+void* operator new(size_t byteCount, JKRHeap* heap, int alignment) {
+    return JKRHeap::alloc((u32)byteCount, alignment, heap);
 }
 
-void* operator new[](u32 byteCount) {
-    return JKRHeap::alloc(byteCount, 4, nullptr);
+void* operator new[](size_t byteCount) {
+    return JKRHeap::alloc((u32)byteCount, 4, nullptr);
 }
-void* operator new[](u32 byteCount, int alignment) {
-    return JKRHeap::alloc(byteCount, alignment, nullptr);
+void* operator new[](size_t byteCount, int alignment) {
+    return JKRHeap::alloc((u32)byteCount, alignment, nullptr);
 }
-void* operator new[](u32 byteCount, JKRHeap* heap, int alignment) {
-    return JKRHeap::alloc(byteCount, alignment, heap);
+void* operator new[](size_t byteCount, JKRHeap* heap, int alignment) {
+    return JKRHeap::alloc((u32)byteCount, alignment, heap);
 }
 
 // this is not needed without the other pragma and asm bs

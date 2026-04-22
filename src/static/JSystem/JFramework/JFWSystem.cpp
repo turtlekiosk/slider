@@ -135,9 +135,18 @@ void JFWSystem::init() {
     JUTException::create(directPrint);
     systemFont = new JUTResFont(CSetUpParam::systemFontRes, nullptr);
     debugPrint = JUTDbPrint::start(nullptr, nullptr);
+#ifdef TARGET_PC
+    if (systemFont->isValid()) {
+#endif
     debugPrint->changeFont(systemFont);
+#ifdef TARGET_PC
+    }
+#endif
     systemConsoleManager = JUTConsoleManager::createManager(nullptr);
     systemConsole = JUTConsole::create(60, 200, nullptr);
+#ifdef TARGET_PC
+    if (systemFont->isValid()) {
+#endif
     systemConsole->setFont(systemFont);
 
     if (CSetUpParam::renderMode->efbHeight < 300) {
@@ -147,6 +156,9 @@ void JFWSystem::init() {
         systemConsole->setFontSize(systemFont->getWidth() * 0.85f, systemFont->getHeight());
         systemConsole->setPosition(20, 50);
     }
+#ifdef TARGET_PC
+    }
+#endif
     systemConsole->setHeight(25);
     systemConsole->setVisible(false);
     systemConsole->setOutput(JUTConsole::OUTPUT_OSREPORT | JUTConsole::OUTPUT_CONSOLE);

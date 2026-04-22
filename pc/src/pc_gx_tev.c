@@ -4,21 +4,20 @@
 /* --- file I/O --- */
 
 static char* load_text_file(const char* path) {
-    FILE* f = fopen(path, "rb");
-    if (!f) return NULL;
+    /* Use SDL_RWFromFile so Android can read from APK assets transparently */
+    SDL_RWops* rw = SDL_RWFromFile(path, "rb");
+    if (!rw) return NULL;
 
-    fseek(f, 0, SEEK_END);
-    long len = ftell(f);
-    if (len <= 0) { fclose(f); return NULL; }
-    fseek(f, 0, SEEK_SET);
+    Sint64 len = SDL_RWsize(rw);
+    if (len <= 0) { SDL_RWclose(rw); return NULL; }
 
     char* buf = (char*)malloc((size_t)len + 1);
-    if (!buf) { fclose(f); return NULL; }
+    if (!buf) { SDL_RWclose(rw); return NULL; }
 
-    size_t read = fread(buf, 1, (size_t)len, f);
-    fclose(f);
+    size_t read = SDL_RWread(rw, buf, 1, (size_t)len);
+    SDL_RWclose(rw);
     if (read != (size_t)len) {
-        fprintf(stderr, "WARNING: Partial read of %s (got %zu of %ld bytes)\n", path, read, len);
+        fprintf(stderr, "WARNING: Partial read of %s (got %zu of %lld bytes)\n", path, read, (long long)len);
         free(buf);
         return NULL;
     }

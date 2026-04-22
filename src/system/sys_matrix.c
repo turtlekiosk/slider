@@ -5,6 +5,7 @@
 #include "libc64/math64.h"
 #include "MSL_C/w_math.h"
 #include "libforest/gbi_extensions.h"
+#include "libultra/gu.h"
 
 // clang-format off
 Mtx Mtx_clear = gdSPDefMtx(
@@ -31,6 +32,14 @@ void new_Matrix(GAME* game) {
     Matrix_now = THA_alloc16(&game->tha, 0x500);
     Matrix_stack = Matrix_now;
 }
+
+#ifdef TARGET_PC
+void Matrix_reset_stack(void) {
+    if (Matrix_stack != NULL) {
+        Matrix_now = Matrix_stack;
+    }
+}
+#endif
 
 void Matrix_push() {
     Matrix_copy_MtxF(Matrix_now + 1, Matrix_now);
