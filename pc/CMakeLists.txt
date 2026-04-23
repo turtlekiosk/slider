@@ -67,9 +67,6 @@ else()
         # that are only 2-byte aligned (e.g. s_xyz: 3×s16, 6 bytes). The decomp
         # code assumes unaligned access is transparent (true on PowerPC/x86).
         add_compile_options(-mno-unaligned-access)
-        # Decomp callbacks are defined as () (unspecified params) but assigned to
-        # typed function pointers. Clang 16+ treats this as an error by default.
-        add_compile_options(-Wno-incompatible-function-pointer-types)
     endif()
 endif()
 
