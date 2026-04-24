@@ -515,7 +515,8 @@ elseif(EMSCRIPTEN)
         -sFORCE_FILESYSTEM=1
         -lidbfs.js
         "SHELL:--preload-file ${_EMSCRIPTEN_ASSETS}@/orig"
-        "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/shaders@/shaders"
+        # Use Android's GLES 300-flavored shaders — WebGL2 is GLES 3.0, not desktop GL.
+        "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
     )
 else()
