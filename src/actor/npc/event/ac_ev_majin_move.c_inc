@@ -16,8 +16,8 @@ static void aEMJ_act_init_proc(NPC_ACTOR* actor, GAME_PLAY* play) {
 }
 
 static void aEMJ_act_proc(NPC_ACTOR* actor, GAME_PLAY* play, int idx) {
-    static aNPC_SUB_PROC act_proc[] = { aEMJ_act_init_proc, (aNPC_SUB_PROC)none_proc1,
-                                        (aNPC_SUB_PROC)none_proc1, };
+    static aNPC_SUB_PROC act_proc[] = { aEMJ_act_init_proc, _none_aNPC_SUB_PROC,
+                                        _none_aNPC_SUB_PROC, };
 
     (*act_proc[idx])(actor, play);
 }
@@ -66,9 +66,9 @@ typedef struct {
 
 static void aEMJ_setup_think_proc(EV_MAJIN_ACTOR* majin, int idx) {
     static aEMJ_talk_data_c dt_tbl[] = {
-        { aEMJ_appear, (aNPC_TALK_REQUEST_PROC)none_proc1 },
-        { (aEMJ_PROC)none_proc1, aEMJ_force_talk_request },
-        { aEMJ_retire, (aNPC_TALK_REQUEST_PROC)none_proc1 },
+        { aEMJ_appear, _none_aNPC_TALK_REQUEST_PROC },
+        { _none_aEMJ_PROC, aEMJ_force_talk_request },
+        { aEMJ_retire, _none_aNPC_TALK_REQUEST_PROC },
     };
     aEMJ_talk_data_c* data_p = &dt_tbl[idx];
 
@@ -139,7 +139,7 @@ static void aEMJ_force_talk_request(ACTOR* actorx, GAME* game) {
 int aEMJ_talk_init(ACTOR* actor, GAME* play) {
     EV_MAJIN_ACTOR* majin = (EV_MAJIN_ACTOR*)actor;
 
-    majin->npc_class.talk_info.talk_request_proc = (mActor_proc)none_proc1;
+    majin->npc_class.talk_info.talk_request_proc = _none_mActor_proc;
     mDemo_Set_ListenAble();
     return TRUE;
 }

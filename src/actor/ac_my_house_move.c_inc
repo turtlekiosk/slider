@@ -426,7 +426,7 @@ static void aMHS_setup_action(STRUCTURE_ACTOR* my_house, int action) {
         &aMHS_wait,
         &aMHS_open_door_wait,
         &aMHS_open_door,
-        (aSTR_MOVE_PROC)&none_proc1,
+        _none_aSTR_MOVE_PROC,
     };
 
     aMHS_door_closed_flag[my_house->arg0] = TRUE;

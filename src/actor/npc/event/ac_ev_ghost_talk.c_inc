@@ -582,7 +582,7 @@ static void aEGH_norm_talk_request(ACTOR* actorx, GAME* game) {
 static int aEGH_talk_init(ACTOR* actorx, GAME* game) {
   EV_GHOST_ACTOR* ghost = (EV_GHOST_ACTOR*)actorx;
 
-  ghost->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)&none_proc1;
+  ghost->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
   mDemo_Set_ListenAble();
   mDemo_Start(actorx);
   return TRUE;
@@ -592,12 +592,12 @@ typedef void (*aEGH_TALK_PROC)(EV_GHOST_ACTOR*, GAME_PLAY*);
 
 static int aEGH_talk_end_chk(ACTOR* actorx, GAME* game) {
   static aEGH_TALK_PROC proc[aEGH_TALK_NUM] = {
-    (aEGH_TALK_PROC)&none_proc1,
+    _none_aEGH_TALK_PROC,
     &aEGH_give_me_wait,
     &aEGH_select_wait,
     &aEGH_select_roof,
     &aEGH_give_you_wait,
-    (aEGH_TALK_PROC)&none_proc1
+    _none_aEGH_TALK_PROC
   };
 
   EV_GHOST_ACTOR* ghost = (EV_GHOST_ACTOR*)actorx;

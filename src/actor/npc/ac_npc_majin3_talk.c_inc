@@ -110,7 +110,7 @@ static void aMJN3_change_talk_proc(NPC_MAJIN3_ACTOR* actor, int talk_idx) {
         aMJN3_menu_open_wait_talk_proc,
         aMJN3_menu_close_wait_talk_proc,
         aMJN3_msg_win_open_wait_talk_proc,
-        (aMJN3_TALK_PROC)none_proc1,
+        _none_aMJN3_TALK_PROC,
     };
     // clang-format on
 
@@ -152,7 +152,7 @@ static int aMJN3_talk_init(ACTOR* actorx, GAME* game) {
         actor->reply_idx = RANDOM((mString_RESETTI_GOOD_WORD_END - mString_RESETTI_GOOD_WORD_START) + 1);
         mString_Load_StringFromRom(str, sizeof(str), mString_RESETTI_GOOD_WORD_START + actor->reply_idx);
         mMsg_SET_ITEM_STR(mMsg_FREE_STR0, str, sizeof(str));
-        actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+        actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
         mDemo_Set_ListenAble();
         ret = TRUE;
     }

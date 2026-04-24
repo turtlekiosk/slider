@@ -242,7 +242,7 @@ typedef void (*aSTM_THINK_PROC)(NPC_STATION_MASTER_ACTOR*, GAME_PLAY*);
 
 // clang-format off
 static aSTM_THINK_PROC proc_table[] = {
-    (aSTM_THINK_PROC)none_proc1,
+    _none_aSTM_THINK_PROC,
     aSTM_get_off_wait,
     aSTM_turn,
     aSTM_look_player,
@@ -405,7 +405,7 @@ typedef void (*aSTM_THINK_INIT_PROC)(NPC_STATION_MASTER_ACTOR* actor, GAME_PLAY*
 
 // clang-format off
 static aSTM_THINK_INIT_PROC init_table[] = {
-    (aSTM_THINK_INIT_PROC)none_proc1,
+    _none_aSTM_THINK_INIT_PROC,
       aSTM_get_off_wait_init,
       aSTM_intro_demo_wait_init,
       aSTM_interrupt_turn_init,
@@ -424,7 +424,7 @@ static void aSTM_setup_think_proc(NPC_STATION_MASTER_ACTOR* actor, GAME_PLAY* pl
     aSTM_think_data_c* data_p = &dt_tbl[think_idx];
     // clang-format off
     static aNPC_TALK_REQUEST_PROC talk_request_table[] = {
-        (aNPC_TALK_REQUEST_PROC)none_proc1,
+        _none_aNPC_TALK_REQUEST_PROC,
         aSTM_norm_talk_request,
         aSTM_force_talk_request,
     };

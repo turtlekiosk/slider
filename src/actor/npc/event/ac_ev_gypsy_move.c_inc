@@ -114,10 +114,10 @@ static void aEGPS_decide_result_init(EV_GYPSY_ACTOR* gypsy, GAME_PLAY* play) {
 
 static void aEGPS_init_proc(EV_GYPSY_ACTOR* gypsy, GAME_PLAY* play, int action) {
   static aEGPS_TALK_INIT_PROC init_proc[aEGPS_ACTION_NUM] = {
-    (aEGPS_TALK_INIT_PROC)&none_proc1,
-    (aEGPS_TALK_INIT_PROC)&none_proc1,
+    _none_aEGPS_TALK_INIT_PROC,
+    _none_aEGPS_TALK_INIT_PROC,
     &aEGPS_decide_result_init,
-    (aEGPS_TALK_INIT_PROC)&none_proc1
+    _none_aEGPS_TALK_INIT_PROC
   };
 
   (*init_proc[action])(gypsy, play);
@@ -125,7 +125,7 @@ static void aEGPS_init_proc(EV_GYPSY_ACTOR* gypsy, GAME_PLAY* play, int action) 
 
 static void aEGPS_setupAction(EV_GYPSY_ACTOR* gypsy, GAME_PLAY* play, int action) {
   static aEGPS_TALK_PROC process[aEGPS_ACTION_NUM] = {
-    (aEGPS_TALK_PROC)&none_proc1,
+    _none_aEGPS_TALK_PROC,
     &aEGPS_call_in,
     &aEGPS_decide_result,
     &aEGPS_decide_result

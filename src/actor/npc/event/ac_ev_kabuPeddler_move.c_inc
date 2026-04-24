@@ -155,16 +155,16 @@ typedef void (*aEKPD_INIT_PROC)(EV_KABUPEDDLER_ACTOR*, GAME_PLAY*);
 
 static void aEKPD_init_proc(EV_KABUPEDDLER_ACTOR* kabuPeddler, GAME_PLAY* play, int act) {
     static aEKPD_INIT_PROC init_proc[aEKPD_ACTION_NUM] = {
-        (aEKPD_INIT_PROC)&none_proc1, &aEKPD_sell_check_init,       (aEKPD_INIT_PROC)&none_proc1,
-        &aEKPD_sell_check2_init,      (aEKPD_INIT_PROC)&none_proc1, &aEKPD_money_get_demo_start_wait_init,
-        (aEKPD_INIT_PROC)&none_proc1, (aEKPD_INIT_PROC)&none_proc1
+        _none_aEKPD_INIT_PROC, &aEKPD_sell_check_init,       _none_aEKPD_INIT_PROC,
+        &aEKPD_sell_check2_init,      _none_aEKPD_INIT_PROC, &aEKPD_money_get_demo_start_wait_init,
+        _none_aEKPD_INIT_PROC, _none_aEKPD_INIT_PROC
     };
 
     (*init_proc[act])(kabuPeddler, play);
 }
 
 static void aEKPD_setupAction(EV_KABUPEDDLER_ACTOR* kabuPeddler, GAME_PLAY* play, int act) {
-    static aEKPD_PROC process[aEKPD_ACTION_NUM] = { (aEKPD_PROC)&none_proc1,        &aEKPD_sell_check,
+    static aEKPD_PROC process[aEKPD_ACTION_NUM] = { _none_aEKPD_PROC,        &aEKPD_sell_check,
                                                     &aEKPD_sell_check_after,        &aEKPD_sell_check,
                                                     &aEKPD_sell_check_after,        &aEKPD_money_get_demo_start_wait,
                                                     &aEKPD_money_get_demo_end_wait, &aEKPD_kabu_trans_demo_start_wait };

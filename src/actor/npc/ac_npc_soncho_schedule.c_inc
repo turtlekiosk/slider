@@ -35,13 +35,13 @@ typedef struct {
     };
     // clang-format on
 
-static aNS_PROC proc_table[] = { (aNS_PROC)none_proc1 };
+static aNS_PROC proc_table[] = { _none_aNS_PROC };
 
 typedef void (*aNS_INIT_PROC)(NPC_SONCHO_ACTOR* actor, GAME_PLAY* play);
 
 // clang-format off
 static aNS_INIT_PROC init_table[] = {
-    (aNS_INIT_PROC)none_proc1,
+    _none_aNS_INIT_PROC,
     aNS_normal_wait_init,
     aNS_wander_init,
 };
@@ -50,9 +50,9 @@ static aNS_INIT_PROC init_table[] = {
 static void aNS_setup_think_proc(NPC_SONCHO_ACTOR* actor, GAME_PLAY* play, u8 think_idx) {
     // clang-format off
     static aNPC_TALK_REQUEST_PROC talk_request_table[] = {
-        (aNPC_TALK_REQUEST_PROC)none_proc1,
+        _none_aNPC_TALK_REQUEST_PROC,
         aNS_norm_talk_request,
-        (aNPC_TALK_REQUEST_PROC)none_proc1,
+        _none_aNPC_TALK_REQUEST_PROC,
     };
     // clang-format on
     aNS_think_data_c* data_p = &dt_tbl[think_idx];

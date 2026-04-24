@@ -934,7 +934,7 @@ static void aUKI_set_proc(ACTOR* actorx, GAME* game, int proc, int arg) {
         &aUKI_set_proc_bite,
         &aUKI_set_proc_catch,
         &aUKI_set_proc_get,
-        (aUKI_INIT_PROC)&none_proc1,
+        _none_aUKI_INIT_PROC,
     };
     // clang-format on
 

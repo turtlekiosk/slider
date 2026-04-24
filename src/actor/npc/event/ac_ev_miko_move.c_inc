@@ -118,10 +118,10 @@ typedef void (*aEMK_INIT_PROC)(EV_MIKO_ACTOR* miko, GAME_PLAY* play);
 static void aEMK_init_proc(EV_MIKO_ACTOR* miko, GAME_PLAY* play, int action) {
     static aEMK_INIT_PROC init_proc[] = {
         // clang-format off
-        (aEMK_INIT_PROC)none_proc1,
-        (aEMK_INIT_PROC)none_proc1,
+        _none_aEMK_INIT_PROC,
+        _none_aEMK_INIT_PROC,
         aEMK_talk_omikuji_init,
-        (aEMK_INIT_PROC)none_proc1,
+        _none_aEMK_INIT_PROC,
         // clang-format on
     };
 
@@ -131,7 +131,7 @@ static void aEMK_init_proc(EV_MIKO_ACTOR* miko, GAME_PLAY* play, int action) {
 static void aEMK_setupAction(EV_MIKO_ACTOR* miko, GAME_PLAY* play, int action) {
     static aEMK_TALK_PROC process[] = {
         // clang-format off
-        (aEMK_TALK_PROC)none_proc1,
+        _none_aEMK_TALK_PROC,
         aEMK_talk_select,
         aEMK_talk_omikuji,
         aEMK_talk_give,

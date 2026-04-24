@@ -408,15 +408,15 @@ typedef void (*aEANG_INIT_PROC)(EV_ANGLER_ACTOR* angler, GAME_PLAY* play);
 static void aEANG_init_proc(EV_ANGLER_ACTOR* angler, GAME_PLAY* play, int action) {
     static aEANG_INIT_PROC init_proc[] = {
         // clang-format off
-        (aEANG_INIT_PROC)none_proc1,
+        _none_aEANG_INIT_PROC,
         aEANG_menu_open_wait_init,
         aEANG_menu_close_wait_init,
         aEANG_msg_win_open_wait_init,
-        (aEANG_INIT_PROC)none_proc1,
-        (aEANG_INIT_PROC)none_proc1,
-        (aEANG_INIT_PROC)none_proc1,
-        (aEANG_INIT_PROC)none_proc1,
-        (aEANG_INIT_PROC)none_proc1,
+        _none_aEANG_INIT_PROC,
+        _none_aEANG_INIT_PROC,
+        _none_aEANG_INIT_PROC,
+        _none_aEANG_INIT_PROC,
+        _none_aEANG_INIT_PROC,
         aEANG_demo_measure_init,  
         // clang-format on
     };
@@ -427,7 +427,7 @@ static void aEANG_init_proc(EV_ANGLER_ACTOR* angler, GAME_PLAY* play, int action
 static void aEANG_setupAction(EV_ANGLER_ACTOR* angler, GAME_PLAY* play, int action) {
     static aEANG_TALK_PROC process[] = {
         // clang-format off
-        (aEANG_TALK_PROC)none_proc1,
+        _none_aEANG_TALK_PROC,
         aEANG_menu_open_wait,
         aEANG_menu_close_wait,
         aEANG_msg_win_open_wait,

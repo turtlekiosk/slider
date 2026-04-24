@@ -27,7 +27,7 @@ static void aTM1_act_proc(NPC_ACTOR* actorx, GAME_PLAY* play, int act_idx) {
     static aNPC_SUB_PROC act_proc[] = {
         &aTM1_act_init_proc,
         &aTM1_act_chg_data_proc,
-        (aNPC_SUB_PROC)&none_proc1
+        _none_aNPC_SUB_PROC
     };
     // clang-format on
     act_proc[act_idx](actorx, play);

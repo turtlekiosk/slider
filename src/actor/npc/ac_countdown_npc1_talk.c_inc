@@ -226,7 +226,7 @@ static void aCD1_act_main_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
 }
 
 static void aCD1_act_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int type) {
-    static aNPC_SUB_PROC act_proc[] = { (aNPC_SUB_PROC)none_proc1, aCD1_act_chg_data_proc, aCD1_act_main_proc };
+    static aNPC_SUB_PROC act_proc[] = { _none_aNPC_SUB_PROC, aCD1_act_chg_data_proc, aCD1_act_main_proc };
 
     (*act_proc[type])(nactorx, play);
 }
@@ -286,7 +286,7 @@ static void aCD1_decide_demo_flg(COUNTDOWN_NPC1_ACTOR* actor) {
             actor->npc_class.condition_info.demo_flg =
                 aNPC_COND_DEMO_SKIP_HEAD_LOOKAT | aNPC_COND_DEMO_SKIP_FORWARD_CHECK | aNPC_COND_DEMO_SKIP_BGCHECK |
                 aNPC_COND_DEMO_SKIP_MOVE_Y | aNPC_COND_DEMO_SKIP_MOVE_CIRCLE_REV | aNPC_COND_DEMO_SKIP_MOVE_RANGE_CHECK;
-            actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+            actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
         } else {
             if ((actor->event_idx & 1) == 1) {
                 actor->npc_class.condition_info.demo_flg =
@@ -488,7 +488,7 @@ static int aCD1_talk_init(ACTOR* actorx, GAME* game) {
     COUNTDOWN_NPC1_ACTOR* actor = (COUNTDOWN_NPC1_ACTOR*)actorx;
 
     if (actor->term == aCD1_TERM_1_MIN) {
-        actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+        actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     }
 
     mDemo_Set_ListenAble();

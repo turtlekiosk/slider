@@ -152,7 +152,7 @@ typedef void (*aESC_TALK_PROC)(EVENT_SONCHO_ACTOR*, GAME*);
 
 static int aESC_talk_end_chk(ACTOR* actorx, GAME* game) {
   static aESC_TALK_PROC proc[aESC_TALK_NUM] = {
-    (aESC_TALK_PROC)&none_proc1,
+    _none_aESC_TALK_PROC,
     &aESC_talk_select,
     &aESC_talk_secand
   };

@@ -66,19 +66,19 @@ static aTNN0_think_data_c dt_tbl[] = {
 };
 
 static aTNN0_THINK_PROC proc_table[] = {
-    (aTNN0_THINK_PROC)none_proc1,
+    _none_aTNN0_THINK_PROC,
     aTNN0_birth,
 };
 
 typedef void (*aTNN0_THINK_INIT_PROC)(TUNAHIKI_NPC0_ACTOR* actor, GAME_PLAY* play);
 
 static aTNN0_THINK_INIT_PROC init_table[] = {
-    (aTNN0_THINK_INIT_PROC)none_proc1,
+    _none_aTNN0_THINK_INIT_PROC,
     aTNN0_wait_init,
 };
 
 static void aTNN0_setup_think_proc(TUNAHIKI_NPC0_ACTOR* actor, GAME_PLAY* play, u8 think_idx) {
-    static aNPC_TALK_REQUEST_PROC talk_request_table[] = { (aNPC_TALK_REQUEST_PROC)none_proc1, aTNN0_norm_talk_request, (aNPC_TALK_REQUEST_PROC)none_proc1  };
+    static aNPC_TALK_REQUEST_PROC talk_request_table[] = { _none_aNPC_TALK_REQUEST_PROC, aTNN0_norm_talk_request, _none_aNPC_TALK_REQUEST_PROC  };
     aTNN0_think_data_c* dt;
 
     dt = &dt_tbl[think_idx];

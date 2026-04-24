@@ -496,12 +496,12 @@ static void aBT_anchor_init(BOAT_ACTOR* boat_actor, GAME_PLAY* play) {
 
 static void aBT_setupAction(BOAT_ACTOR* boat_actor, GAME_PLAY* play, int action) {
     static aBT_INIT_PROC init_proc[aBT_ACTION_NUM] = {
-        (aBT_INIT_PROC)&none_proc1,
+        _none_aBT_INIT_PROC,
         &aBT_wait_init,
-        (aBT_INIT_PROC)&none_proc1,
-        (aBT_INIT_PROC)&none_proc1,
-        (aBT_INIT_PROC)&none_proc1,
-        (aBT_INIT_PROC)&none_proc1,
+        _none_aBT_INIT_PROC,
+        _none_aBT_INIT_PROC,
+        _none_aBT_INIT_PROC,
+        _none_aBT_INIT_PROC,
         &aBT_sitdown_end_wait_init,
         &aBT_move_wait_init,
         &aBT_move_init,

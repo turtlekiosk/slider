@@ -46,7 +46,7 @@ static aNRST_THINK_PROC aNRST_proc_table[] = {
     aNRST_think_start,
     aNRST_think_title,
     aNRST_think_door,
-    (aNRST_THINK_PROC)none_proc1,
+    _none_aNRST_THINK_PROC,
 };
 // clang-format on
 

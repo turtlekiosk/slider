@@ -189,7 +189,15 @@ static void LightsN__P_point_proc(LightsN* lights, LightParams* lightInfo, xyz_t
     }
 }
 
+#ifdef TARGET_PC
+/* Must accept an unused xyz_t* to match light_point_proc / light_P_point_proc
+ * signatures — the function is stored in those arrays and called via
+ * call_indirect, which strictly type-checks in wasm. */
+static void LightsN__diffuse_proc(LightsN* lights, LightParams* lightInfo, xyz_t* unused) {
+    (void)unused;
+#else
 static void LightsN__diffuse_proc(LightsN* lights, LightParams* lightInfo) {
+#endif
 
     Light_new* light;
 

@@ -1455,7 +1455,7 @@ static int aNNW_talk_init(ACTOR* actorx, GAME* game) {
     NPC_NEEDLEWORK_ACTOR* actor = (NPC_NEEDLEWORK_ACTOR*)actorx;
     NPC_NEEDLEWORK_ACTOR* sister;
 
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     mDemo_Start(actorx);
     mString_Load_StringFromRom(str, sizeof(str), 0x6D5); // load 'Mabel'
@@ -1568,7 +1568,7 @@ static int aNNW_talk_end_chk(ACTOR* actorx, GAME* game) {
         aNNW_talk_gba_tool_bf,
         aNNW_talk_gba_tool,
         aNNW_talk_gba_tool_af3,
-        (aNNW_TALK_PROC)none_proc1,
+        _none_aNNW_TALK_PROC,
         aNNW_talk_card_e_load_bf_0_0,
         aNNW_talk_card_e_load_bf_0,
         aNNW_talk_card_e_load_bf_1,

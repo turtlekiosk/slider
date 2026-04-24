@@ -169,11 +169,11 @@ void pc_platform_init(void) {
     pc_web_mount_saves();
 #endif
 
-#ifdef TARGET_ANDROID
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);  /* Opaque surface — no compositor alpha blending */
+    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
 #else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
@@ -189,10 +189,14 @@ void pc_platform_init(void) {
 #endif
 
     {
-#ifdef TARGET_ANDROID
+#if defined(TARGET_ANDROID)
         Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_FULLSCREEN;
         int win_w = 0;  /* SDL2 picks display resolution on Android */
         int win_h = 0;
+#elif defined(__EMSCRIPTEN__)
+        Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
+        int win_w = g_pc_settings.window_width;
+        int win_h = g_pc_settings.window_height;
 #else
         Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
         int win_w = g_pc_settings.window_width;
@@ -237,7 +241,7 @@ void pc_platform_init(void) {
 
     pc_platform_update_window_size();
 
-#if defined(PC_ENHANCEMENTS) && !defined(TARGET_ANDROID)
+#if defined(PC_ENHANCEMENTS) && !defined(TARGET_ANDROID) && !defined(__EMSCRIPTEN__)
     if (g_pc_settings.msaa > 0) {
         glEnable(GL_MULTISAMPLE);
     }

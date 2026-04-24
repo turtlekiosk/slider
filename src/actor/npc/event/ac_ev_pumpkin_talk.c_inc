@@ -284,7 +284,7 @@ static void aEPK_change_talk_proc(EV_PUMPKIN_ACTOR* pumpkin, int talk_act) {
         aEPK_give_a_present_demo_start_wait_talk_proc,
         aEPK_give_a_present_demo_end_wait_talk_proc,
         aEPK_pl_demo_code_end_wait_talk_proc,
-        (aEPK_TALK_PROC)none_proc1,
+        _none_aEPK_TALK_PROC,
         // clang-format on
     };
 

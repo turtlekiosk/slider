@@ -46,7 +46,7 @@ static void aCD0_setupAction(COUNTDOWN_NPC0_ACTOR* actor, int action) {
     static aCD0_ACT_PROC process[] = {
         aCD0_before_wait,
         aCD0_freeze_pl_wait,
-        (aCD0_ACT_PROC)none_proc1,
+        _none_aCD0_ACT_PROC,
         aCD0_talk_after_turn,
     };
     // clang-format on
@@ -124,7 +124,7 @@ static void aCD0_set_term(COUNTDOWN_NPC0_ACTOR* actor, GAME_PLAY* play) {
     int now_term = aCD0_get_now_term();
 
     if (now_term != actor->term) {
-        aNPC_TALK_REQUEST_PROC talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+        aNPC_TALK_REQUEST_PROC talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
         int in_same_block = TRUE;
         int bx;
         int bz;
@@ -203,7 +203,7 @@ static void aCD0_schedule_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
             break;
         case aCD0_TERM_1_MIN:
             mEv_set_status(mEv_EVENT_NEW_YEARS_EVE_COUNTDOWN, mEv_STATUS_PLAYSOUND);
-            nactorx->talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+            nactorx->talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
             break;
     }
 
@@ -304,7 +304,7 @@ static int aCD0_talk_init(ACTOR* actorx, GAME* game) {
     if (mDemo_Check_SpeakerAble() == TRUE) {
         if (actor->term == aCD0_TERM_1_MIN) {
             if (actor->npc_class.talk_info.talk_request_proc == aCD0_force_talk_request) {
-                actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+                actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
             } else {
                 actor->npc_class.talk_info.talk_request_proc = aCD0_norm_talk_request;
             }

@@ -154,7 +154,7 @@ static void aTKN1_lookl_init(TOKYOSO_NPC1_ACTOR* actor, GAME_PLAY* play) {
 typedef void (*aTKN1_THINK_INIT_PROC)(TOKYOSO_NPC1_ACTOR* actor, GAME_PLAY* play);
 // clang-format off
 static aTKN1_THINK_INIT_PROC init_table[] = {
-    (aTKN1_THINK_INIT_PROC)none_proc1,
+    _none_aTKN1_THINK_INIT_PROC,
     aTKN1_normal_wait_init,
     aTKN1_wait_init,
     aTKN1_run_init,

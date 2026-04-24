@@ -185,7 +185,7 @@ typedef void (*aHN0_THINK_INIT_PROC)(HATUMODE_NPC0_ACTOR*, GAME_PLAY*);
 
 // clang-format off
 static aHN0_THINK_INIT_PROC init_table[] = {
-    (aHN0_THINK_INIT_PROC)&none_proc1,
+    _none_aHN0_THINK_INIT_PROC,
     &aHN0_normal_wait_init,
     &aHN0_move_init,
     &aHN0_turn_f_init,

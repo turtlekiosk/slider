@@ -1327,35 +1327,35 @@ typedef void (*aNPS2_TALK_INIT_PROC)(NPC_P_SEL2_ACTOR*, GAME_PLAY*);
 static void aNPS2_talk_init_proc(NPC_P_SEL2_ACTOR* p_sel2, GAME_PLAY* play, int talk_idx) {
     // clang-format off
     static aNPS2_TALK_INIT_PROC init_proc[] = {
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
         &aNPS2_clr_pl_data_init,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
+        _none_aNPS2_TALK_INIT_PROC,
         &aNPS2_ti_menu_open_wait_init,
         &aNPS2_ti_menu_close_wait_init,
         &aNPS2_select_player_init,
         &aNPS2_select_card_player_init,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
-        (aNPS2_TALK_INIT_PROC)&none_proc1,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
+        _none_aNPS2_TALK_INIT_PROC,
     };
     // clang-foramt on
 
@@ -1393,7 +1393,7 @@ static void aNPS2_change_talk_proc(NPC_P_SEL2_ACTOR* p_sel2, GAME_PLAY* play, in
         &aNPS2_game_start_wait,
         &aNPS2_game_start_wait,
         &aNPS2_return_title,
-        (aNPS2_TALK_PROC)&none_proc1,
+        _none_aNPS2_TALK_PROC,
     };
     // clang-format on
 
@@ -1419,7 +1419,7 @@ static int aNPS2_talk_init(ACTOR* actorx, GAME* game) {
 
     aNPS2_change_talk_proc(p_sel2, play, aNPS2_TALK_WHATS_HAPPEN);
     mDemo_Set_ListenAble();
-    p_sel2->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)&none_proc1;
+    p_sel2->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     p_sel2->start_flag = FALSE;
     mDemo_Set_talk_return_demo_wait(TRUE);
 

@@ -9,7 +9,7 @@ static void aMJN2_act_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
 }
 
 static void aMJN2_act_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int type) {
-    static aNPC_SUB_PROC act_proc[] = { aMJN2_act_init_proc, (aNPC_SUB_PROC)none_proc1, (aNPC_SUB_PROC)none_proc1 };
+    static aNPC_SUB_PROC act_proc[] = { aMJN2_act_init_proc, _none_aNPC_SUB_PROC, _none_aNPC_SUB_PROC };
 
     (*act_proc[type])(nactorx, play);
 }
@@ -187,13 +187,13 @@ typedef struct {
 static void aMJN2_setup_think_proc(NPC_MAJIN2_ACTOR* actor, GAME_PLAY* play, int think_idx) {
     // clang-format off
     static aMJN2_think_data_c dt_tbl[] = {
-        {aMJN2_start_wait, aMJN2_start_wait_init, (aNPC_TALK_REQUEST_PROC)none_proc1, 0, 0, aMJN2_THINK_START_WAIT},
-        {aMJN2_start_wait_st, aMJN2_start_wait_init, (aNPC_TALK_REQUEST_PROC)none_proc1, 0, 0, aMJN2_THINK_START_WAIT_ST},
-        {(aMJN2_THINK_PROC)none_proc1, (aMJN2_THINK_INIT_PROC)none_proc1, aMJN2_force_talk_request, -1, 0, aMJN2_THINK_WAIT},
-        {aMJN2_wait, (aMJN2_THINK_INIT_PROC)none_proc1, aMJN2_norm_talk_request, 0, -1, aMJN2_THINK_EXIT},
-        {(aMJN2_THINK_PROC)none_proc1, (aMJN2_THINK_INIT_PROC)none_proc1, aMJN2_force_talk_request, -1, 1, aMJN2_THINK_WAIT},
-        {(aMJN2_THINK_PROC)none_proc1, (aMJN2_THINK_INIT_PROC)none_proc1, aMJN2_force_talk_request, -1, 2, aMJN2_THINK_WAIT},
-        {aMJN2_exit, (aMJN2_THINK_INIT_PROC)none_proc1, (aNPC_TALK_REQUEST_PROC)none_proc1, 0, 0, aMJN2_THINK_EXIT},
+        {aMJN2_start_wait, aMJN2_start_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0, 0, aMJN2_THINK_START_WAIT},
+        {aMJN2_start_wait_st, aMJN2_start_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0, 0, aMJN2_THINK_START_WAIT_ST},
+        {_none_aMJN2_THINK_PROC, _none_aMJN2_THINK_INIT_PROC, aMJN2_force_talk_request, -1, 0, aMJN2_THINK_WAIT},
+        {aMJN2_wait, _none_aMJN2_THINK_INIT_PROC, aMJN2_norm_talk_request, 0, -1, aMJN2_THINK_EXIT},
+        {_none_aMJN2_THINK_PROC, _none_aMJN2_THINK_INIT_PROC, aMJN2_force_talk_request, -1, 1, aMJN2_THINK_WAIT},
+        {_none_aMJN2_THINK_PROC, _none_aMJN2_THINK_INIT_PROC, aMJN2_force_talk_request, -1, 2, aMJN2_THINK_WAIT},
+        {aMJN2_exit, _none_aMJN2_THINK_INIT_PROC, _none_aNPC_TALK_REQUEST_PROC, 0, 0, aMJN2_THINK_EXIT},
     };
     // clang-format on
 

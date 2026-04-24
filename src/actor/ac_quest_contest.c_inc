@@ -167,13 +167,13 @@ typedef void (*aQMgr_CONTEST_SAVE_PROC)(aQMgr_regist_c*);
 static void aQMgr_save_contest(aQMgr_regist_c* regist) {
     int contest_kind = regist->quest_info->quest_kind;
     static aQMgr_CONTEST_SAVE_PROC save_proc[mQst_CONTEST_KIND_NUM] = {
-        (aQMgr_CONTEST_SAVE_PROC)&none_proc1,
-        (aQMgr_CONTEST_SAVE_PROC)&none_proc1,
-        (aQMgr_CONTEST_SAVE_PROC)&none_proc1,
+        _none_aQMgr_CONTEST_SAVE_PROC,
+        _none_aQMgr_CONTEST_SAVE_PROC,
+        _none_aQMgr_CONTEST_SAVE_PROC,
         &aQMgr_save_contest_flower,
-        (aQMgr_CONTEST_SAVE_PROC)&none_proc1,
-        (aQMgr_CONTEST_SAVE_PROC)&none_proc1,
-        (aQMgr_CONTEST_SAVE_PROC)&none_proc1
+        _none_aQMgr_CONTEST_SAVE_PROC,
+        _none_aQMgr_CONTEST_SAVE_PROC,
+        _none_aQMgr_CONTEST_SAVE_PROC
     };
 
     (*save_proc[contest_kind])(regist);

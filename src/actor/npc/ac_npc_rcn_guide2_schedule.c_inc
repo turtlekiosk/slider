@@ -282,30 +282,30 @@ static void aNRG2_setup_think_proc(NPC_RCN_GUIDE2_ACTOR* rcn_guide2, GAME_PLAY* 
     // clang-format off
     static aNRG2_think_data_c dt_tbl[] = {
         {
-            (aNRG2_THINK_PROC)&none_proc1,
-            (aNRG2_THINK_INIT_PROC)&none_proc1,
+            _none_aNRG2_THINK_PROC,
+            _none_aNRG2_THINK_INIT_PROC,
             &aNRG2_force_talk_request,
             aNRG2_FORCE_TALK_SAY_HELLO,
             aNRG2_THINK_SEND_AWAY,
         },
         {
-            (aNRG2_THINK_PROC)&none_proc1,
-            (aNRG2_THINK_INIT_PROC)&none_proc1,
+            _none_aNRG2_THINK_PROC,
+            _none_aNRG2_THINK_INIT_PROC,
             &aNRG2_force_talk_request,
             aNRG2_FORCE_TALK_SAY_HELLO2,
             aNRG2_THINK_SEND_AWAY,
         },
         {
-            (aNRG2_THINK_PROC)&none_proc1,
-            (aNRG2_THINK_INIT_PROC)&none_proc1,
+            _none_aNRG2_THINK_PROC,
+            _none_aNRG2_THINK_INIT_PROC,
             &aNRG2_force_talk_request,
             aNRG2_FORCE_TALK_SAY_HELLO_SP,
             aNRG2_THINK_SEND_AWAY,
         },
         {
-            (aNRG2_THINK_PROC)&none_proc1,
+            _none_aNRG2_THINK_PROC,
             &aNRG2_send_away_init,
-            (aNPC_TALK_REQUEST_PROC)&none_proc1,
+            _none_aNPC_TALK_REQUEST_PROC,
             0,
             aNRG2_THINK_SEND_AWAY,
         },
@@ -326,7 +326,7 @@ static void aNRG2_setup_think_proc(NPC_RCN_GUIDE2_ACTOR* rcn_guide2, GAME_PLAY* 
         {
             &aNRG2_all_job_end,
             &aNRG2_all_job_end_init,
-            (aNPC_TALK_REQUEST_PROC)&none_proc1,
+            _none_aNPC_TALK_REQUEST_PROC,
             0,
             aNRG2_THINK_ALL_JOB_END,
         },

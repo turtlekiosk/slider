@@ -109,7 +109,7 @@ static void aPST_change_talk_proc(PRESENT_NPC_ACTOR* actor, int type) {
         // clang-format off
         aPST_present_send_start_wait_talk_proc,
         aPST_present_send_end_wait_talk_proc,
-        (aPST_TALK_PROC)none_proc1,
+        _none_aPST_TALK_PROC,
         // clang-format on
     };
 
@@ -150,7 +150,7 @@ static void aPST_set_talk_info(ACTOR* actorx) {
                 case aPRD_TYPE_SONCHO_VACATION0_CONTRIBUTED:
                     if (mPr_GetPossessionItemIdx(Now_Private, EMPTY_NO) == -1) {
                         msg_no = 0x33FF;
-                        talk_proc = (aPST_TALK_PROC)none_proc1;
+                        talk_proc = _none_aPST_TALK_PROC;
                     } else {
                         msg_no = 0x33FD;
                         mSC_LightHouse_Event_Clear(-1);
@@ -159,7 +159,7 @@ static void aPST_set_talk_info(ACTOR* actorx) {
                 case aPRD_TYPE_SONCHO_VACATION1_CONTRIBUTED:
                     if (mPr_GetPossessionItemIdx(Now_Private, EMPTY_NO) == -1) {
                         msg_no = 0x3416;
-                        talk_proc = (aPST_TALK_PROC)none_proc1;
+                        talk_proc = _none_aPST_TALK_PROC;
                     } else {
                         msg_no = 0x3414;
                         mSC_LightHouse_Event_Clear(-1);
@@ -167,12 +167,12 @@ static void aPST_set_talk_info(ACTOR* actorx) {
                     break;
                 case aPRD_TYPE_SONCHO_VACATION0_STARTED:
                     msg_no = 0x3400;
-                    talk_proc = (aPST_TALK_PROC)none_proc1;
+                    talk_proc = _none_aPST_TALK_PROC;
                     mSC_LightHouse_Event_Clear(-1);
                     break;
                 case aPRD_TYPE_SONCHO_VACATION1_STARTED:
                     msg_no = 0x3417;
-                    talk_proc = (aPST_TALK_PROC)none_proc1;
+                    talk_proc = _none_aPST_TALK_PROC;
                     mSC_LightHouse_Event_Clear(-1);
                     break;
             }
@@ -191,7 +191,7 @@ static void aPST_talk_request(ACTOR* actorx, GAME* game) {
 static int aPST_talk_init(ACTOR* actorx, GAME* game) {
     PRESENT_NPC_ACTOR* actor = (PRESENT_NPC_ACTOR*)actorx;
 
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     return TRUE;
 }
@@ -327,10 +327,10 @@ typedef struct {
 static void aPST_setup_think_proc(PRESENT_NPC_ACTOR* actor, GAME_PLAY* play, int type) {
     static aPST_think_data_c dt_tbl[] = {
         // clang-format off
-        {                   aPST_wait, (aPST_THINK_INIT_PROC)none_proc1, (aNPC_TALK_REQUEST_PROC)none_proc1, 0x00,      aPST_THINK_WAIT },
-        { (aPST_THINK_PROC)none_proc1, (aPST_THINK_INIT_PROC)none_proc1,                  aPST_talk_request, 0x00, aPST_THINK_EXIT_TURN },
-        {              aPST_exit_turn,              aPST_exit_turn_init, (aNPC_TALK_REQUEST_PROC)none_proc1, 0x00, aPST_THINK_EXIT_TURN },
-        {                   aPST_exit, (aPST_THINK_INIT_PROC)none_proc1, (aNPC_TALK_REQUEST_PROC)none_proc1, 0x00,      aPST_THINK_EXIT },
+        {                   aPST_wait, _none_aPST_THINK_INIT_PROC, _none_aNPC_TALK_REQUEST_PROC, 0x00,      aPST_THINK_WAIT },
+        { _none_aPST_THINK_PROC, _none_aPST_THINK_INIT_PROC,                  aPST_talk_request, 0x00, aPST_THINK_EXIT_TURN },
+        {              aPST_exit_turn,              aPST_exit_turn_init, _none_aNPC_TALK_REQUEST_PROC, 0x00, aPST_THINK_EXIT_TURN },
+        {                   aPST_exit, _none_aPST_THINK_INIT_PROC, _none_aNPC_TALK_REQUEST_PROC, 0x00,      aPST_THINK_EXIT },
         // clang-format on
     };
 

@@ -33,6 +33,7 @@ typedef struct {
     u32 block_size;
     int num_blocks;
     int* block_phys; /* logical block -> physical block, -1 = absent */
+    u32 file_size;   /* physical size of the image file (0 = unknown) */
 } DiscFile;
 
 /* ---- global state ---- */
@@ -76,7 +77,9 @@ static int disc_open(DiscFile* df, const char* path) {
         }
     }
 
-    /* plain ISO/GCM */
+    /* plain ISO/GCM — record the physical file size for bounds checks */
+    fseek(df->fp, 0, SEEK_END);
+    df->file_size = (u32)ftell(df->fp);
     df->is_ciso = 0;
     return 1;
 }
@@ -288,20 +291,44 @@ static int str_ends_ci(const char* s, const char* suffix) {
     return 1;
 }
 
+static int search_one_dir(char* out_path, int out_sz, const char* dir) {
+    DIR* dp = opendir(dir);
+    struct dirent* ent;
+    if (!dp) return 0;
+    while ((ent = readdir(dp)) != NULL) {
+        if (str_ends_ci(ent->d_name, ".ciso") ||
+            str_ends_ci(ent->d_name, ".iso")  ||
+            str_ends_ci(ent->d_name, ".gcm")) {
+            if (strcmp(dir, ".") == 0)
+                snprintf(out_path, out_sz, "%s", ent->d_name);
+            else
+                snprintf(out_path, out_sz, "%s/%s", dir, ent->d_name);
+            closedir(dp);
+            return 1;
+        }
+    }
+    closedir(dp);
+    return 0;
+}
+
 static int search_disc_dirs(char* out_path, int out_sz, const char** dirs) {
     int d;
     for (d = 0; dirs[d]; d++) {
+        if (search_one_dir(out_path, out_sz, dirs[d]))
+            return 1;
+
+        /* Also scan one level of subdirectories */
         DIR* dp = opendir(dirs[d]);
         struct dirent* ent;
         if (!dp) continue;
         while ((ent = readdir(dp)) != NULL) {
-            if (str_ends_ci(ent->d_name, ".ciso") ||
-                str_ends_ci(ent->d_name, ".iso")  ||
-                str_ends_ci(ent->d_name, ".gcm")) {
-                if (strcmp(dirs[d], ".") == 0)
-                    snprintf(out_path, out_sz, "%s", ent->d_name);
-                else
-                    snprintf(out_path, out_sz, "%s/%s", dirs[d], ent->d_name);
+            if (ent->d_name[0] == '.') continue;
+            char sub[512];
+            if (strcmp(dirs[d], ".") == 0)
+                snprintf(sub, sizeof(sub), "%s", ent->d_name);
+            else
+                snprintf(sub, sizeof(sub), "%s/%s", dirs[d], ent->d_name);
+            if (search_one_dir(out_path, out_sz, sub)) {
                 closedir(dp);
                 return 1;
             }
@@ -374,11 +401,30 @@ int pc_disc_find_file(const char* path, u32* disc_offset, u32* file_size) {
     /* strip leading slash */
     if (path[0] == '/') path++;
 
+    /* Exact match first */
     for (i = 0; i < g_fst_file_count; i++) {
         if (strcmp(g_fst_files[i].path, path) == 0) {
             *disc_offset = g_fst_files[i].disc_offset;
-            *file_size = g_fst_files[i].file_size;
+            *file_size   = g_fst_files[i].file_size;
             return 1;
+        }
+    }
+
+    /* Basename fallback: the game often passes bare filenames (e.g. "forest_1st.arc")
+     * while the FST stores full paths (e.g. "Audiores/forest_1st.arc").
+     * Match if the FST path ends with /<query> or equals <query>. */
+    for (i = 0; i < g_fst_file_count; i++) {
+        const char* fst = g_fst_files[i].path;
+        size_t fst_len  = strlen(fst);
+        size_t q_len    = strlen(path);
+        if (fst_len >= q_len) {
+            const char* tail = fst + fst_len - q_len;
+            if (strcmp(tail, path) == 0 &&
+                (tail == fst || tail[-1] == '/')) {
+                *disc_offset = g_fst_files[i].disc_offset;
+                *file_size   = g_fst_files[i].file_size;
+                return 1;
+            }
         }
     }
     return 0;
@@ -387,6 +433,16 @@ int pc_disc_find_file(const char* path, u32* disc_offset, u32* file_size) {
 int pc_disc_read(u32 offset, void* dest, u32 size) {
     if (!g_disc_open) return 0;
     return disc_read(&g_disc, offset, dest, size);
+}
+
+/* Returns true only if the full [offset, offset+size) range lies within the
+ * physical disc image. Used to guard against partial/trimmed images that have
+ * a valid FST but missing file data beyond the image boundary. */
+int pc_disc_range_valid(u32 offset, u32 size) {
+    if (!g_disc_open) return 0;
+    if (g_disc.is_ciso) return 1; /* CISO handles sparse blocks internally */
+    if (g_disc.file_size == 0) return 1; /* unknown size, assume OK */
+    return offset + size <= g_disc.file_size;
 }
 
 u8* pc_disc_extract_dol(void) {

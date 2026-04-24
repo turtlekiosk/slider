@@ -49,8 +49,8 @@ static void aCR_sleep_init(NPC_CURATOR_ACTOR* curator) {
 typedef void (*aCR_INIT_PROC)(NPC_CURATOR_ACTOR*);
 
 static void aCR_setupAction(NPC_CURATOR_ACTOR* curator, GAME_PLAY* play, int action) {
-    static aCR_ACT_PROC process[aCR_ACTION_NUM] = { (aCR_ACT_PROC)&none_proc1, &aCR_sleep_wait,
-                                                    (aCR_ACT_PROC)&none_proc1 };
+    static aCR_ACT_PROC process[aCR_ACTION_NUM] = { _none_aCR_ACT_PROC, &aCR_sleep_wait,
+                                                    _none_aCR_ACT_PROC };
 
     static aCR_INIT_PROC init_proc[aCR_ACTION_NUM] = { &aCR_wait_init, &aCR_sleep_wait_init, &aCR_sleep_init };
 
@@ -866,25 +866,25 @@ typedef void (*aCR_TALK_INIT_PROC)(NPC_CURATOR_ACTOR*, GAME_PLAY*);
 
 static void aCR_talk_init_proc(NPC_CURATOR_ACTOR* curator, GAME_PLAY* play, int talk_act) {
     static aCR_TALK_INIT_PROC init_proc[aCR_TALK_NUM] = {
-        (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,
-        (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,
-        &aCR_msg_win_close_wait_init,    &aCR_menu_close_wait_init,       (aCR_TALK_INIT_PROC)none_proc1,
-        &aCR_get_demo_end_wait_init,     &aCR_msg_win_open_wait_init,     (aCR_TALK_INIT_PROC)none_proc1,
-        (aCR_TALK_INIT_PROC)none_proc1,  &aCR_return_demo_end_wait_init,  &aCR_return_demo_end_wait_init,
-        (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,
-        (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,
-        (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,
-        (aCR_TALK_INIT_PROC)none_proc1,  &aCR_putaway_demo_end_wait_init, &aCR_putaway_demo_end_wait_init,
+        _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,
+        _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,
+        &aCR_msg_win_close_wait_init,    &aCR_menu_close_wait_init,       _none_aCR_TALK_INIT_PROC,
+        &aCR_get_demo_end_wait_init,     &aCR_msg_win_open_wait_init,     _none_aCR_TALK_INIT_PROC,
+        _none_aCR_TALK_INIT_PROC,  &aCR_return_demo_end_wait_init,  &aCR_return_demo_end_wait_init,
+        _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,
+        _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,
+        _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,
+        _none_aCR_TALK_INIT_PROC,  &aCR_putaway_demo_end_wait_init, &aCR_putaway_demo_end_wait_init,
         &aCR_putaway_demo_end_wait_init, &aCR_putaway_demo_end_wait_init, &aCR_putaway_demo_end_wait_init,
-        &aCR_putaway_demo_end_wait_init, (aCR_TALK_INIT_PROC)none_proc1,  (aCR_TALK_INIT_PROC)none_proc1,
-        (aCR_TALK_INIT_PROC)none_proc1
+        &aCR_putaway_demo_end_wait_init, _none_aCR_TALK_INIT_PROC,  _none_aCR_TALK_INIT_PROC,
+        _none_aCR_TALK_INIT_PROC
     };
 
     (*init_proc[talk_act])(curator, play);
 }
 
 static void aCR_setupTalkAction(NPC_CURATOR_ACTOR* curator, GAME_PLAY* play, int talk_act) {
-    static aCR_TALK_ACT_PROC process[aCR_TALK_NUM] = { (aCR_TALK_INIT_PROC)&none_proc1,
+    static aCR_TALK_ACT_PROC process[aCR_TALK_NUM] = { _none_aCR_TALK_INIT_PROC,
                                                        &aCR_after_talk_start_wait,
                                                        &aCR_chk_request,
                                                        &aCR_chk_decide_to_donate,

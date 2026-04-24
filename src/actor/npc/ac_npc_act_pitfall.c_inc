@@ -63,7 +63,7 @@ static void aNPC_act_pitfall_main_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
         &aNPC_act_pitfall_totter,
         &aNPC_act_pitfall_fall,
         &aNPC_act_pitfall_fall,
-        (aNPC_SUB_PROC)&none_proc1,
+        _none_aNPC_SUB_PROC,
     };
     // clang-format on
 
@@ -97,7 +97,7 @@ static void aNPC_act_pitfall_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
 static void aNPC_act_pitfall_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int type) {
     static aNPC_SUB_PROC act_proc[] = {
         &aNPC_act_pitfall_init_proc,
-        (aNPC_SUB_PROC)&none_proc1,
+        _none_aNPC_SUB_PROC,
         &aNPC_act_pitfall_main_proc,
     };
 

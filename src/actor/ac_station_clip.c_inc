@@ -500,7 +500,7 @@ static int aSTC_clip_change_talk_proc(ACTOR* actorx, int talk_act) {
         &aSTM_repairid,
         &aSTM_repairid_after,
         &aSTM_cardproc,
-        (aSTM_TALK_PROC)&none_proc1,
+        _none_aSTM_TALK_PROC,
     };
     // clang-format on
 

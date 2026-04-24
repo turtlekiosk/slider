@@ -185,7 +185,7 @@ typedef void (*aHN0_THINK_PROC)(HATUMODE_NPC0_ACTOR*, GAME_PLAY*);
 
 // clang-format off
 static aHN0_THINK_PROC proc_table[] = {
-    (aHN0_THINK_PROC)&none_proc1,
+    _none_aHN0_THINK_PROC,
     &aHN0_birth,
     &aHN0_ready1,
     &aHN0_ready2,
@@ -233,7 +233,7 @@ static void aHN0_think_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
 static void aHN0_setup_think_proc(HATUMODE_NPC0_ACTOR* h_npc, GAME_PLAY* play, u8 think_idx) {
     // clang-format off
     static aNPC_TALK_REQUEST_PROC talk_request_table[] = {
-        (aNPC_TALK_REQUEST_PROC)&none_proc1,
+        _none_aNPC_TALK_REQUEST_PROC,
         &aHN0_norm_talk_request,
         &aHN0_force_talk_request,
     };
@@ -243,7 +243,7 @@ static void aHN0_setup_think_proc(HATUMODE_NPC0_ACTOR* h_npc, GAME_PLAY* play, u
     if (CLIP(hatumode_clip) != NULL) {
         h_npc->npc_class.talk_info.talk_request_proc = talk_request_table[CLIP(hatumode_clip)->think_init_proc((ACTOR*)h_npc, play)];
     } else {
-        h_npc->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)&none_proc1;
+        h_npc->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
         h_npc->think_proc_idx = aHN0_THINK_PROC_BIRTH;
     }
 

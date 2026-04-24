@@ -70,7 +70,7 @@ static void aGYO_setupActor(aGYO_Init_c* init_data, int idx) {
     ctrl->exist = TRUE;
     ctrl->draw_type = aGYO_DRAW_TYPE_GYOEI;
     ctrl->gyo_type = init_data->fish_type;
-    ctrl->act_proc = (aGYO_ACT_PROC)&none_proc1;
+    ctrl->act_proc = _none_aGYO_ACT_PROC;
     ctrl->range = 40.0f;
     ctrl->col_flags |= 1;
 

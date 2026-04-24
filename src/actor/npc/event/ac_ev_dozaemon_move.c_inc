@@ -76,7 +76,7 @@ static void aEDZ_talk_give(DOZAEMON_ACTOR* dozaemon, GAME_PLAY* play) {
 
 static int aEDZ_change_talk_proc(DOZAEMON_ACTOR* dozaemon, int talk_act) {
     static aEDZ_TALK_PROC proc[] = {
-        (aEDZ_TALK_PROC)none_proc1,
+        _none_aEDZ_TALK_PROC,
         aEDZ_talk_stop_player,
         aEDZ_talk_okiagaru,
         aEDZ_talk_give,
@@ -126,7 +126,7 @@ static void aEDZ_set_norm_talk_info(ACTOR* actorx) {
         mPlib_Set_able_force_speak_label(actorx);
     } else {
         mDemo_Set_msg_num(0x23F9 + RANDOM(5));
-        dozaemon->talk_proc = (aEDZ_TALK_PROC)none_proc1;
+        dozaemon->talk_proc = _none_aEDZ_TALK_PROC;
     }
 }
 
@@ -151,7 +151,7 @@ static void aEDZ_set_wander_talk_info(ACTOR* actorx) {
         aEDZ_to_ageru2(dozaemon);
     } else {
         mDemo_Set_msg_num(0x240A + RANDOM(6));
-        dozaemon->talk_proc = (aEDZ_TALK_PROC)none_proc1;
+        dozaemon->talk_proc = _none_aEDZ_TALK_PROC;
     }
 }
 
@@ -162,7 +162,7 @@ static void aEDZ_wander_talk_request(ACTOR* actorx, GAME* game) {
 static int aEDZ_talk_init(ACTOR* actorx, GAME* game) {
     DOZAEMON_ACTOR* dozaemon = (DOZAEMON_ACTOR*)actorx;
     
-    dozaemon->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    dozaemon->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     mDemo_Start(actorx);
     return TRUE;

@@ -186,7 +186,7 @@ static void aSEN_think_init_proc(NPC_ACTOR* actorx, GAME_PLAY* play) {
     u8 act;
 
     actorx->think.interrupt_flags = 0;
-    actorx->action.act_proc = (aNPC_ACTION_PROC)&none_proc1;
+    actorx->action.act_proc = _none_aNPC_ACTION_PROC;
 
     aSEN_set_request_act(sendo);
     if (boat_demo->at_island == FALSE) {
@@ -271,28 +271,28 @@ static void aSEN_force_talk_request(ACTOR*, GAME*);
 
 static void aSEN_setup_think_proc(NPC_SENDO_ACTOR* sendo, GAME_PLAY* play, u8 think_act) {
     static aSEN_think_setup_c dt_tbl[] = {
-        { (aSEN_PROC)&none_proc1, aSEN_talk_start_wait_init, aSEN_norm_talk_request, 0, 0, aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_talk_start_wait_init, aSEN_norm_talk_request, 1, 1, aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_talk_start_wait_init, aSEN_norm_talk_request, 2, 2, aNPC_ANIM_WIPWAIT1 },
-        { aSEN_pl_ride_on_end_wait, aSEN_pl_ride_on_end_wait_init, (aNPC_TALK_REQUEST_PROC)&none_proc1, 0, 3,
+        { _none_aSEN_PROC, aSEN_talk_start_wait_init, aSEN_norm_talk_request, 0, 0, aNPC_ANIM_WIPWAIT1 },
+        { _none_aSEN_PROC, aSEN_talk_start_wait_init, aSEN_norm_talk_request, 1, 1, aNPC_ANIM_WIPWAIT1 },
+        { _none_aSEN_PROC, aSEN_talk_start_wait_init, aSEN_norm_talk_request, 2, 2, aNPC_ANIM_WIPWAIT1 },
+        { aSEN_pl_ride_on_end_wait, aSEN_pl_ride_on_end_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0, 3,
           aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_start_call_v_init, aSEN_force_talk_request, 0, 7, aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_start_call_v_init, aSEN_force_talk_request, 1, 7, aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_start_call_v_init, aSEN_force_talk_request, 2, 7, aNPC_ANIM_WIPWAIT1 },
-        { aSEN_sing_start_wait, aSEN_sing_start_wait_init, (aNPC_TALK_REQUEST_PROC)&none_proc1, 0, 7,
+        { _none_aSEN_PROC, aSEN_start_call_v_init, aSEN_force_talk_request, 0, 7, aNPC_ANIM_WIPWAIT1 },
+        { _none_aSEN_PROC, aSEN_start_call_v_init, aSEN_force_talk_request, 1, 7, aNPC_ANIM_WIPWAIT1 },
+        { _none_aSEN_PROC, aSEN_start_call_v_init, aSEN_force_talk_request, 2, 7, aNPC_ANIM_WIPWAIT1 },
+        { aSEN_sing_start_wait, aSEN_sing_start_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0, 7,
           aNPC_ANIM_WIPKOGU1 },
-        { (aSEN_PROC)&none_proc1, (aSEN_PROC)&none_proc1, aSEN_force_talk_request, 3, 10, aNPC_ANIM_WIPKOGU1 },
-        { (aSEN_PROC)&none_proc1, (aSEN_PROC)&none_proc1, aSEN_force_talk_request, 4, 10, aNPC_ANIM_WIPKOGU1 },
-        { aSEN_touch_wharf_start_wait, (aSEN_PROC)&none_proc1, (aNPC_TALK_REQUEST_PROC)&none_proc1, 0, 10,
+        { _none_aSEN_PROC, _none_aSEN_PROC, aSEN_force_talk_request, 3, 10, aNPC_ANIM_WIPKOGU1 },
+        { _none_aSEN_PROC, _none_aSEN_PROC, aSEN_force_talk_request, 4, 10, aNPC_ANIM_WIPKOGU1 },
+        { aSEN_touch_wharf_start_wait, _none_aSEN_PROC, _none_aNPC_TALK_REQUEST_PROC, 0, 10,
           aNPC_ANIM_WIPKOGU1 },
-        { aSEN_touch_wharf_end_wait, aSEN_touch_wharf_end_wait_init, (aNPC_TALK_REQUEST_PROC)&none_proc1, 0, 11,
+        { aSEN_touch_wharf_end_wait, aSEN_touch_wharf_end_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0, 11,
           aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_arrive_call_init, aSEN_force_talk_request, 5, 14, aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_arrive_call_init, aSEN_force_talk_request, 6, 14, aNPC_ANIM_WIPWAIT1 },
-        { aSEN_pl_ride_off_end_wait, aSEN_pl_ride_off_end_wait_init, (aNPC_TALK_REQUEST_PROC)&none_proc1, 0, 14,
+        { _none_aSEN_PROC, aSEN_arrive_call_init, aSEN_force_talk_request, 5, 14, aNPC_ANIM_WIPWAIT1 },
+        { _none_aSEN_PROC, aSEN_arrive_call_init, aSEN_force_talk_request, 6, 14, aNPC_ANIM_WIPWAIT1 },
+        { aSEN_pl_ride_off_end_wait, aSEN_pl_ride_off_end_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0, 14,
           aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_out_of_service_init, aSEN_norm_talk_request, 3, 15, aNPC_ANIM_WIPWAIT1 },
-        { (aSEN_PROC)&none_proc1, aSEN_out_of_service2_init, aSEN_norm_talk_request, 4, 16, aNPC_ANIM_WIPWAIT2 },
+        { _none_aSEN_PROC, aSEN_out_of_service_init, aSEN_norm_talk_request, 3, 15, aNPC_ANIM_WIPWAIT1 },
+        { _none_aSEN_PROC, aSEN_out_of_service2_init, aSEN_norm_talk_request, 4, 16, aNPC_ANIM_WIPWAIT2 },
     };
 
     aSEN_think_setup_c* data = &dt_tbl[think_act];
@@ -1147,7 +1147,7 @@ static void aSEN_chk_read_agb3_talk_proc(NPC_SENDO_ACTOR* sendo, GAME_PLAY* play
 
 static void aSEN_change_talk_proc(NPC_SENDO_ACTOR* sendo, u8 talk_idx) {
     static aSEN_PROC talk_proc[aSEN_TALK_NUM] = {
-        (aSEN_PROC)&none_proc1,
+        _none_aSEN_PROC,
         aSEN_sing_end_wait_talk_proc,
         aSEN_pl_ride_on_check_talk_proc,
         aSEN_chk_exist_island_data_in_ram_talk_proc,

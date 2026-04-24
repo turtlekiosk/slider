@@ -19,6 +19,10 @@ int pc_disc_find_file(const char* path, u32* disc_offset, u32* file_size);
 /* Read bytes from a logical disc offset. Returns 1 on success. */
 int pc_disc_read(u32 offset, void* dest, u32 size);
 
+/* Returns 1 if the [offset, offset+size) range lies within the disc image.
+ * Used to reject files whose data is absent in a partial/trimmed image. */
+int pc_disc_range_valid(u32 offset, u32 size);
+
 /* Extract DOL and REL as malloc'd buffers (for pc_assets.c). */
 u8* pc_disc_extract_dol(void);
 u8* pc_disc_extract_rel(void); /* handles Yaz0 decompression */

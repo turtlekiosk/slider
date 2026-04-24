@@ -315,7 +315,7 @@ static aTKN1_think_data_c dt_tbl[] = {
 };
 
 static aTKN1_THINK_PROC proc_table[] = {
-    (aTKN1_THINK_PROC)none_proc1,
+    _none_aTKN1_THINK_PROC,
     aTKN1_birth,
     aTKN1_turn_next,
     aTKN1_ready,
@@ -335,7 +335,7 @@ static aTKN1_THINK_PROC proc_table[] = {
 };
 
 static void aTKN1_setup_think_proc(TOKYOSO_NPC1_ACTOR* actor, GAME_PLAY* play, u8 think_idx) {
-    static aNPC_TALK_REQUEST_PROC talk_request_table[] = { (aNPC_TALK_REQUEST_PROC)none_proc1, aTKN1_norm_talk_request, (aNPC_TALK_REQUEST_PROC)none_proc1  };
+    static aNPC_TALK_REQUEST_PROC talk_request_table[] = { _none_aNPC_TALK_REQUEST_PROC, aTKN1_norm_talk_request, _none_aNPC_TALK_REQUEST_PROC  };
     aTKN1_think_data_c* dt;
 
     dt = &dt_tbl[think_idx];

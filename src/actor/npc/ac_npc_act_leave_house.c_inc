@@ -76,7 +76,7 @@ static void aNPC_act_leave_house_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) 
 static void aNPC_act_leave_house_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int type) {
     static aNPC_SUB_PROC act_proc[] = {
         &aNPC_act_leave_house_init_proc,
-        (aNPC_SUB_PROC)&none_proc1,
+        _none_aNPC_SUB_PROC,
         &aNPC_act_leave_house_main_proc,
     };
 

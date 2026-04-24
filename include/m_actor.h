@@ -16,7 +16,13 @@ extern "C" {
 #endif
 
 typedef void (*mActor_proc)(ACTOR*, GAME*);
+#ifdef TARGET_PC
+/* none_proc2 has the correct mActor_proc signature; none_proc1 is () -> int which
+ * triggers wasm call_indirect type mismatch when invoked through a typed function pointer. */
+#define NONE_ACTOR_PROC none_proc2
+#else
 #define NONE_ACTOR_PROC ((mActor_proc)&none_proc1)
+#endif
 
 #define mAc_MAX_ACTORS 200
 
@@ -1154,7 +1160,11 @@ struct actor_s {
     /* 0x170 */ ACTOR_DLFTBL* dlftbl; /* display list function table */
 };
 
+#ifdef TARGET_PC
+#define mActor_NONE_PROC1 none_proc2
+#else
 #define mActor_NONE_PROC1 ((mActor_proc)none_proc1)
+#endif
 
 typedef struct actor_list_s {
     /* 0x00 */ int num_actors;

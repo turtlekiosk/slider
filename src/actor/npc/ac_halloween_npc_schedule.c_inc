@@ -55,7 +55,7 @@ static void aHWN_setup_think_proc(HALLOWEEN_NPC_ACTOR* hwn_actor, GAME_PLAY* pla
     // clang-format off
     static aHWN_talk_data_c dt_tbl[] = {
         { &aHWN_approach, &aHWN_approach_init, &aHWN_force_talk_request, 0 },
-        { &aHWN_approach_wait, &aHWN_approach_wait_init, (aNPC_TALK_REQUEST_PROC)&none_proc1, 0 },
+        { &aHWN_approach_wait, &aHWN_approach_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0 },
     };
     // clang-format on
 

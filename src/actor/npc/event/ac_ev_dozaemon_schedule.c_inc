@@ -64,14 +64,14 @@ static aEDZ_think_data_c dt_tbl[] = {
 };
 
 static aEDZ_THINK_PROC proc_table[] = {
-    (aEDZ_THINK_PROC)none_proc1,
+    _none_aEDZ_THINK_PROC,
     aEDZ_anime_next,
 };
 
 typedef void (*aEDZ_THINK_INIT_PROC)(DOZAEMON_ACTOR* dozaemon, GAME_PLAY* play);
 
 static aEDZ_THINK_INIT_PROC init_table[] = {
-    (aEDZ_THINK_INIT_PROC)none_proc1,
+    _none_aEDZ_THINK_INIT_PROC,
     aEDZ_normal_wait_init,
     aEDZ_taoreru_init,
     aEDZ_okiagaru_init,
@@ -81,7 +81,7 @@ static aEDZ_THINK_INIT_PROC init_table[] = {
 static void aEDZ_setup_think_proc(DOZAEMON_ACTOR* dozaemon, GAME_PLAY* play, u8 idx) {
     aEDZ_think_data_c* dt = &dt_tbl[idx];
     static aNPC_TALK_REQUEST_PROC talk_request_table[] = {
-        (aNPC_TALK_REQUEST_PROC)none_proc1,
+        _none_aNPC_TALK_REQUEST_PROC,
         aEDZ_norm_talk_request,
         aEDZ_force_talk_request,
     };

@@ -275,7 +275,7 @@ static void aNW_open_door(STRUCTURE_ACTOR* shop, GAME_PLAY* play) {
 }
 
 static void aNW_setup_action(STRUCTURE_ACTOR* shop, int action) {
-    static aSTR_MOVE_PROC process[] = { &aNW_wait, &aNW_open_door_wait, &aNW_open_door, (aSTR_MOVE_PROC)&none_proc1 };
+    static aSTR_MOVE_PROC process[] = { &aNW_wait, &aNW_open_door_wait, &aNW_open_door, _none_aSTR_MOVE_PROC };
 
     shop->action_proc = process[action];
 }

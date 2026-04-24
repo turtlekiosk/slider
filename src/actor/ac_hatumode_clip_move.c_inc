@@ -69,7 +69,7 @@ static void aHN0_talk_saisen_suru(HATUMODE_NPC0_ACTOR* hatumode_npc0, GAME_PLAY*
 static int aHN0_change_talk_proc(HATUMODE_NPC0_ACTOR* hatumode_npc0, int talk_idx) {
     // clang-format off
     static aHN0_TALK_PROC proc[] = {
-        (aHN0_TALK_PROC)&none_proc1,
+        _none_aHN0_TALK_PROC,
         &aHN0_talk_stop_player,
         &aHN0_talk_saisen_suru,
     };

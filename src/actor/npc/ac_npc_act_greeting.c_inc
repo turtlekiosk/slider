@@ -634,7 +634,7 @@ static void aNPC_act_greeting_main_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
         &aNPC_act_greeting_chg_cloth,
         &aNPC_act_greeting_chg_umb,
         &aNPC_act_greeting_chg_cloth_and_umb,
-        (aNPC_SUB_PROC)&none_proc1,
+        _none_aNPC_SUB_PROC,
     };
     // clang-format on
 
@@ -656,7 +656,7 @@ static void aNPC_act_greeting_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
 }
 
 static void aNPC_act_greeting_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int type) {
-    static aNPC_SUB_PROC act_proc[] = { &aNPC_act_greeting_init_proc, (aNPC_SUB_PROC)&none_proc1,
+    static aNPC_SUB_PROC act_proc[] = { &aNPC_act_greeting_init_proc, _none_aNPC_SUB_PROC,
                                         &aNPC_act_greeting_main_proc };
 
     (*act_proc[type])(nactorx, play);

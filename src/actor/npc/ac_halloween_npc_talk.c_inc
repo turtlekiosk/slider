@@ -236,7 +236,7 @@ static void aHWN_change_talk_proc(HALLOWEEN_NPC_ACTOR* actorx, int talk_proc_idx
         &aHWN_get_ame_wait_talk_proc,
         &aHWN_get_ame_talk_proc,
         &aHWN_pl_demo_code_end_wait_talk_proc,
-        (aHWN_TALK_PROC)&none_proc1,
+        _none_aHWN_TALK_PROC,
     };
     // clang-format on
     actorx->talk_proc = talk_proc[talk_proc_idx];

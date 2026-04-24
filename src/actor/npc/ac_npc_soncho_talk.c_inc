@@ -30,10 +30,10 @@ static void aNS_norm_talk_request(ACTOR* actorx, GAME* game) {
 }
 
 static int aNS_talk_init(ACTOR* actorx, GAME* game) {
-    static aNS_PROC proc[] = { (aNS_PROC)none_proc1 }; // ?? unused somewhere here or above (inside a function)
+    static aNS_PROC proc[] = { _none_aNS_PROC }; // ?? unused somewhere here or above (inside a function)
     NPC_SONCHO_ACTOR* actor = (NPC_SONCHO_ACTOR*)actorx;
 
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     mDemo_Start(actorx);
     mSC_trophy_set(mSC_SPECIAL_EVENT_ARBEIT);
@@ -41,7 +41,7 @@ static int aNS_talk_init(ACTOR* actorx, GAME* game) {
 }
 
 static int aNS_talk_end_chk(ACTOR* actorx, GAME* game) {
-    static aNS_PROC proc[] = { (aNS_PROC)none_proc1 };
+    static aNS_PROC proc[] = { _none_aNS_PROC };
 
     NPC_SONCHO_ACTOR* actor = (NPC_SONCHO_ACTOR*)actorx;
     GAME_PLAY* play = (GAME_PLAY*)game;

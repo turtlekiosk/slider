@@ -276,7 +276,7 @@ static void aEDSN_norm_talk_request(ACTOR* actorx, GAME* game) {
 static int aEDSN_talk_init(ACTOR* actorx, GAME* game) {
     EV_DESIGNER_ACTOR* designer = (EV_DESIGNER_ACTOR*)actorx;
 
-    designer->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    designer->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     return TRUE;
 }

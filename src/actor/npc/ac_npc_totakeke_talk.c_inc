@@ -152,7 +152,7 @@ static void aNTT_talk_give(NPC_TOTAKEKE_ACTOR* totakeke, GAME_PLAY* play) {
 }
 
 static int aNTT_change_talk_proc(NPC_TOTAKEKE_ACTOR* totakeke, int talk) {
-    static aNTT_PROC proc[7] = { (aNTT_PROC)none_proc1, aNTT_talk_select0,  aNTT_talk_select1, aNTT_talk_stop_player,
+    static aNTT_PROC proc[7] = { _none_aNTT_PROC, aNTT_talk_select0,  aNTT_talk_select1, aNTT_talk_stop_player,
                                  aNTT_talk_submenu,     aNTT_talk_submenu2, aNTT_talk_give };
     totakeke->proc = proc[talk];
     if (talk == aNTT_TALK_STOP_PLAYER) {

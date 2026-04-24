@@ -717,7 +717,7 @@ static aNNW_think_data_c dt_tbl[] = {
 
 // clang-format off
 static aNNW_THINK_PROC proc_table[] = {
-    (aNNW_THINK_PROC)none_proc1,
+    _none_aNNW_THINK_PROC,
     aNNW_ikagadesyou,
     aNNW_omatikudasai,
     aNNW_omatikudasai2,
@@ -732,7 +732,7 @@ typedef void (*aNNW_THINK_INIT_PROC)(NPC_NEEDLEWORK_ACTOR* actor, GAME_PLAY* pla
 
 // clang-format off
 static aNNW_THINK_INIT_PROC init_table[] = {
-    (aNNW_THINK_INIT_PROC)none_proc1,
+    _none_aNNW_THINK_INIT_PROC,
     aNNW_normal_wait_init,
     aNNW_misin_wait_init,
     aNNW_ainote_init,
@@ -744,7 +744,7 @@ static aNNW_THINK_INIT_PROC init_table[] = {
 static void aNNW_setup_think_proc(NPC_NEEDLEWORK_ACTOR* actor, GAME_PLAY* play, u8 think_idx) {
     // clang-format off
     static aNPC_TALK_REQUEST_PROC talk_request_table[] = {
-        (aNPC_TALK_REQUEST_PROC)none_proc1,
+        _none_aNPC_TALK_REQUEST_PROC,
         aNNW_norm_talk_request,
         aNNW_force_talk_request,
     };

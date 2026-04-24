@@ -17,7 +17,7 @@ static void aTS0_act_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
 }
 
 static void aTS0_act_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int type) {
-    static aNPC_SUB_PROC act_proc[] = { aTS0_act_init_proc, aTS0_act_chg_data_proc, (aNPC_SUB_PROC)none_proc1 };
+    static aNPC_SUB_PROC act_proc[] = { aTS0_act_init_proc, aTS0_act_chg_data_proc, _none_aNPC_SUB_PROC };
 
     (*act_proc[type])(nactorx, play);
 }

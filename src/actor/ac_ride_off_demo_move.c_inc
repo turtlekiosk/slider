@@ -113,7 +113,7 @@ static void aROD_walk_one_unit_init(ACTOR* actor, GAME* game) {
 
 static void aROD_init_proc(ACTOR* actor, GAME* game, int idx) {
     static aROD_INIT_PROC init_proc[] = {
-        aROD_first_set_init,       aROD_train_birth_wait_init, (aROD_INIT_PROC)&none_proc1,
+        aROD_first_set_init,       aROD_train_birth_wait_init, _none_aROD_INIT_PROC,
         aROD_ride_off_player_init, aROD_walk_one_unit_init,
     };
 

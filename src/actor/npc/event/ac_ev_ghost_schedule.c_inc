@@ -248,15 +248,15 @@ static aEGH_setup_c dt_tbl[aEGH_THINK_NUM] = {
     { aEGH_THINK_PROC_NONE, aEGH_THINK_INIT_IRAI_AF, aEGH_TALK_REQUEST_NORM, aEGH_TALK_END_WAIT, aEGH_THINK_SPEAK }
 };
 
-static aEGH_PROC proc_table[aEGH_THINK_PROC_NUM] = { (aEGH_PROC)&none_proc1, &aEGH_irai, &aEGH_bye, &aEGH_byebye,
+static aEGH_PROC proc_table[aEGH_THINK_PROC_NUM] = { _none_aEGH_PROC, &aEGH_irai, &aEGH_bye, &aEGH_byebye,
                                                      &aEGH_speak_byebye };
 
-static aEGH_PROC init_table[aEGH_THINK_INIT_NUM] = { (aEGH_PROC)&none_proc1, &aEGH_normal_wait_init, &aEGH_irai_init,
+static aEGH_PROC init_table[aEGH_THINK_INIT_NUM] = { _none_aEGH_PROC, &aEGH_normal_wait_init, &aEGH_irai_init,
                                                      &aEGH_irai_af_init,     &aEGH_bye_init,         &aEGH_welcom_init,
                                                      &aEGH_byebye_init };
 
 static void aEGH_setup_think_proc(EV_GHOST_ACTOR* ghost, GAME_PLAY* play, u8 think_act) {
-    static aNPC_TALK_REQUEST_PROC talk_request_table[aEGH_TALK_REQUEST_NUM] = { (aNPC_TALK_REQUEST_PROC)&none_proc1,
+    static aNPC_TALK_REQUEST_PROC talk_request_table[aEGH_TALK_REQUEST_NUM] = { _none_aNPC_TALK_REQUEST_PROC,
                                                                                 &aEGH_norm_talk_request,
                                                                                 &aEGH_force_talk_request };
 

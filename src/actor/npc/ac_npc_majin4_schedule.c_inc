@@ -9,7 +9,7 @@ static void aMJN4_act_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
 }
 
 static void aMJN4_act_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int type) {
-    static aNPC_SUB_PROC act_proc[] = { aMJN4_act_init_proc, (aNPC_SUB_PROC)none_proc1, (aNPC_SUB_PROC)none_proc1 };
+    static aNPC_SUB_PROC act_proc[] = { aMJN4_act_init_proc, _none_aNPC_SUB_PROC, _none_aNPC_SUB_PROC };
 
     (*act_proc[type])(nactorx, play);
 }
@@ -151,13 +151,13 @@ typedef struct {
 static void aMJN4_setup_think_proc(NPC_MAJIN4_ACTOR* actor, GAME_PLAY* play, int think_idx) {
     // clang-format off
     static aMJN4_think_data_c dt_tbl[] = {
-        {aMJN4_start_wait, (aMJN4_THINK_INIT_PROC)none_proc1, (aNPC_TALK_REQUEST_PROC)none_proc1, 0, aMJN4_THINK_START_WAIT},
-        {aMJN4_start_wait_st, (aMJN4_THINK_INIT_PROC)none_proc1, (aNPC_TALK_REQUEST_PROC)none_proc1, 0, aMJN4_THINK_START_WAIT_ST},
-        {(aMJN4_THINK_PROC)none_proc1, aMJN4_call_init, aMJN4_force_talk_request, 0, aMJN4_THINK_FORCE_RESET_END_WAIT},
-        {aMJN4_force_reset_end_wait, aMJN4_force_reset_end_wait_init, (aNPC_TALK_REQUEST_PROC)none_proc1, 0, aMJN4_THINK_FORCE_RESET_END_WAIT},
-        {aMJN4_color_filter_end_wait, aMJN4_color_filter_end_wait_init, (aNPC_TALK_REQUEST_PROC)none_proc1, 0, aMJN4_THINK_COLOR_FILTER_END_WAIT},
-        {(aMJN4_THINK_PROC)none_proc1, (aMJN4_THINK_INIT_PROC)none_proc1, aMJN4_force_talk_request, 1, aMJN4_THINK_EXIT},
-        {aMJN4_exit, (aMJN4_THINK_INIT_PROC)none_proc1, (aNPC_TALK_REQUEST_PROC)none_proc1, 0, aMJN4_THINK_EXIT},
+        {aMJN4_start_wait, _none_aMJN4_THINK_INIT_PROC, _none_aNPC_TALK_REQUEST_PROC, 0, aMJN4_THINK_START_WAIT},
+        {aMJN4_start_wait_st, _none_aMJN4_THINK_INIT_PROC, _none_aNPC_TALK_REQUEST_PROC, 0, aMJN4_THINK_START_WAIT_ST},
+        {_none_aMJN4_THINK_PROC, aMJN4_call_init, aMJN4_force_talk_request, 0, aMJN4_THINK_FORCE_RESET_END_WAIT},
+        {aMJN4_force_reset_end_wait, aMJN4_force_reset_end_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0, aMJN4_THINK_FORCE_RESET_END_WAIT},
+        {aMJN4_color_filter_end_wait, aMJN4_color_filter_end_wait_init, _none_aNPC_TALK_REQUEST_PROC, 0, aMJN4_THINK_COLOR_FILTER_END_WAIT},
+        {_none_aMJN4_THINK_PROC, _none_aMJN4_THINK_INIT_PROC, aMJN4_force_talk_request, 1, aMJN4_THINK_EXIT},
+        {aMJN4_exit, _none_aMJN4_THINK_INIT_PROC, _none_aNPC_TALK_REQUEST_PROC, 0, aMJN4_THINK_EXIT},
     };
     // clang-format on
 

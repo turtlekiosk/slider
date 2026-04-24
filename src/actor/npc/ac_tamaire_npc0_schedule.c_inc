@@ -159,18 +159,18 @@ static aTMN0_think_data_c dt_tbl[] = {
 
 // @ 8056b5e4
 static aTMN0_THINK_PROC proc_table[] = {
-    (aTMN0_THINK_PROC)&none_proc1, &aTMN0_birth, &aTMN0_turn_next, &aTMN0_move_next, &aTMN0_timer_next
+    _none_aTMN0_THINK_PROC, &aTMN0_birth, &aTMN0_turn_next, &aTMN0_move_next, &aTMN0_timer_next
 };
 
 typedef void (*aTMN0_THINK_INIT_PROC)(TAMAIRE_NPC0_ACTOR* actor, GAME_PLAY* play);
 
 // @ 8056b5f8
 static aTMN0_THINK_INIT_PROC init_table[] = {
-    (aTMN0_THINK_INIT_PROC)&none_proc1, &aTMN0_normal_wait_init, &aTMN0_turn_init, &aTMN0_move_init, &aTMN0_kansen_init
+    _none_aTMN0_THINK_INIT_PROC, &aTMN0_normal_wait_init, &aTMN0_turn_init, &aTMN0_move_init, &aTMN0_kansen_init
 };
 
 static void aTMN0_setup_think_proc(TAMAIRE_NPC0_ACTOR* actor, GAME_PLAY* play, u8 think_idx) {
-    static aNPC_TALK_REQUEST_PROC talk_request_table[] = { (aNPC_TALK_REQUEST_PROC)none_proc1, aTMN0_norm_talk_request, (aNPC_TALK_REQUEST_PROC)none_proc1 };
+    static aNPC_TALK_REQUEST_PROC talk_request_table[] = { _none_aNPC_TALK_REQUEST_PROC, aTMN0_norm_talk_request, _none_aNPC_TALK_REQUEST_PROC };
     aTMN0_think_data_c* dt;
 
     if (think_idx > aTMN0_THINK_TEAM1_KANSEN) {

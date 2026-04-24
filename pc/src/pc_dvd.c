@@ -103,10 +103,12 @@ BOOL DVDFastOpen(s32 entrynum, void* fileInfo) {
 
     const char* path = dvd_entry_table[entrynum].path;
 
-    /* Try disc image first */
+    /* Try disc image first, but only if the file data is actually present
+     * (partial/trimmed images have a valid FST but missing file payload). */
     if (pc_disc_is_open()) {
         u32 disc_off, disc_sz;
-        if (pc_disc_find_file(path, &disc_off, &disc_sz)) {
+        if (pc_disc_find_file(path, &disc_off, &disc_sz) &&
+            pc_disc_range_valid(disc_off, disc_sz)) {
             memset(fileInfo, 0, 0x3C);
             *dvd_fi_fp(fileInfo) = DISC_SENTINEL;
             *dvd_fi_startAddr(fileInfo) = disc_off;

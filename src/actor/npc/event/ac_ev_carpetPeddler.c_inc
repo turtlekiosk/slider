@@ -242,17 +242,17 @@ void aECPD_refuse_trade_in_init(EV_CARPETPEDDLER_ACTOR* peddler, GAME_PLAY* play
 
 void aECPD_init_proc(EV_CARPETPEDDLER_ACTOR* peddler, GAME_PLAY* play, int action) {
     static aECPD_INIT_PROC init_proc[15] = {
-        (aECPD_INIT_PROC)none_proc1, aECPD_msg_win_open_wait_init, (aECPD_INIT_PROC)none_proc1,
-        aECPD_1st_check_init,        (aECPD_INIT_PROC)none_proc1,  aECPD_grad_message_init,
+        _none_aECPD_INIT_PROC, aECPD_msg_win_open_wait_init, _none_aECPD_INIT_PROC,
+        aECPD_1st_check_init,        _none_aECPD_INIT_PROC,  aECPD_grad_message_init,
         aECPD_menu_open_wait_init,   aECPD_menu_close_wait_init,   aECPD_demo0_end_wait_init,
-        (aECPD_INIT_PROC)none_proc1, (aECPD_INIT_PROC)none_proc1,  aECPD_demo2_start_check_init,
-        (aECPD_INIT_PROC)none_proc1, aECPD_refuse_trade_in_init,   (aECPD_INIT_PROC)none_proc1
+        _none_aECPD_INIT_PROC, _none_aECPD_INIT_PROC,  aECPD_demo2_start_check_init,
+        _none_aECPD_INIT_PROC, aECPD_refuse_trade_in_init,   _none_aECPD_INIT_PROC
     };
     init_proc[action](peddler, play);
 }
 
 void aECPD_setupAction(EV_CARPETPEDDLER_ACTOR* peddler, GAME_PLAY* play, int action) {
-    static aECPD_INIT_PROC process[15] = { (aECPD_INIT_PROC)none_proc1,
+    static aECPD_INIT_PROC process[15] = { _none_aECPD_INIT_PROC,
                                            aECPD_msg_win_open_wait,
                                            aECPD_demo_start_wait,
                                            aECPD_1st_check,

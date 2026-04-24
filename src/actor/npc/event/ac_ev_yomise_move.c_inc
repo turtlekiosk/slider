@@ -329,7 +329,7 @@ static void aEYMS_setupAction(EV_YOMISE_ACTOR* yomise, int action) {
         aEYMS_talk_select,
         aEYMS_talk_select2,
         aEYMS_talk_fruit,
-        (aEYMS_TALK_PROC)none_proc1,
+        _none_aEYMS_TALK_PROC,
         aEYMS_talk_give,
         // clang-format on
     };

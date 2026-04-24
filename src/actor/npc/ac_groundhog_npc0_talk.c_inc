@@ -14,7 +14,7 @@ static void aGH0_turn(GROUNDHOG_NPC0_ACTOR* actor, GAME_PLAY* play) {
 static void aGH0_setupAction(GROUNDHOG_NPC0_ACTOR* actor, int action) {
     // clang-format off
     static aGH0_ACT_PROC process[] = {
-        (aGH0_ACT_PROC)none_proc1,
+        _none_aGH0_ACT_PROC,
         aGH0_turn,
     };
     // clang-format on
@@ -38,7 +38,7 @@ static void aGH0_act_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
             actor->npc_class.talk_info.talk_request_proc = aGH0_norm_talk_request;
             break;
         case aGHC_TERM_1_MIN:
-            actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+            actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
             break;
         default:
             actor->npc_class.talk_info.talk_request_proc = aGH0_norm_talk_request;
@@ -99,7 +99,7 @@ static void aGH0_think_main_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
             actor->npc_class.talk_info.talk_request_proc = aGH0_norm_talk_request;
             break;
         case aGHC_TERM_1_MIN:
-            actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+            actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
             break;
         default:
             actor->npc_class.talk_info.talk_request_proc = aGH0_norm_talk_request;
@@ -169,7 +169,7 @@ static void aGH0_schedule_init_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
     }
 
     if (actor->now_term == aGHC_TERM_1_MIN) {
-        nactorx->talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+        nactorx->talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     }
 
     NPC_CLIP->think_proc(nactorx, play, aNPC_THINK_SPECIAL, aNPC_THINK_TYPE_INIT);
@@ -210,7 +210,7 @@ static int aGH0_talk_init(ACTOR* actorx, GAME* game) {
     GROUNDHOG_NPC0_ACTOR* actor = (GROUNDHOG_NPC0_ACTOR*)actorx;
 
     if (actor->now_term == aGHC_TERM_1_MIN) {
-        actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+        actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     } else {
         actor->npc_class.talk_info.talk_request_proc = aGH0_norm_talk_request;
     }

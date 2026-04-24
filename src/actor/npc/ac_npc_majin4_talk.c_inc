@@ -5,8 +5,8 @@ typedef struct {
 
 static void aMJN4_set_force_talk_info(ACTOR* actorx) {
     static aMJN4_talk_data_c dt_tbl[] = {
-        { 0x250F, (aMJN4_TALK_PROC)none_proc1 },
-        { 0x2512, (aMJN4_TALK_PROC)none_proc1 },
+        { 0x250F, _none_aMJN4_TALK_PROC },
+        { 0x2512, _none_aMJN4_TALK_PROC },
     };
     NPC_MAJIN4_ACTOR* actor = (NPC_MAJIN4_ACTOR*)actorx;
     aMJN4_talk_data_c* data_p = &dt_tbl[actor->talk_idx];
@@ -28,7 +28,7 @@ static void aMJN4_force_talk_request(ACTOR* actorx, GAME* game) {
 static int aMJN4_talk_init2(ACTOR* actorx, GAME* game) {
     NPC_MAJIN4_ACTOR* actor = (NPC_MAJIN4_ACTOR*)actorx;
 
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     return TRUE;
 }

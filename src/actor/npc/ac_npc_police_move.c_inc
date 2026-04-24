@@ -75,13 +75,13 @@ static void aPOL_nemu_act_main_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
 }
 
 static void aPOL_taisou_act_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int idx) {
-    static aNPC_SUB_PROC act_proc[] = { aPOL_taisou_act_init_proc, (aNPC_SUB_PROC)none_proc1, aPOL_taisou_act_main_proc };
+    static aNPC_SUB_PROC act_proc[] = { aPOL_taisou_act_init_proc, _none_aNPC_SUB_PROC, aPOL_taisou_act_main_proc };
     
     (*act_proc[idx])(nactorx, play);
 }
 
 static void aPOL_nemu_act_proc(NPC_ACTOR* nactorx, GAME_PLAY* play, int idx) {
-    static aNPC_SUB_PROC act_proc[] = { aPOL_nemu_act_init_proc, (aNPC_SUB_PROC)none_proc1, aPOL_nemu_act_main_proc };
+    static aNPC_SUB_PROC act_proc[] = { aPOL_nemu_act_init_proc, _none_aNPC_SUB_PROC, aPOL_nemu_act_main_proc };
     
     (*act_proc[idx])(nactorx, play);
 }
@@ -396,7 +396,7 @@ static void aPOL_check_select2(NPC_POLICE_ACTOR* actor, GAME_PLAY* play) {
 }
 
 static void aPOL_setupAction(NPC_POLICE_ACTOR* actor, GAME_PLAY* play, int idx) {
-    static aPOL_TALK_PROC process[] = { (aPOL_TALK_PROC)none_proc1, aPOL_check_select, aPOL_check_select2 };
+    static aPOL_TALK_PROC process[] = { _none_aPOL_TALK_PROC, aPOL_check_select, aPOL_check_select2 };
     
     actor->talk_proc = process[idx];
 }

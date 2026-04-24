@@ -37,17 +37,17 @@ typedef void (*aNRG2_SET_STR_PROC)(void);
 
 static void aNRG2_set_str_proc(void) {
     static aNRG2_SET_STR_PROC process[] = {
-        (aNRG2_SET_STR_PROC)&none_proc1,
-        (aNRG2_SET_STR_PROC)&none_proc1,
+        _none_aNRG2_SET_STR_PROC,
+        _none_aNRG2_SET_STR_PROC,
         &aNRG2_set_str_j3,
         &aNRG2_set_str_j4,
         &aNRG2_set_str_j3,
         &aNRG2_set_str_j3,
-        (aNRG2_SET_STR_PROC)&none_proc1,
+        _none_aNRG2_SET_STR_PROC,
         &aNRG2_set_str_j4,
         &aNRG2_set_str_j3,
-        (aNRG2_SET_STR_PROC)&none_proc1,
-        (aNRG2_SET_STR_PROC)&none_proc1,
+        _none_aNRG2_SET_STR_PROC,
+        _none_aNRG2_SET_STR_PROC,
     };
 
     mQst_errand_c* errand_p = mQst_GetFirstJobData();
@@ -675,7 +675,7 @@ static void aNRG2_change_talk_proc(NPC_RCN_GUIDE2_ACTOR* rcn_guide2, int talk_pr
         &aNRG2_say_hello_sp_talk_proc,
         &aNRG2_say_hello_sp2_talk_proc,
         &aNRG2_cloth_chk_talk_proc,
-        (aNRG2_TALK_PROC)&none_proc1,
+        _none_aNRG2_TALK_PROC,
         &aNRG2_demo_start_wait_talk_proc,
         &aNRG2_demo_end_wait_talk_proc,
         &aNRG2_demo_end_wait2_talk_proc,
@@ -709,7 +709,7 @@ static void aNRG2_set_goods_talk_info(ACTOR* actorx) {
 
     mDemo_Set_msg_num(msg_no);
     mDemo_Set_talk_turn(TRUE);
-    rcn_guide2->talk_proc = (aNRG2_TALK_PROC)&none_proc1;
+    rcn_guide2->talk_proc = _none_aNRG2_TALK_PROC;
 }
 
 static int aNRG2_goods_talk_request(ACTOR* actorx, GAME* game) {
@@ -769,7 +769,7 @@ static void aNRG2_set_force_talk_info(ACTOR* actorx) {
         { 0x07EF, &aNRG2_say_hello_talk_proc },    /* 'So you're back again today?' */
         { 0x07EE, &aNRG2_say_hello_sp_talk_proc }, /* 'Well, finally you arrive!' (already wearing work uniform) */
         { 0x0832, &aNRG2_cloth_chk_talk_proc },    /* 'Why did you change out of your uniform, hm?' */
-        { 0x0834, (aNRG2_TALK_PROC)&none_proc1 },  /* 'Stop right there!' (Going up to 2nd floor) */
+        { 0x0834, _none_aNRG2_TALK_PROC },  /* 'Stop right there!' (Going up to 2nd floor) */
     };
 
     aNRG2_talk_info_c* data;
@@ -819,30 +819,30 @@ static void aNRG2_set_norm_talk_info(ACTOR* actorx) {
         { 0x0818, &aNRG2_job_start_talk_proc },
         { 0x0821, &aNRG2_job_start_talk_proc },
         { 0x0827, &aNRG2_job_start_talk_proc },
-        { 0x07F0, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x07F5, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x07FA, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x07FA, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x07FA, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x0826, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x07FA, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x0818, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x07F3, (aNRG2_TALK_PROC)&none_proc1 },
+        { 0x07F0, _none_aNRG2_TALK_PROC },
+        { 0x07F5, _none_aNRG2_TALK_PROC },
+        { 0x07FA, _none_aNRG2_TALK_PROC },
+        { 0x07FA, _none_aNRG2_TALK_PROC },
+        { 0x07FA, _none_aNRG2_TALK_PROC },
+        { 0x0826, _none_aNRG2_TALK_PROC },
+        { 0x07FA, _none_aNRG2_TALK_PROC },
+        { 0x0818, _none_aNRG2_TALK_PROC },
+        { 0x07F3, _none_aNRG2_TALK_PROC },
         { 0x081F, &aNRG2_job_start_talk_proc },
-        { 0x0835, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x07F8, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x07FE, (aNRG2_TALK_PROC)&none_proc1 },
+        { 0x0835, _none_aNRG2_TALK_PROC },
+        { 0x07F8, _none_aNRG2_TALK_PROC },
+        { 0x07FE, _none_aNRG2_TALK_PROC },
         { 0x07FF, &aNRG2_demo2_start_wait_talk_proc },
         { 0x0807, &aNRG2_check_more_paper_talk_proc },
         { 0x0808, &aNRG2_decide_new_target_talk_proc },
         { 0x0804, &aNRG2_give_new_paper_talk_proc },
-        { 0x080F, (aNRG2_TALK_PROC)&none_proc1 },
+        { 0x080F, _none_aNRG2_TALK_PROC },
         { 0x0810, &aNRG2_demo2_start_wait_talk_proc },
-        { 0x0815, (aNRG2_TALK_PROC)&none_proc1 },
+        { 0x0815, _none_aNRG2_TALK_PROC },
         { 0x0816, &aNRG2_demo3_start_wait_talk_proc },
-        { 0x0819, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x0822, (aNRG2_TALK_PROC)&none_proc1 },
-        { 0x0829, (aNRG2_TALK_PROC)&none_proc1 },
+        { 0x0819, _none_aNRG2_TALK_PROC },
+        { 0x0822, _none_aNRG2_TALK_PROC },
+        { 0x0829, _none_aNRG2_TALK_PROC },
         { 0x07F4, &aNRG2_job_end_talk_proc },
         { 0x07F9, &aNRG2_job_end_talk_proc },
         { 0x0801, &aNRG2_3rd_job_end_talk_proc },
@@ -852,7 +852,7 @@ static void aNRG2_set_norm_talk_info(ACTOR* actorx) {
         { 0x081A, &aNRG2_all_job_end_talk_proc },
         { 0x0828, &aNRG2_job_end_talk_proc },
         { 0x0830, &aNRG2_job_end_talk_proc },
-        { 0x0836, (aNRG2_TALK_PROC)&none_proc1 },
+        { 0x0836, _none_aNRG2_TALK_PROC },
     };
     // clang-format on
 
@@ -891,7 +891,7 @@ static void aNRG2_norm_talk_request(ACTOR* actorx, GAME* game) {
 static int aNRG2_talk_init(ACTOR* actorx, GAME* game) {
     NPC_RCN_GUIDE2_ACTOR* rcn_guide2 = (NPC_RCN_GUIDE2_ACTOR*)actorx;
 
-    rcn_guide2->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)&none_proc1;
+    rcn_guide2->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     return TRUE;
 }

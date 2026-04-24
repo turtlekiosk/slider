@@ -257,7 +257,7 @@ static void aPOFF_setup_action(STRUCTURE_ACTOR* office, int action) {
         &aPOFF_wait,
         &aPOFF_open_door_wait,
         &aPOFF_open_door,
-        (aSTR_MOVE_PROC)&none_proc1
+        _none_aSTR_MOVE_PROC
     };
     // clang-format on
 

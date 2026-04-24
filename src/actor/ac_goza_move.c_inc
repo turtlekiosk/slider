@@ -49,7 +49,7 @@ static void aGOZ_set_bgOffset(STRUCTURE_ACTOR* goza, int offs) {
 }
 
 static void aGOZ_setup_action(STRUCTURE_ACTOR* goza, int action) {
-    static aSTR_MOVE_PROC process[] = { (aSTR_MOVE_PROC)&none_proc1 };
+    static aSTR_MOVE_PROC process[] = { _none_aSTR_MOVE_PROC };
 
     goza->action_proc = process[action];
 }

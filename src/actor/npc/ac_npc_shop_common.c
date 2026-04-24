@@ -1175,7 +1175,7 @@ static void aNSC_message_ctrl_talk_request_normal_day(NPC_SHOP_COMMON_ACTOR* sho
         fg_item = CLIP(shop_design_clip)->unitNum2ItemNo_proc(ux, uz);
 
         if (fg_item != EMPTY_NO && fg_item != RSV_NO) {
-            mDemo_REQUEST_PROC req_proc = (mDemo_REQUEST_PROC)none_proc1;
+            mDemo_REQUEST_PROC req_proc = _none_mDemo_REQUEST_PROC;
 
             shop_common->sell_item = fg_item;
             shop_common->ut_x = ux;
@@ -1797,7 +1797,7 @@ static void aNSC_start_wait(NPC_SHOP_COMMON_ACTOR* shop_common, GAME_PLAY* play)
         return;
     }
 
-    proc = (mDemo_REQUEST_PROC)none_proc1;
+    proc = _none_mDemo_REQUEST_PROC;
     switch (wait_type) {
         case aNSC_WAIT_TYPE_REHOUSE:
             proc = aNSC_set_talk_info_start_wait;
@@ -3147,19 +3147,19 @@ static void aNSC_say_goodbye_init(NPC_SHOP_COMMON_ACTOR* shop_common, GAME_PLAY*
 // clang-format off
 static void aNSC_init_proc(NPC_SHOP_COMMON_ACTOR *shop_common, GAME_PLAY* play, int action) {
     static aNSC_INIT_PROC init_proc[aNSC_ACTION_NUM] = {
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
 		aNSC_say_hello_approach_init,
 		aNSC_say_hello_end_wait_init,
 		aNSC_say_hello_end_wait_init,
 #ifdef aNSC_MAMEDANUKI
         aNSC_say_hello_approach_init,
 		aNSC_say_hello_end_wait_init,
-        (aNSC_INIT_PROC)none_proc1,
-        (aNSC_INIT_PROC)none_proc1,
-        (aNSC_INIT_PROC)none_proc1,
-        (aNSC_INIT_PROC)none_proc1,
-        (aNSC_INIT_PROC)none_proc1,
-        (aNSC_INIT_PROC)none_proc1,
+        _none_aNSC_INIT_PROC,
+        _none_aNSC_INIT_PROC,
+        _none_aNSC_INIT_PROC,
+        _none_aNSC_INIT_PROC,
+        _none_aNSC_INIT_PROC,
+        _none_aNSC_INIT_PROC,
 #else
 		aNSC_check_roof_col_order_init,
 		aNSC_check_roof_col_order2_init,
@@ -3167,10 +3167,10 @@ static void aNSC_init_proc(NPC_SHOP_COMMON_ACTOR *shop_common, GAME_PLAY* play, 
 		aNSC_present_balloon_start_wait_init,
 		aNSC_present_balloon_trans_move_init,
 		aNSC_present_balloon_trans_takeout_init,
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
 		aNSC_present_balloon_end_wait_init,
 #endif
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
 		aNSC_request_Q_answer_wait_init,
 		aNSC_request_Q_answer_wait_init,
 		aNSC_request_Q_end_wait_init,
@@ -3181,15 +3181,15 @@ static void aNSC_init_proc(NPC_SHOP_COMMON_ACTOR *shop_common, GAME_PLAY* play, 
 		aNSC_buy_sum_check_init,
 		aNSC_buy_check_init,
 		aNSC_buy_after_service_init,
-		(aNSC_INIT_PROC)none_proc1,
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
+		_none_aNSC_INIT_PROC,
 		aNSC_buy_after_service_init,
 		aNSC_buy_menu_open_wait_init,
 		aNSC_order_select_menu_close_wait_init,
 		aNSC_msg_win_open_wait_init,
 		aNSC_order_check_init,
 		aNSC_sell_check_before_init,
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
 		aNSC_sell_answer0_init,
 		aNSC_sell_answer1_init,
 		aNSC_sell_item_init,
@@ -3198,7 +3198,7 @@ static void aNSC_init_proc(NPC_SHOP_COMMON_ACTOR *shop_common, GAME_PLAY* play, 
 		aNSC_sell_refuse0_init,
 		aNSC_show_item_check_init,
 		aNSC_chg_cloth_start_wait_init,
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
 		aNSC_pw_entry_send_addr_start_wait_init,
 		aNSC_buy_menu_open_wait_init,
 		aNSC_pw_make_menu_close_wait_init,
@@ -3208,16 +3208,16 @@ static void aNSC_init_proc(NPC_SHOP_COMMON_ACTOR *shop_common, GAME_PLAY* play, 
 		aNSC_buy_menu_open_wait_init,
 		aNSC_pw_sel_item_menu_close_wait_init,
 		aNSC_msg_win_open_wait_init,
-		(aNSC_INIT_PROC)none_proc1,
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
+		_none_aNSC_INIT_PROC,
 		aNSC_pc_input_pw_start_wait_init,
 		aNSC_buy_menu_open_wait_init,
 		aNSC_pc_chk_menu_close_wait_init,
 		aNSC_msg_win_open_wait_init,
-		(aNSC_INIT_PROC)none_proc1,
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
+		_none_aNSC_INIT_PROC,
 		aNSC_pc_present_trans_takeout_init,
-		(aNSC_INIT_PROC)none_proc1,
+		_none_aNSC_INIT_PROC,
 		aNSC_pc_present_end_wait_init,
 		aNSC_wait_init,
 		aNSC_walk_pl_same_zone_init,
@@ -3244,12 +3244,12 @@ static void aNSC_setupAction(NPC_SHOP_COMMON_ACTOR *shop_common, GAME_PLAY *play
 #ifdef aNSC_MAMEDANUKI
         aNSC_say_hello_approach,
 		aNSC_say_hello_end_wait,
-        (aNSC_ACTION_PROC)none_proc1,
-        (aNSC_ACTION_PROC)none_proc1,
-        (aNSC_ACTION_PROC)none_proc1,
-        (aNSC_ACTION_PROC)none_proc1,
-        (aNSC_ACTION_PROC)none_proc1,
-        (aNSC_ACTION_PROC)none_proc1,
+        _none_aNSC_ACTION_PROC,
+        _none_aNSC_ACTION_PROC,
+        _none_aNSC_ACTION_PROC,
+        _none_aNSC_ACTION_PROC,
+        _none_aNSC_ACTION_PROC,
+        _none_aNSC_ACTION_PROC,
 #else
 		aNSC_check_roof_col_order,
 		aNSC_check_roof_col_order2,

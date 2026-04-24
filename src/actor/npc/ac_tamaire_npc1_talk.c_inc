@@ -26,7 +26,7 @@ static void aTMN1_set_norm_talk_info(ACTOR* actorx) {
     mDemo_Set_msg_num(msg_no);
     mDemo_Set_talk_turn(data_p->turn);
     mDemo_Set_camera(data_p->camera);
-    actor->talk_proc = (aTMN1_TALK_PROC)none_proc1;
+    actor->talk_proc = _none_aTMN1_TALK_PROC;
 }
 
 static void aTMN1_norm_talk_request(ACTOR* actorx, GAME* game) {
@@ -42,7 +42,7 @@ static void aTMN1_norm_talk_request(ACTOR* actorx, GAME* game) {
 static int aTMN1_talk_init(ACTOR* actorx, GAME* game) {
     TAMAIRE_NPC1_ACTOR* actor = (TAMAIRE_NPC1_ACTOR*)actorx;
 
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     mDemo_Start(actorx);
     return TRUE;

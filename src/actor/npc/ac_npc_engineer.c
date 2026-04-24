@@ -7,6 +7,12 @@ extern void aNEG_actor_dt(ACTOR* actor, GAME* game);
 extern void aNEG_actor_init(ACTOR* actor, GAME* game);
 extern void aNEG_actor_save(ACTOR* actor, GAME* game);
 
+#ifdef TARGET_PC
+/* mActor_NONE_PROC1 -> none_proc2 is (ACTOR*,GAME*)->void; aNPC_SCHEDULE_PROC is
+ * (NPC_ACTOR*,GAME_PLAY*,int)->void. Different arg count traps in wasm. */
+static void aNEG_schedule_none(NPC_ACTOR* a, GAME_PLAY* p, int t) { (void)a; (void)p; (void)t; }
+#endif
+
 ACTOR_PROFILE Npc_Engineer_Profile = {
     mAc_PROFILE_NPC_ENGINEER,
     ACTOR_PART_NPC,
@@ -36,7 +42,11 @@ void aNEG_actor_ct(ACTOR* actor, GAME* game){
     };
     NPCENGINEER_ACTOR* engineer = (NPCENGINEER_ACTOR*)actor;
     if(Common_Get(clip.npc_clip)->birth_check_proc(actor,game) == TRUE){
+#ifdef TARGET_PC
+        engineer->npc_class.schedule.schedule_proc = aNEG_schedule_none;
+#else
         engineer->npc_class.schedule.schedule_proc = (aNPC_SCHEDULE_PROC)mActor_NONE_PROC1;
+#endif
         Common_Get(clip.npc_clip)->ct_proc(actor,game,&ct_data);
         engineer->npc_class.condition_info.demo_flg = -1;
         engineer->npc_class.condition_info.hide_request = 0;

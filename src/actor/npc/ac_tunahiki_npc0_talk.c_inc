@@ -20,7 +20,7 @@ static void aTNN0_set_norm_talk_info(ACTOR* actorx) {
     mDemo_Set_msg_num(actor->base_msg + data_p->msg_no + RANDOM(3));
     mDemo_Set_talk_turn(data_p->turn);
     mDemo_Set_camera(data_p->camera);
-    actor->talk_proc = (aTNN0_TALK_PROC)none_proc1;
+    actor->talk_proc = _none_aTNN0_TALK_PROC;
 }
 
 static void aTNN0_norm_talk_request(ACTOR* actorx, GAME* game) {
@@ -36,7 +36,7 @@ static void aTNN0_norm_talk_request(ACTOR* actorx, GAME* game) {
 static int aTNN0_talk_init(ACTOR* actorx, GAME* game) {
     TUNAHIKI_NPC0_ACTOR* actor = (TUNAHIKI_NPC0_ACTOR*)actorx;
 
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     mDemo_Start(actorx);
     return TRUE;

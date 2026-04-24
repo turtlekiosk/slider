@@ -95,12 +95,12 @@ static void aESNT_motion_end_wait_init(EVENT_SANTA_ACTOR* santa, GAME_PLAY* play
 
 static void aESNT_init_proc(EVENT_SANTA_ACTOR* santa, GAME_PLAY* play, int act) {
   static aESNT_INIT_PROC init_proc[aESNT_ACTION_NUM] = {
-    (aESNT_INIT_PROC)&none_proc1,
-    (aESNT_INIT_PROC)&none_proc1,
-    (aESNT_INIT_PROC)&none_proc1,
-    (aESNT_INIT_PROC)&none_proc1,
+    _none_aESNT_INIT_PROC,
+    _none_aESNT_INIT_PROC,
+    _none_aESNT_INIT_PROC,
+    _none_aESNT_INIT_PROC,
     &aESNT_chk_wish_more_init,
-    (aESNT_INIT_PROC)&none_proc1,
+    _none_aESNT_INIT_PROC,
     &aESNT_motion_end_wait_init
   };
 
@@ -109,13 +109,13 @@ static void aESNT_init_proc(EVENT_SANTA_ACTOR* santa, GAME_PLAY* play, int act) 
 
 static void aESNT_setupAction(EVENT_SANTA_ACTOR* santa, GAME_PLAY* play, int act) {
   static aESNT_TALK_PROC process[aESNT_ACTION_NUM] = {
-    (aESNT_TALK_PROC)&none_proc1,
+    _none_aESNT_TALK_PROC,
     &aESNT_chk_wish_1st,
     &aESNT_chk_wish_1st,
     &aESNT_chk_wish_final,
     &aESNT_chk_wish_more,
     &aESNT_motion_start_wait,
-    (aESNT_TALK_PROC)&none_proc1
+    _none_aESNT_TALK_PROC
   };
 
   santa->talk_act = act;

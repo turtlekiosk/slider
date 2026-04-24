@@ -509,7 +509,7 @@ static void aPMAN_setupAction(NPC_POST_MAN* actor, GAME_PLAY* play, u8 action) {
         aPMAN_talk_end_wait,
         aPMAN_fly_up,
         aPMAN_exit,
-        (aPMAN_PROC)none_proc1,
+        _none_aPMAN_PROC,
     };
     // clang-format on
     

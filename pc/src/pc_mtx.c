@@ -43,14 +43,14 @@ void PSMTXConcat(const MtxP a, const MtxP b, MtxP result) {
     memcpy(result, tmp, 12 * sizeof(f32));
 }
 
-void PSMTXInverse(const MtxP src, MtxP inv) {
+u32 PSMTXInverse(const MtxP src, MtxP inv) {
     f32 det = src[0][0] * (src[1][1]*src[2][2] - src[1][2]*src[2][1])
             - src[0][1] * (src[1][0]*src[2][2] - src[1][2]*src[2][0])
             + src[0][2] * (src[1][0]*src[2][1] - src[1][1]*src[2][0]);
 
     if (fabsf(det) < 1e-25f) {
         PSMTXIdentity(inv);
-        return;
+        return 0;
     }
 
     f32 invDet = 1.0f / det;
@@ -71,6 +71,7 @@ void PSMTXInverse(const MtxP src, MtxP inv) {
     tmp[2][3] = -(tmp[2][0]*src[0][3] + tmp[2][1]*src[1][3] + tmp[2][2]*src[2][3]);
 
     memcpy(inv, tmp, 12 * sizeof(f32));
+    return 1;
 }
 
 void PSMTXMultVec(const MtxP m, const Vec* src, Vec* dst) {

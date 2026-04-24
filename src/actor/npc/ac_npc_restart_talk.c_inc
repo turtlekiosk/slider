@@ -271,7 +271,7 @@ static void aNRST_change_talk_proc(NPC_RESTART_ACTOR* actor, int talk_idx) {
         aNRST_select3,
         aNRST_before_init,
         aNRST_init,
-        (aNRST_TALK_PROC)none_proc1,
+        _none_aNRST_TALK_PROC,
     };
     // clang-format on
 
@@ -295,7 +295,7 @@ static int aNRST_talk_init(ACTOR* actorx, GAME* game) {
 
     mDemo_Set_ListenAble();
     aNRST_change_talk_proc(actor, aNRST_TALK_SELECT);
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     return TRUE;
 }
 

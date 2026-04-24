@@ -173,7 +173,7 @@ static void aNSS_init_proc(ACTOR* actorx, GAME* game, int action) {
                                           &aNSS_enter_back_door_init,      &aNSS_walk_to_front_door_init,
                                           &aNSS_exit_front_door_init,      &aNSS_enter_front_door_init,
                                           &aNSS_walk_to_front_door_init,   &aNSS_exit_back_door_init,
-                                          (aNSS_INIT_PROC)&none_proc1,     &aNSS_exit_walk_back_deck_init };
+                                          _none_aNSS_INIT_PROC,     &aNSS_exit_walk_back_deck_init };
 
     NPC_SHASHO_ACTOR* sasho_actor = (NPC_SHASHO_ACTOR*)actorx;
     GAME_PLAY* game_play = (GAME_PLAY*)game;

@@ -27,7 +27,7 @@ static void aTKN1_norm_talk_request(ACTOR* actorx, GAME* game) {
 static int aTKN1_talk_init(ACTOR* actorx, GAME* game) {
     TOKYOSO_NPC1_ACTOR* actor = (TOKYOSO_NPC1_ACTOR*)actorx;
 
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     mDemo_Start(actorx);
     return TRUE;

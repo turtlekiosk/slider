@@ -126,7 +126,7 @@ static void aNHM_change_talk_proc(NPC_HEM_ACTOR* hem, int talk_idx) {
     static aNHM_PROC process[] = {
         aNHM_trans_demo_start_wait_talk_proc,
         aNHM_trans_demo_end_wait_talk_proc,
-        (aNHM_PROC)none_proc1,
+        _none_aNHM_PROC,
     };
 
     hem->talk_proc = process[talk_idx];
@@ -150,7 +150,7 @@ static BOOL aNHM_talk_init(ACTOR* actorx, GAME* game) {
 
     hem->talk_timer--;
     if (hem->talk_timer <= 0) {
-        hem->actor.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+        hem->actor.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
         aNHM_change_talk_proc(hem, aNHM_TALK_TRANS_DEMO_START_WAIT);
         mDemo_Set_ListenAble();
         ret = TRUE;

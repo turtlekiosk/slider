@@ -625,23 +625,23 @@ typedef void (*HANIWA_PROC)(HANIWA_ACTOR*, GAME*);
 static void aHNW_init_proc(HANIWA_ACTOR* actor, GAME* game, int action) {
     // clang-format off
     static HANIWA_PROC init_proc[aHNW_ACTION_NUM] = {
-        (HANIWA_PROC)&none_proc1,
-        (HANIWA_PROC)&none_proc1,
-        (HANIWA_PROC)&none_proc1,
-        (HANIWA_PROC)&none_proc1,
-        (HANIWA_PROC)&none_proc1,
-        (HANIWA_PROC)&none_proc1,
+        _none_HANIWA_PROC,
+        _none_HANIWA_PROC,
+        _none_HANIWA_PROC,
+        _none_HANIWA_PROC,
+        _none_HANIWA_PROC,
+        _none_HANIWA_PROC,
         &aHNW_menu_open_wait_init,
         &aHNW_menu_end_wait_init,
         &aHNW_talk_with_guest_init,
         &aHNW_menu_open_wait_init,
         &aHNW_menu_end_wait_init,
-        (HANIWA_PROC)&none_proc1,
-        (HANIWA_PROC)&none_proc1,
-        (HANIWA_PROC)&none_proc1,
+        _none_HANIWA_PROC,
+        _none_HANIWA_PROC,
+        _none_HANIWA_PROC,
         &aHNW_pl_approach_door_init,
-        (HANIWA_PROC)&none_proc1,
-        (HANIWA_PROC)&none_proc1,
+        _none_HANIWA_PROC,
+        _none_HANIWA_PROC,
     };
     // clang-format on
 

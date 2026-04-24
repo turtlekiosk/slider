@@ -221,7 +221,7 @@ static void aINS_setupActor(ACTOR* actorx, aINS_Init_c* init) {
 
     insect->exist_flag = TRUE;
     insect->type = init->insect_type;
-    insect->action_proc = (aINS_ACTION_PROC)&none_proc1;
+    insect->action_proc = _none_aINS_ACTION_PROC;
     insect->life_time = 216000;
     insect->alpha0 = 255;
     insect->insect_flags.bit_4 = TRUE;

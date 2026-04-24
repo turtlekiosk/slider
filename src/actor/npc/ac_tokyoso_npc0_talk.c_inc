@@ -13,8 +13,8 @@ typedef struct {
 
 static void aTKN0_set_norm_talk_info(ACTOR* actorx) {
     static aTKN0_talk_data_c dt_tbl[] = {
-        {0x0000, TRUE, CAMERA2_PROCESS_TALK, (aTKN0_TALK_PROC)none_proc1},
-        {0x0000, TRUE, CAMERA2_PROCESS_TALK, (aTKN0_TALK_PROC)none_proc1},
+        {0x0000, TRUE, CAMERA2_PROCESS_TALK, _none_aTKN0_TALK_PROC},
+        {0x0000, TRUE, CAMERA2_PROCESS_TALK, _none_aTKN0_TALK_PROC},
     };
     TOKYOSO_NPC0_ACTOR* actor = (TOKYOSO_NPC0_ACTOR*)actorx;
     aTKN0_talk_data_c* data_p = &dt_tbl[actor->talk_idx];
@@ -38,7 +38,7 @@ static void aTKN0_norm_talk_request(ACTOR* actorx, GAME* game) {
 static int aTKN0_talk_init(ACTOR* actorx, GAME* game) {
     TOKYOSO_NPC0_ACTOR* actor = (TOKYOSO_NPC0_ACTOR*)actorx;
 
-    actor->npc_class.talk_info.talk_request_proc = (aNPC_TALK_REQUEST_PROC)none_proc1;
+    actor->npc_class.talk_info.talk_request_proc = _none_aNPC_TALK_REQUEST_PROC;
     mDemo_Set_ListenAble();
     mDemo_Start(actorx);
     return TRUE;

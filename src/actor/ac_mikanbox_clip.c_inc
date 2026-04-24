@@ -169,7 +169,7 @@ static void aNTT_roll_end_init(NPC_TOTAKEKE_ACTOR* kk, GAME_PLAY* play) {
     u8 bgm_no = CLIP(mikanbox_clip)->bgm_no_proc(kk);
 
     mBGMPsComp_delete_ps_demo(bgm_no, 0x168);
-    play->draw_chk_proc = (DRAW_CHK_PROC)&none_proc1;
+    play->draw_chk_proc = _none_DRAW_CHK_PROC;
     
     if (CLIP(weather_clip) != NULL) {
         CLIP(weather_clip)->change_weather_instance(CLIP(weather_clip)->actor, mEnv_SAVE_GET_WEATHER_TYPE(Save_Get(weather)), mEnv_SAVE_GET_WEATHER_INTENSITY(Save_Get(weather)));
@@ -190,7 +190,7 @@ static void aNTT_call_init(NPC_TOTAKEKE_ACTOR* kk, GAME_PLAY* play) {
 
 // clang-format off
 static aNTT_PROC init_table[] = {
-    (aNTT_PROC)&none_proc1,
+    _none_aNTT_PROC,
     &aNTT_roll_init,
     &aNTT_roll1_init,
     &aNTT_roll2_init,

@@ -165,7 +165,7 @@ static aTKN0_think_data_c dt_tbl[] = {
 };
 
 static aTKN0_THINK_PROC proc_table[] = {
-    (aTKN0_THINK_PROC)none_proc1,
+    _none_aTKN0_THINK_PROC,
     aTKN0_turn_next,
     aTKN0_birth,
     aTKN0_wait,
@@ -177,7 +177,7 @@ static aTKN0_THINK_PROC proc_table[] = {
 typedef void (*aTKN0_THINK_INIT_PROC)(TOKYOSO_NPC0_ACTOR* actor, GAME_PLAY* play);
 
 static aTKN0_THINK_INIT_PROC init_table[] = {
-    (aTKN0_THINK_INIT_PROC)none_proc1,
+    _none_aTKN0_THINK_INIT_PROC,
     aTKN0_normal_wait_init,
     aTKN0_turn_f_init,
     aTKN0_ready_init,
@@ -188,7 +188,7 @@ static aTKN0_THINK_INIT_PROC init_table[] = {
 };
 
 static void aTKN0_setup_think_proc(TOKYOSO_NPC0_ACTOR* actor, GAME_PLAY* play, s16 think_idx) {
-    static aNPC_TALK_REQUEST_PROC talk_request_table[] = { (aNPC_TALK_REQUEST_PROC)none_proc1, aTKN0_norm_talk_request, (aNPC_TALK_REQUEST_PROC)none_proc1  };
+    static aNPC_TALK_REQUEST_PROC talk_request_table[] = { _none_aNPC_TALK_REQUEST_PROC, aTKN0_norm_talk_request, _none_aNPC_TALK_REQUEST_PROC  };
     aTKN0_think_data_c* dt;
 
     dt = &dt_tbl[think_idx];

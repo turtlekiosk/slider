@@ -507,8 +507,10 @@ elseif(EMSCRIPTEN)
         -sALLOW_MEMORY_GROWTH=1
         -sINITIAL_MEMORY=268435456       # 256 MB
         -sSTACK_SIZE=5242880             # 5 MB: emu64 uses deep recursion
+        -g                                   # wasm debug info (C names in browser)
         -sASYNCIFY=1
-        -sASYNCIFY_STACK_SIZE=131072
+        -sASYNCIFY_STACK_SIZE=4194304       # 4 MB: AC's main loop is deep
+        -sASSERTIONS=2
         -sEXIT_RUNTIME=0
         -sFORCE_FILESYSTEM=1
         -lidbfs.js

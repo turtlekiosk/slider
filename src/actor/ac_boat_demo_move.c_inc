@@ -343,13 +343,13 @@ static void aBTD_anchor_init(BOAT_DEMO_ACTOR* boat_demo, GAME_PLAY* play) {
 
 static void aBTD_init_proc(BOAT_DEMO_ACTOR* boat_demo, GAME_PLAY* play, int action) {
     static aBTD_INIT_PROC init_proc[aBTD_ACTION_NUM] = {
-        (aBTD_INIT_PROC)&none_proc1,       (aBTD_INIT_PROC)&none_proc1,
-        (aBTD_INIT_PROC)&none_proc1,       &aBTD_start_call_end_wait_init,
+        _none_aBTD_INIT_PROC,       _none_aBTD_INIT_PROC,
+        _none_aBTD_INIT_PROC,       &aBTD_start_call_end_wait_init,
         &aBTD_song_bgm_start_wait_init,    &aBTD_sing_sendo_start_wait_init,
-        (aBTD_INIT_PROC)&none_proc1,       &aBTD_sendo_dialogue_start_wait_init,
+        _none_aBTD_INIT_PROC,       &aBTD_sendo_dialogue_start_wait_init,
         &aBTD_sing_sendo_start_wait2_init, &aBTD_move_boat_end_wait_init,
         &aBTD_touch_wharf_end_wait_init,   &aBTD_pl_ride_off_start_wait_init,
-        (aBTD_INIT_PROC)&none_proc1,       &aBTD_anchor_init,
+        _none_aBTD_INIT_PROC,       &aBTD_anchor_init,
     };
 
     (*init_proc[action])(boat_demo, play);

@@ -323,8 +323,8 @@ static void aNPC_act_get_main_proc(NPC_ACTOR* nactorx, GAME_PLAY* play) {
         &aNPC_act_get_chg_umb,
         &aNPC_act_get_chg_cloth_and_umb,
 #else
-        (aNPC_SUB_PROC)&none_proc1,
-        (aNPC_SUB_PROC)&none_proc1,
+        _none_aNPC_SUB_PROC,
+        _none_aNPC_SUB_PROC,
 #endif
         &aNPC_act_get_return,
         &aNPC_act_trans_wait,
