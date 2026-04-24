@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Animal Crossing</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #ddd;
+            font-family: system-ui, sans-serif;
+            height: 100%;
+            overflow: hidden;
+        }
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+        }
+        #canvas {
+            display: block;
+            background: #000;
+            outline: none;
+            image-rendering: pixelated;
+        }
+        #status {
+            position: fixed;
+            top: 8px;
+            left: 8px;
+            font-size: 12px;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        #progress {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: #4a9;
+            width: 0%;
+            transition: width 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    </div>
+    <div id="status">loading…</div>
+    <div id="progress"></div>
+
+    <script type="text/javascript">
+        var statusEl = document.getElementById('status');
+        var progressEl = document.getElementById('progress');
+
+        var Module = {
+            canvas: (function() {
+                var c = document.getElementById('canvas');
+                c.addEventListener('webglcontextlost', function(e) {
+                    alert('WebGL context lost. Please reload.');
+                    e.preventDefault();
+                }, false);
+                return c;
+            })(),
+            setStatus: function(text) {
+                if (!text) {
+                    statusEl.style.display = 'none';
+                    progressEl.style.width = '0%';
+                    return;
+                }
+                statusEl.textContent = text;
+                var m = text.match(/\((\d+(\.\d+)?)\/(\d+)\)/);
+                if (m) {
+                    var pct = parseFloat(m[1]) / parseFloat(m[3]) * 100;
+                    progressEl.style.width = pct + '%';
+                } else {
+                    progressEl.style.width = '100%';
+                }
+            },
+            print: function(text) { console.log(text); },
+            printErr: function(text) { console.warn(text); },
+            onRuntimeInitialized: function() {
+                Module.setStatus('');
+                document.getElementById('canvas').focus();
+            }
+        };
+
+        window.onerror = function(msg) {
+            Module.setStatus('error — check console');
+            console.error(msg);
+        };
+    </script>
+    {{{ SCRIPT }}}
+</body>
+</html>

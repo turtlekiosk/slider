@@ -20,13 +20,15 @@ option(PC_CONSOLE "Show console window (disables -mwindows, useful for debugging
 # =============================================================================
 # 32-bit enforcement (required: JSystem casts pointers to u32)
 # =============================================================================
+# wasm32 (Emscripten default) has sizeof(void*) == 4, so the check below passes.
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR
         "This project MUST be built as 32-bit (pointer-to-u32 casts in JSystem).\n"
         "  Windows/MSYS2: Use the MINGW32 shell (not MINGW64)\n"
         "  Linux: Use a 32-bit toolchain, e.g.:\n"
         "    cmake .. -DCMAKE_C_COMPILER=i686-linux-gnu-gcc -DCMAKE_CXX_COMPILER=i686-linux-gnu-g++\n"
-        "    OR: cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-linux32.cmake")
+        "    OR: cmake .. -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-linux32.cmake\n"
+        "  Web: emcmake cmake .. (wasm32 is the default)")
 endif()
 
 # Allow mixed C/C++ linkage
@@ -47,6 +49,11 @@ add_compile_definitions(
 )
 if(ANDROID)
     add_compile_definitions(TARGET_ANDROID)
+elseif(EMSCRIPTEN)
+    add_compile_definitions(
+        TARGET_EMSCRIPTEN
+        KEYBOARD_TYPING
+    )
 else()
     add_compile_definitions(
         KEYBOARD_TYPING   # Physical keyboard typing in text editor. Remove for platforms without keyboards.
@@ -68,6 +75,11 @@ else()
         # code assumes unaligned access is transparent (true on PowerPC/x86).
         add_compile_options(-mno-unaligned-access)
     endif()
+    if(EMSCRIPTEN)
+        # Emscripten supplies SDL2 headers via ports at compile time.
+        # (USE_WEBGL2 is a link-only setting — applied via target_link_options.)
+        add_compile_options(-sUSE_SDL=2)
+    endif()
 endif()
 
 # =============================================================================
@@ -88,7 +100,7 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/fixnes
     # .inc assets are loaded at runtime from disc image (no build/GAFE01_00 needed)
 )
-if(NOT ANDROID)
+if(NOT ANDROID AND NOT EMSCRIPTEN)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/include)
 endif()
 
@@ -99,6 +111,9 @@ if(ANDROID)
     # Build SDL2 from source for Android
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2-src SDL2-build)
     message(STATUS "SDL2: Building from source for Android")
+elseif(EMSCRIPTEN)
+    # Emscripten: -sUSE_SDL=2 (set in compile/link options) handles headers + linking
+    message(STATUS "SDL2: Using Emscripten port (-sUSE_SDL=2)")
 else()
     # Try system SDL2 first, then fall back to platform-specific locations
     if(WIN32)
@@ -155,9 +170,9 @@ else()
 endif()
 
 # =============================================================================
-# GLAD (OpenGL 3.3 loader - desktop only, Android uses GLES3 system headers)
+# GLAD (OpenGL 3.3 loader - desktop only; Android/Emscripten use GLES3 headers)
 # =============================================================================
-if(NOT ANDROID)
+if(NOT ANDROID AND NOT EMSCRIPTEN)
     add_library(glad STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/lib/glad/src/gl.c
     )
@@ -403,9 +418,10 @@ add_compile_options($<$<COMPILE_LANGUAGE:C>:-Dnullptr=NULL>)
 # =============================================================================
 # Decomp code: suppress all warnings (fires heavily on decompiled code)
 set(DECOMP_WARN_FLAGS "-w;-fpermissive")
-if(ANDROID)
-    # NDK Clang promotes some warnings to errors even with -w; suppress them explicitly
-    list(APPEND DECOMP_WARN_FLAGS "-Wno-error=return-type" "-Wno-error=format-security"
+if(ANDROID OR EMSCRIPTEN)
+    # Clang (NDK + Emscripten) promotes some warnings to errors even with -w; suppress them.
+    list(APPEND DECOMP_WARN_FLAGS "-Wno-error=return-type" "-Wno-error=return-mismatch"
+                                   "-Wno-error=format-security"
                                    "-Wno-error=implicit-function-declaration"
                                    "-Wno-register" "-Wno-c++11-narrowing")
 endif()
@@ -413,11 +429,10 @@ set_source_files_properties(${GAME_C_SOURCES} ${GAME_CXX_SOURCES}
     PROPERTIES COMPILE_OPTIONS "${DECOMP_WARN_FLAGS}"
 )
 
-# Force-include android_enum_fixup.h for all decomp C++ TUs on Android.
-# NDK Clang rejects implicit int→enum conversions (e.g. SEEK_SET passed to JSUStreamSeekFrom
-# parameters). The header overrides the POSIX macros with typed casts. Using force-include
-# here means no source file needs a #ifdef TARGET_ANDROID block for this.
-if(ANDROID)
+# Force-include android_enum_fixup.h for all decomp C++ TUs on Clang-only targets.
+# Clang (NDK + Emscripten) rejects implicit int→enum conversions (e.g. SEEK_SET passed
+# to JSUStreamSeekFrom parameters). The header overrides the POSIX macros with typed casts.
+if(ANDROID OR EMSCRIPTEN)
     set_source_files_properties(${GAME_CXX_SOURCES}
         PROPERTIES COMPILE_FLAGS
         "-include ${CMAKE_CURRENT_SOURCE_DIR}/include/android_enum_fixup.h"
@@ -432,8 +447,8 @@ list(FILTER PC_CXX_SOURCES INCLUDE REGEX "\\.cpp$")
 # Note: -Wno-comment/-Wno-unused-function/-Wno-builtin-declaration-mismatch suppress
 # warnings from decomp headers (types.h, gfxprint.h, OSRtc.h, libultra.h) that we can't modify.
 set(PC_WARN_SUPPRESS "-Wno-unused-parameter;-Wno-sign-compare;-Wno-comment;-Wno-unused-function")
-if(NOT ANDROID)
-    # GCC-specific flag, not supported by NDK Clang
+if(NOT ANDROID AND NOT EMSCRIPTEN)
+    # GCC-specific flag, not supported by NDK Clang or Emscripten Clang
     list(APPEND PC_WARN_SUPPRESS "-Wno-builtin-declaration-mismatch")
 endif()
 set_source_files_properties(${PC_C_SOURCES}
@@ -462,6 +477,45 @@ if(ANDROID)
         ${GAME_CXX_SOURCES}
     )
     target_link_libraries(ac_pc SDL2 GLESv3 EGL android log m)
+elseif(EMSCRIPTEN)
+    # Web: single-page wasm build with assets baked into the .data bundle
+    add_executable(ac_pc
+        ${PC_SOURCES}
+        ${FIXNES_SOURCES}
+        ${GAME_C_SOURCES}
+        ${GAME_CXX_SOURCES}
+    )
+    set_target_properties(ac_pc PROPERTIES
+        OUTPUT_NAME "AnimalCrossing"
+        SUFFIX ".html"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/web"
+    )
+    # Asset sources to embed. User must place pre-extracted DOL+REL under
+    # <repo>/orig/GAFE01_00/ (same layout the desktop .bin-fallback path uses).
+    set(_EMSCRIPTEN_ASSETS "${DECOMP_ROOT}/orig")
+    if(NOT EXISTS "${_EMSCRIPTEN_ASSETS}")
+        message(WARNING
+            "Emscripten build: ${_EMSCRIPTEN_ASSETS} not found. "
+            "Place pre-extracted game files there before running the wasm build.")
+    endif()
+    target_link_options(ac_pc PRIVATE
+        -sUSE_SDL=2
+        -sUSE_WEBGL2=1
+        -sFULL_ES3=1
+        -sMIN_WEBGL_VERSION=2
+        -sMAX_WEBGL_VERSION=2
+        -sALLOW_MEMORY_GROWTH=1
+        -sINITIAL_MEMORY=268435456       # 256 MB
+        -sSTACK_SIZE=5242880             # 5 MB: emu64 uses deep recursion
+        -sASYNCIFY=1
+        -sASYNCIFY_STACK_SIZE=131072
+        -sEXIT_RUNTIME=0
+        -sFORCE_FILESYSTEM=1
+        -lidbfs.js
+        "SHELL:--preload-file ${_EMSCRIPTEN_ASSETS}@/orig"
+        "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/shaders@/shaders"
+        "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+    )
 else()
     # Desktop: standalone executable
     add_executable(ac_pc
@@ -545,7 +599,7 @@ endif()
 # =============================================================================
 # Install rules (cmake --install . --prefix <dest>) - desktop only
 # =============================================================================
-if(NOT ANDROID)
+if(NOT ANDROID AND NOT EMSCRIPTEN)
     install(TARGETS ac_pc RUNTIME DESTINATION bin)
     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/shaders/"
         DESTINATION bin/shaders

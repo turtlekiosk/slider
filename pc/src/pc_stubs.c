@@ -80,6 +80,8 @@ void ksNesEmuFrame(void* wp, void* sp, u32 flags) { (void)wp; (void)sp; (void)fl
 int CARDGetAttributes(int chan, int fileNo, u8* attr) { (void)chan; (void)fileNo; (void)attr; return -1; }
 int CARDSetAttributes(int chan, int fileNo, u8 attr) { (void)chan; (void)fileNo; (void)attr; return -1; }
 int CARDFastOpen(int chan, int fileNo, void* fileInfo) { (void)chan; (void)fileNo; (void)fileInfo; return -1; }
+#ifndef __EMSCRIPTEN__
+/* Emscripten's sysroot provides bcmp/bcopy/bzero as real library functions. */
 int bcmp(const void* a, const void* b, unsigned int n) { return memcmp(a, b, n); }
 #ifdef TARGET_ANDROID
 /* Android bionic provides bcopy/bzero as macros, not functions.
@@ -87,6 +89,7 @@ int bcmp(const void* a, const void* b, unsigned int n) { return memcmp(a, b, n);
    works, but callers need real function definitions. */
 void bcopy(void* src, void* dst, size_t n) { memmove(dst, src, n); }
 void bzero(void* ptr, size_t n) { memset(ptr, 0, n); }
+#endif
 #endif
 
 /* nesinfo — now provided by famicom_nesinfo.cpp */

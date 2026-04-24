@@ -66,9 +66,9 @@ typedef struct {
     /* 0x03 */ s8 stick_y;
     /* 0x04 */ u8 errno;
 } OSContPad;
-/* Restore errno macro (skip on Android where bionic's errno macro
-   gets re-pulled by SDL/system headers and breaks .errno field access) */
-#ifndef TARGET_ANDROID
+/* Restore errno macro (skip on Android/Emscripten where Clang re-pulls the
+   errno macro via system headers and breaks .errno struct-field access) */
+#if !defined(TARGET_ANDROID) && !defined(__EMSCRIPTEN__)
 #include <errno.h>
 #endif
 #else

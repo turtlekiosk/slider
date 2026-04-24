@@ -31,6 +31,12 @@ pc/android/app/.cxx/
 pc/android/build/
 pc/android/local.properties
 
+# Emscripten / wasm build outputs
+pc/build-web/
+pc/web/AnimalCrossing.*
+*.wasm
+*.wat
+
 # decompctx output
 ctx.*
 *.ctx

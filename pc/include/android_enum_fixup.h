@@ -7,10 +7,13 @@
 #ifndef ANDROID_ENUM_FIXUP_H
 #define ANDROID_ENUM_FIXUP_H
 
-#ifdef TARGET_ANDROID
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
 
-/* Pull in stdio first so its macros are defined, then override */
+/* Pull in stdio first so its macros are defined, then override.
+ * stdlib is pulled in so decomp sources that use strtol()/etc. without
+ * an explicit include (works on NDK via transitive includes) still compile. */
 #include <stdio.h>
+#include <stdlib.h>
 #include "JSystem/JSupport/JSUStreamEnum.h"
 
 /* Now override POSIX macros with typed casts for C++ overload resolution.
@@ -24,5 +27,5 @@
 #define SEEK_END ((JSUStreamSeekFrom)2)
 #define EOF      ((EIoState)1)
 
-#endif /* TARGET_ANDROID */
+#endif
 #endif

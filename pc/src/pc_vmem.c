@@ -11,6 +11,15 @@ int pc_vmem_is_page_committed(unsigned int addr) {
             mbi.State == MEM_COMMIT) ? 1 : 0;
 }
 
+#elif defined(__EMSCRIPTEN__)
+/* wasm has a flat linear memory with no per-page commit state; treat all
+ * addresses as committed. emu64::seg2k0 falls through to normal segment
+ * resolution, matching the original GC behavior. */
+int pc_vmem_is_page_committed(unsigned int addr) {
+    (void)addr;
+    return 1;
+}
+
 #else
 #include <sys/mman.h>
 

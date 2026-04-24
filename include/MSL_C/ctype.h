@@ -1,8 +1,14 @@
+#ifdef TARGET_PC
+/* Include the system ctype.h BEFORE our guard, since musl's sysroot
+ * uses the same `_CTYPE_H` guard and would otherwise be skipped. */
+#include <ctype.h>
+#endif
+
 #ifndef _CTYPE_H
 #define _CTYPE_H
 
 #ifdef TARGET_PC
-#include <ctype.h> // Conflicts can happen otherwise in certain compiler versions
+/* System ctype.h was included above. */
 #else
 
 #include "MSL_C/locale.h"

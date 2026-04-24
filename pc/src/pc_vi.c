@@ -1,5 +1,8 @@
 /* pc_vi.c - video interface → SDL window swap + frame pacing */
 #include "pc_platform.h"
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #define VI_TVMODE_NTSC_INT    0
 #define VI_TVMODE_NTSC_DS     1
@@ -58,6 +61,26 @@ void VIWaitForRetrace(void) {
     Uint64 t_after_swap = SDL_GetPerformanceCounter();
 
     Uint64 t_before_pace = SDL_GetPerformanceCounter();
+#ifdef __EMSCRIPTEN__
+    /* Emscripten: yield to the browser via Asyncify so rAF can paint.
+     * Audio is also pumped here since there's no producer thread. */
+    extern void pc_audio_pump_if_needed(void);
+    pc_audio_pump_if_needed();
+    if (!g_pc_no_framelimit) {
+        int remain_ms = 0;
+        if (frame_start_time) {
+            Uint64 now = SDL_GetPerformanceCounter();
+            Uint64 elapsed_us = (now - frame_start_time) * 1000000 / perf_freq;
+            if (elapsed_us < 16667) {
+                remain_ms = (int)((16667 - elapsed_us) / 1000);
+                if (remain_ms < 1) remain_ms = 1;
+            }
+        }
+        emscripten_sleep(remain_ms);
+    } else {
+        emscripten_sleep(0); /* still yield so the browser can repaint */
+    }
+#else
     if (!g_pc_no_framelimit) {
         /* Timer-based pacing: sleep until 16ms per frame (~60 FPS).
          * Audio production runs on a dedicated thread and is no longer
@@ -76,6 +99,7 @@ void VIWaitForRetrace(void) {
             }
         }
     }
+#endif
     Uint64 t_after_pace = SDL_GetPerformanceCounter();
 
     /* report slow frames (>20ms = missed 60fps by >4ms) */

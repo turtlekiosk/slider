@@ -1626,9 +1626,13 @@ void GXSetTexCoordGen2(u32 dst, u32 func, u32 src, u32 mtx, GXBool normalize, u3
 }
 void GXSetLineWidth(u8 width, u32 texOffsets) { glLineWidth(width / 16.0f); }
 void GXSetPointSize(u8 size, u32 texOffsets) {
-#ifndef TARGET_ANDROID
+#if !defined(TARGET_ANDROID) && !defined(__EMSCRIPTEN__)
+    /* GLES/WebGL2 have no glPointSize — use gl_PointSize in the vertex shader. */
     glPointSize(size / 16.0f);
+#else
+    (void)size;
 #endif
+    (void)texOffsets;
 }
 void GXEnableTexOffsets(u32 coord, GXBool line, GXBool point) {
     (void)coord; (void)line; (void)point;

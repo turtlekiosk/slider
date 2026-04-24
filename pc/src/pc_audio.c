@@ -48,6 +48,12 @@ static int pc_audio_producer_func(void* data) {
 }
 
 void pc_audio_start_producer_thread(void) {
+#ifdef __EMSCRIPTEN__
+    /* No producer thread under Emscripten — single-threaded wasm.
+     * pc_audio_pump_if_needed() is called from pc_vi.c each frame. */
+    (void)pc_audio_producer_func;
+    return;
+#else
     if (audio_producer_thread) return;
     SDL_AtomicSet(&audio_thread_running, 1);
     audio_producer_thread = SDL_CreateThread(pc_audio_producer_func, "AudioProducer", NULL);
@@ -55,6 +61,15 @@ void pc_audio_start_producer_thread(void) {
         printf("[AUDIO] Producer thread started\n");
     } else {
         printf("[AUDIO] Failed to create producer thread: %s\n", SDL_GetError());
+    }
+#endif
+}
+
+/* Called from pc_vi.c under Emscripten (and harmlessly on other platforms).
+ * Keeps the ring buffer filled without a dedicated thread. */
+void pc_audio_pump_if_needed(void) {
+    if (pc_audio_get_buffer_fill() < AUDIO_PRODUCE_THRESHOLD) {
+        pc_audio_process_frame();
     }
 }
 

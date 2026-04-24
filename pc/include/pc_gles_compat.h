@@ -2,7 +2,7 @@
 #ifndef PC_GLES_COMPAT_H
 #define PC_GLES_COMPAT_H
 
-#ifdef TARGET_ANDROID
+#if defined(TARGET_ANDROID)
   #include <GLES3/gl3.h>
   #include <GLES3/gl3ext.h>
 
@@ -17,6 +17,14 @@
 
   /* GL_UNSIGNED_SHORT_5_6_5_REV doesn't exist in GLES 3.0.
    * Code that uses it must byte-swap and use GL_UNSIGNED_SHORT_5_6_5 instead. */
+#elif defined(__EMSCRIPTEN__)
+  /* WebGL2 via Emscripten's GLES3 headers (no gl3ext.h shipped) */
+  #include <GLES3/gl3.h>
+  #define glClearDepth glClearDepthf
+  #define glDepthRange glDepthRangef
+  #ifndef GL_MULTISAMPLE
+  #define GL_MULTISAMPLE 0x809D
+  #endif
 #else
   #include <glad/gl.h>
 #endif

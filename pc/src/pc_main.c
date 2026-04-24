@@ -54,7 +54,11 @@ static volatile unsigned int pc_last_crash_addr = 0;
 
 static volatile unsigned int pc_last_crash_data_addr = 0;
 
-#ifdef _WIN32
+#if defined(__EMSCRIPTEN__)
+/* wasm has no signal/exception handling; bad dereferences trap and kill the page.
+ * Keep pc_crash_set_jmpbuf as a no-op stub below for ABI compatibility. */
+unsigned int pc_crash_get_pc(void) { return 0; }
+#elif defined(_WIN32)
 /* longjmp from VEH is technically UB, but works on x86 MinGW (no SEH to corrupt).
  * GCC doesn't have __try/__except and checking every pointer in emu64 is impractical. */
 static LONG WINAPI pc_veh_handler(PEXCEPTION_POINTERS ep) {
@@ -106,7 +110,9 @@ unsigned int pc_crash_get_data_addr(void) {
 void pc_crash_protection_init(void) {
     static int installed = 0;
     if (!installed) {
-#ifdef _WIN32
+#if defined(__EMSCRIPTEN__)
+        /* no-op: wasm traps terminate the page; nothing to install */
+#elif defined(_WIN32)
         AddVectoredExceptionHandler(1, pc_veh_handler);
 #else
         struct sigaction sa;
@@ -130,6 +136,26 @@ unsigned int pc_crash_get_addr(void) {
     return pc_last_crash_addr;
 }
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+/* Mount IndexedDB-backed filesystem on /save and block until the load-from-IDB
+ * callback fires. Uses Asyncify to sleep without freezing the page. */
+static void pc_web_mount_saves(void) {
+    EM_ASM({
+        FS.mkdir('/save');
+        FS.mount(IDBFS, {}, '/save');
+        Module.__save_ready = 0;
+        FS.syncfs(true, function(err) {
+            if (err) console.warn('IDBFS load err:', err);
+            Module.__save_ready = 1;
+        });
+    });
+    while (!EM_ASM_INT({ return Module.__save_ready ? 1 : 0; })) {
+        emscripten_sleep(10);
+    }
+}
+#endif
+
 void pc_platform_init(void) {
 #ifdef _WIN32
     SetProcessDPIAware();
@@ -139,6 +165,9 @@ void pc_platform_init(void) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         exit(1);
     }
+#ifdef __EMSCRIPTEN__
+    pc_web_mount_saves();
+#endif
 
 #ifdef TARGET_ANDROID
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -194,7 +223,7 @@ void pc_platform_init(void) {
         exit(1);
     }
 
-#ifndef TARGET_ANDROID
+#if !defined(TARGET_ANDROID) && !defined(__EMSCRIPTEN__)
     if (!gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress)) {
         fprintf(stderr, "gladLoadGL failed\n");
         SDL_GL_DeleteContext(g_pc_gl_context);

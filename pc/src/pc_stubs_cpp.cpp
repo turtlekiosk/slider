@@ -5,7 +5,7 @@
 #include "JSystem/JSupport/JSUInputStream.h"
 #include "JSystem/JSupport/JSURandomInputStream.h"
 
-#ifdef TARGET_ANDROID
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
 /* Clang rejects int→enum: override POSIX macros with typed casts */
 #undef SEEK_CUR
 #define SEEK_CUR ((JSUStreamSeekFrom)1)
