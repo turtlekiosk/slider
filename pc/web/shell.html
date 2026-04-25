@@ -67,15 +67,6 @@
                 }, false);
                 return c;
             })(),
-            // Force the WebGL2 canvas to be opaque + non-premultiplied so the
-            // framebuffer's RGB shows up exactly as rendered (no compositing
-            // against page background, no premultiplied-alpha tinting).
-            webglContextAttributes: {
-                alpha: false,
-                premultipliedAlpha: false,
-                antialias: true,
-                preserveDrawingBuffer: false
-            },
             setStatus: function(text) {
                 if (!text) {
                     statusEl.style.display = 'none';
