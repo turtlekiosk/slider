@@ -654,7 +654,8 @@ static int Actor_malloc_actor_class(ACTOR** actor_pp, ACTOR_PROFILE* profile, AC
 
         case NAME_TYPE_STRUCT: {
 #ifdef TARGET_PC
-            if (Common_Get(clip).structure_clip == NULL) {
+            if (Common_Get(clip).structure_clip == NULL ||
+                Common_Get(clip).structure_clip->get_actor_area_proc == NULL) {
                 *actor_pp = (ACTOR*)zelda_malloc(profile->class_size);
                 break;
             }

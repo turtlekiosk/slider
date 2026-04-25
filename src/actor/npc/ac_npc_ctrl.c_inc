@@ -802,6 +802,16 @@ static void aNPC_free_overlay_area(aNPC_overlay_c* overlay_p, int n) {
 }
 #endif
 
+#ifdef aNPC_NPC2
+/* aNPC_GET_ACTOR_AREA_PROC is (size_t,const char*,int)->ACTOR*; zelda_malloc is
+ * (size_t)->void*. The C cast hides the mismatch but wasm call_indirect
+ * type-checks at runtime, so route through a properly-typed thunk. */
+static ACTOR* aNPC_get_actor_area_proc_thunk(size_t size, const char* name, int line) {
+    (void)name; (void)line;
+    return (ACTOR*)zelda_malloc(size);
+}
+#endif
+
 static void aNPC_actor_ct_c(ACTOR* actorx, GAME* game) {
     GAME_PLAY* play = (GAME_PLAY*)game;
     Object_Exchange_c* obj_ex = &play->object_exchange;
@@ -822,7 +832,7 @@ static void aNPC_actor_ct_c(ACTOR* actorx, GAME* game) {
 #else
         CLIP(npc_clip)->get_overlay_area_proc = (aNPC_GET_OVERLAY_AREA_PROC)&Actor_get_overlay_area;
         CLIP(npc_clip)->free_overlay_area_proc = &Actor_free_overlay_area;
-        CLIP(npc_clip)->get_actor_area_proc = (aNPC_GET_ACTOR_AREA_PROC)&zelda_malloc;
+        CLIP(npc_clip)->get_actor_area_proc = aNPC_get_actor_area_proc_thunk;
 #endif
         CLIP(npc_clip)->free_actor_area_proc = &aNPC_free_actor_area_proc;
         CLIP(npc_clip)->dma_draw_data_proc = &aNPC_dma_draw_data_proc;
