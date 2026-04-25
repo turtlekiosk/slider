@@ -27,6 +27,8 @@
             background: #000;
             outline: none;
             image-rendering: pixelated;
+            width: 100vw;
+            height: 100vh;
         }
         #status {
             position: fixed;
@@ -57,6 +59,19 @@
     <script type="text/javascript">
         var statusEl = document.getElementById('status');
         var progressEl = document.getElementById('progress');
+
+        // Match the canvas's drawing-buffer size to the viewport (in device
+        // pixels) so rendering is crisp at any window size. Called on init
+        // and on every resize; SDL2's Emscripten port picks up the new size
+        // via its own resize listener and dispatches an SDL_WINDOWEVENT_RESIZED.
+        function resizeCanvasToViewport() {
+            var c = document.getElementById('canvas');
+            var dpr = window.devicePixelRatio || 1;
+            c.width  = Math.floor(window.innerWidth  * dpr);
+            c.height = Math.floor(window.innerHeight * dpr);
+        }
+        resizeCanvasToViewport();
+        window.addEventListener('resize', resizeCanvasToViewport);
 
         var Module = {
             canvas: (function() {

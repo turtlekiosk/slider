@@ -138,6 +138,7 @@ unsigned int pc_crash_get_addr(void) {
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include <emscripten/html5.h>
 /* Mount IndexedDB-backed filesystem on /save and block until the load-from-IDB
  * callback fires. Uses Asyncify to sleep without freezing the page. */
 static void pc_web_mount_saves(void) {
@@ -194,9 +195,14 @@ void pc_platform_init(void) {
         int win_w = 0;  /* SDL2 picks display resolution on Android */
         int win_h = 0;
 #elif defined(__EMSCRIPTEN__)
+        /* Read the canvas size that shell.html already set to the viewport,
+         * and pass it through SDL so its internal window state matches.
+         * (SDL_CreateWindow(0,0) resizes the canvas to 0x0 in the SDL2
+         * Emscripten port, which corrupts later size-dependent allocations.) */
         Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
-        int win_w = g_pc_settings.window_width;
-        int win_h = g_pc_settings.window_height;
+        int win_w = 0, win_h = 0;
+        emscripten_get_canvas_element_size("#canvas", &win_w, &win_h);
+        if (win_w <= 0 || win_h <= 0) { win_w = 1280; win_h = 720; }
 #else
         Uint32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE;
         int win_w = g_pc_settings.window_width;
