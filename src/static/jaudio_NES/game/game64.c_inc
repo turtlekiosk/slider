@@ -2074,16 +2074,8 @@ void Na_PlyWalkSe(u16 id, u16 angle, f32 distance) {
             } break;
         }
 
-#ifdef TARGET_PC
-        printf("[WALK] id=0x%04X dash=%d\n", id, sou_player_dash);
-#endif
         Sou_WalkSe(id, angle, distance, reverb, optVolume);
     }
-#ifdef TARGET_PC
-    else {
-        printf("[WALK] BLOCKED: sou_scene_mode=0 id=0x%04X\n", id);
-    }
-#endif
 }
 
 void Na_PlyWalkSeRoom(u8 a, u16 angle, f32 distance) {

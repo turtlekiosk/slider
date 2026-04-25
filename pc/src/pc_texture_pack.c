@@ -691,8 +691,9 @@ static void xxhash64_selftest(void) {
 }
 
 void pc_texture_pack_init(void) {
-#ifdef TARGET_ANDROID
-    /* Texture packs use BC7/S3TC compressed formats not available in GLES 3.0 */
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
+    /* Texture packs use BC7/S3TC compressed formats not available in GLES 3.0
+     * (Android) or WebGL2 (Emscripten, without optional extensions). */
     return;
 #endif
     g_texpack_count = 0;

@@ -151,6 +151,15 @@ static void eEC_actor_dt(ACTOR* actorx, GAME* game);
 static void eEC_actor_move(ACTOR* actorx, GAME* game);
 static void eEC_actor_draw(ACTOR* actorx, GAME* game);
 
+#ifdef __EMSCRIPTEN__
+/* Expose the file-scope address of eEC_actor_ct via a global non-static var so
+ * other TUs can read it for diagnostic comparison. */
+void (* const eEC_actor_ct_addr)(ACTOR*, GAME*) = &eEC_actor_ct;
+void (* const eEC_actor_dt_addr)(ACTOR*, GAME*) = &eEC_actor_dt;
+void (* const eEC_actor_move_addr)(ACTOR*, GAME*) = &eEC_actor_move;
+void (* const eEC_actor_draw_addr)(ACTOR*, GAME*) = &eEC_actor_draw;
+#endif
+
 ACTOR_PROFILE Effect_Control_Profile = {
     mAc_PROFILE_EFFECT_CONTROL,
     ACTOR_PART_CONTROL,
@@ -164,6 +173,7 @@ ACTOR_PROFILE Effect_Control_Profile = {
     &eEC_actor_draw,
     NULL,
 };
+
 
 static eEC_work_c eEC_ctrl_work;
 

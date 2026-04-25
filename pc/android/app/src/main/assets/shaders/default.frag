@@ -1,5 +1,6 @@
 #version 300 es
-precision mediump float;
+precision highp float;
+precision highp int;
 in vec4 v_color;
 in vec2 v_texcoord0;
 in vec2 v_texcoord1;

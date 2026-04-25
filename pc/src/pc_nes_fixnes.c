@@ -111,7 +111,7 @@ static GLuint fixnes_compile_shader(GLenum type, const char *src) {
 }
 
 static void fixnes_init_gl(void) {
-#ifdef TARGET_ANDROID
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
     const char *vs =
         "#version 300 es\n"
         "precision highp float;\n"

@@ -117,15 +117,6 @@ static void pc_unpack_rgba8f(u32 packed, float* out_rgba) {
     out_rgba[3] = (packed & 0xFF) / 255.0f;
 }
 
-/* Byte-based: reads RGBA from memory order. Use for GXColor structs (not N64 DL data). */
-static void pc_unpack_gxcolor_f(u32 color_as_u32, float* out_rgba) {
-    const u8* bytes = (const u8*)&color_as_u32;
-    out_rgba[0] = bytes[0] / 255.0f;
-    out_rgba[1] = bytes[1] / 255.0f;
-    out_rgba[2] = bytes[2] / 255.0f;
-    out_rgba[3] = bytes[3] / 255.0f;
-}
-
 /* Map tex matrix ID to slot: raw 0..9, GX enum 30..57 (stride 3), or 60=identity */
 static int pc_tex_mtx_id_to_slot(int id) {
     if (id == GX_IDENTITY) return -1;
@@ -292,7 +283,9 @@ void pc_gx_begin_frame(void) {
     glViewport(0, 0, g_pc_window_w, g_pc_window_h);
 #endif
     glClearDepth(g_gx.clear_depth);
-#ifdef TARGET_ANDROID
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
+    /* GLES contexts: force alpha=1 so the framebuffer isn't blended against
+     * the canvas/window background. */
     glClearColor(g_gx.clear_color[0], g_gx.clear_color[1], g_gx.clear_color[2], 1.0f);
 #else
     glClearColor(g_gx.clear_color[0], g_gx.clear_color[1], g_gx.clear_color[2], g_gx.clear_color[3]);
@@ -604,8 +597,8 @@ void pc_gx_flush_vertices(void) {
         if (dirty & PC_GX_DIRTY_PROJECTION) {
             loc = UL(projection);
             if (loc >= 0) {
-#ifdef TARGET_ANDROID
-                /* GLES 3.0 requires transpose=GL_FALSE; transpose manually */
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
+                /* GLES 3.0 / WebGL2 require transpose=GL_FALSE; transpose manually */
                 const float* s = (const float*)g_gx.projection_mtx;
                 float t[16] = {
                     s[0], s[4], s[8],  s[12],
@@ -629,8 +622,8 @@ void pc_gx_flush_vertices(void) {
                 mv44[ 4] = src[4]; mv44[ 5] = src[5]; mv44[ 6] = src[6]; mv44[ 7] = src[7];
                 mv44[ 8] = src[8]; mv44[ 9] = src[9]; mv44[10] = src[10]; mv44[11] = src[11];
                 mv44[12] = 0.0f;   mv44[13] = 0.0f;   mv44[14] = 0.0f;    mv44[15] = 1.0f;
-#ifdef TARGET_ANDROID
-                /* GLES 3.0 requires transpose=GL_FALSE; transpose manually */
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
+                /* GLES 3.0 / WebGL2 require transpose=GL_FALSE; transpose manually */
                 float t[16] = {
                     mv44[0], mv44[4], mv44[8],  mv44[12],
                     mv44[1], mv44[5], mv44[9],  mv44[13],
@@ -644,8 +637,8 @@ void pc_gx_flush_vertices(void) {
             }
             loc = UL(normal_mtx);
             if (loc >= 0) {
-#ifdef TARGET_ANDROID
-                /* GLES 3.0 requires transpose=GL_FALSE; transpose 3x3 manually */
+#if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
+                /* GLES 3.0 / WebGL2 require transpose=GL_FALSE; transpose 3x3 manually */
                 const float* n = (const float*)g_gx.nrm_mtx[g_gx.current_mtx];
                 float nt[9] = {
                     n[0], n[3], n[6],
@@ -1250,15 +1243,28 @@ void GXSetTevOrder(u32 stage, u32 coord, u32 map, u32 color) {
     }
 }
 
-void GXSetTevColor(u32 id, u32 color_packed) {
+/* Header signature is `void GXSetTevColor(GXTevRegID, GXColor)`. Match it
+ * exactly so the wasm32 struct-by-value ABI doesn't pass a pointer in a u32
+ * slot (which corrupts the color into address bytes). */
+void GXSetTevColor(GXTevRegID id, GXColor color) {
     pc_gx_flush_if_begin_complete();
     DIRTY(PC_GX_DIRTY_TEV_COLORS);
-    /* TEVREG0 uses GXColor fields (byte unpack), others come from EmuColor.raw (shift unpack) */
+    /* TEVREG0 receives a directly-populated GXColor struct (.color.r/g/b/a),
+     * so the struct fields are RGBA in order. TEVREG1/REG2 are emu64 EmuColor
+     * unions populated via `.raw = (R<<24|G<<16|B<<8|A)` then read as the
+     * GXColor view — on LE that puts R in .a, G in .b, B in .g, A in .r. */
     if (id < GX_MAX_TEVREG) {
+        float* out = g_gx.tev_colors[id];
         if (id == GX_TEVREG0) {
-            pc_unpack_gxcolor_f(color_packed, g_gx.tev_colors[id]);
+            out[0] = color.r / 255.0f;
+            out[1] = color.g / 255.0f;
+            out[2] = color.b / 255.0f;
+            out[3] = color.a / 255.0f;
         } else {
-            pc_unpack_rgba8f(color_packed, g_gx.tev_colors[id]);
+            out[0] = color.a / 255.0f;
+            out[1] = color.b / 255.0f;
+            out[2] = color.g / 255.0f;
+            out[3] = color.r / 255.0f;
         }
     }
 }
@@ -1274,11 +1280,15 @@ void GXSetTevColorS10(u32 id, s16 r, s16 g, s16 b, s16 a) {
     }
 }
 
-void GXSetTevKColor(u32 id, u32 color_packed) {
+void GXSetTevKColor(GXTevKColorID id, GXColor color) {
     pc_gx_flush_if_begin_complete();
     DIRTY(PC_GX_DIRTY_KONST);
-    if (id < 4) {
-        pc_unpack_rgba8f(color_packed, g_gx.tev_k_colors[id]);
+    if ((u32)id < 4) {
+        float* out = g_gx.tev_k_colors[id];
+        out[0] = color.r / 255.0f;
+        out[1] = color.g / 255.0f;
+        out[2] = color.b / 255.0f;
+        out[3] = color.a / 255.0f;
     }
 }
 
@@ -1437,21 +1447,29 @@ void GXSetChanCtrl(u32 chan, GXBool enable, u32 amb_src, u32 mat_src,
     }
 }
 
-void GXSetChanAmbColor(u32 chan, u32 color_packed) {
+void GXSetChanAmbColor(GXChannelID chan, GXColor color) {
     pc_gx_flush_if_begin_complete();
     DIRTY(PC_GX_DIRTY_LIGHTING);
-    int idx = pc_gx_chan_index(chan);
+    int idx = pc_gx_chan_index((u32)chan);
     if (idx >= 0 && idx < 2) {
-        pc_unpack_gxcolor_f(color_packed, g_gx.chan_amb_color[idx]);
+        float* out = g_gx.chan_amb_color[idx];
+        out[0] = color.r / 255.0f;
+        out[1] = color.g / 255.0f;
+        out[2] = color.b / 255.0f;
+        out[3] = color.a / 255.0f;
     }
 }
 
-void GXSetChanMatColor(u32 chan, u32 color_packed) {
+void GXSetChanMatColor(GXChannelID chan, GXColor color) {
     pc_gx_flush_if_begin_complete();
     DIRTY(PC_GX_DIRTY_LIGHTING);
-    int idx = pc_gx_chan_index(chan);
+    int idx = pc_gx_chan_index((u32)chan);
     if (idx >= 0 && idx < 2) {
-        pc_unpack_gxcolor_f(color_packed, g_gx.chan_mat_color[idx]);
+        float* out = g_gx.chan_mat_color[idx];
+        out[0] = color.r / 255.0f;
+        out[1] = color.g / 255.0f;
+        out[2] = color.b / 255.0f;
+        out[3] = color.a / 255.0f;
     }
 }
 
@@ -1559,9 +1577,12 @@ void GXInitLightDir(void* lt, f32 nx, f32 ny, f32 nz) {
     PCGXLightObjInternal* l = (PCGXLightObjInternal*)lt;
     l->nx = nx; l->ny = ny; l->nz = nz;
 }
-void GXInitLightColor(void* lt, u32 color) {
+void GXInitLightColor(void* lt, GXColor color) {
     PCGXLightObjInternal* l = (PCGXLightObjInternal*)lt;
-    l->color = color;
+    /* SDK convention: l->color = (R<<24 | G<<16 | B<<8 | A) — matches
+     * src/static/dolphin/gx/GXLight.c GXInitLightColor(). */
+    l->color = ((u32)color.r << 24) | ((u32)color.g << 16)
+             | ((u32)color.b << 8)  | (u32)color.a;
 }
 void GXInitLightAttn(void* lt, f32 a0, f32 a1, f32 a2, f32 k0, f32 k1, f32 k2) {
     PCGXLightObjInternal* l = (PCGXLightObjInternal*)lt;
@@ -1598,7 +1619,8 @@ void GXLoadLightObjImm(void* lt, u32 light) {
     g_gx.lights[slot].k0 = l->k0;
     g_gx.lights[slot].k1 = l->k1;
     g_gx.lights[slot].k2 = l->k2;
-    pc_unpack_gxcolor_f(l->color, g_gx.lights[slot].color);
+    /* l->color is (R<<24|G<<16|B<<8|A) per SDK convention. */
+    pc_unpack_rgba8f(l->color, g_gx.lights[slot].color);
 }
 void GXGetLightPos(void* lt, f32* x, f32* y, f32* z) {
     PCGXLightObjInternal* l = (PCGXLightObjInternal*)lt;

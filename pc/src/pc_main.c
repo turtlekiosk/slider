@@ -173,6 +173,9 @@ void pc_platform_init(void) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_RED_SIZE,   8);
+    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,  8);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
 #else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
@@ -394,7 +397,12 @@ int main(int argc, char* argv[]) {
     printf("[ac_pc] stdout/stderr redirected to logcat\n");
 #else
     /* Redirect stdout/stderr to NUL unless verbose — unbuffered terminal writes
-     * are extremely slow on Windows and tank FPS. */
+     * are extremely slow on Windows and tank FPS. Skip on Emscripten so the
+     * browser console keeps receiving stdout/stderr (we need it for diagnostics). */
+#ifdef __EMSCRIPTEN__
+    setvbuf(stdout, NULL, _IONBF, 0);
+    setvbuf(stderr, NULL, _IONBF, 0);
+#else
     if (!g_pc_verbose) {
 #ifdef _WIN32
         freopen("NUL", "w", stdout);
@@ -407,6 +415,7 @@ int main(int argc, char* argv[]) {
         setvbuf(stdout, NULL, _IONBF, 0);
         setvbuf(stderr, NULL, _IONBF, 0);
     }
+#endif
 #endif
 
     /* exe image range for seg2k0 — BSS can overlap N64 segment addresses */
