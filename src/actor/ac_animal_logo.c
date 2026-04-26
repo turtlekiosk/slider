@@ -21,7 +21,16 @@
 #include "m_font.h"
 #include "libultra/libultra.h"
 #include "m_flashrom.h"
-#ifdef PC_ENHANCEMENTS
+
+/* The PC port adds a "Start Game / Options" menu to the title screen. The
+ * options it exposes (resolution, fullscreen mode, VSync, MSAA, texture
+ * preload) are all browser-controlled or no-ops on the web build, so revert
+ * to the original "press START → start game" flow there. */
+#if defined(PC_ENHANCEMENTS) && !defined(__EMSCRIPTEN__)
+#define PC_TITLE_MENU 1
+#endif
+
+#ifdef PC_TITLE_MENU
 #include "pc_settings.h"
 #include "main.h"
 #include <stdio.h>
@@ -333,7 +342,7 @@ static void aAL_fade_out_start_wait_init(ANIMAL_LOGO_ACTOR* actor, GAME* game) {
   actor->press_start_opacity = 255.0f;
 }
 
-#ifdef PC_ENHANCEMENTS
+#ifdef PC_TITLE_MENU
 static void aAL_pc_game_start_wait(ANIMAL_LOGO_ACTOR* actor, GAME* game) {
   GAME_PLAY* play = (GAME_PLAY*)game;
   u16 on_btn = gamePT->pads[PAD0].on.button;
@@ -487,7 +496,7 @@ static void aAL_setupAction(ANIMAL_LOGO_ACTOR* actor, GAME* game, int action) {
     &aAL_logo_in,
     &aAL_back_fadein,
     &aAL_start_key_chk_start_wait,
-#ifdef PC_ENHANCEMENTS
+#ifdef PC_TITLE_MENU
     &aAL_pc_game_start_wait,
 #else
     &aAL_game_start_wait,
@@ -817,7 +826,7 @@ static void aAL_title_draw(GAME* game, ANIMAL_LOGO_ACTOR* actor) {
   Matrix_pull();
 }
 
-#ifdef PC_ENHANCEMENTS
+#ifdef PC_TITLE_MENU
 /* Shared cursor glyph used by both the main title menu and the options overlay. */
 static u8 str_arrow[] = ">";
 
@@ -1056,7 +1065,7 @@ static void aAL_actor_draw(ACTOR* actor, GAME* game) {
       case aAL_ACTION_GAME_START:
       case aAL_ACTION_FADE_OUT_START:
       case aAL_ACTION_OUT:
-#ifdef PC_ENHANCEMENTS
+#ifdef PC_TITLE_MENU
         aAL_pc_menu_draw(logo_actor, game);
 #else
         aAL_press_start_draw(logo_actor, graph);

@@ -456,6 +456,187 @@
         // If the user cancels the close dialog, the page regains focus —
         // reconnect the audio node we synchronously disconnected above.
         window.addEventListener('focus', reconnectAudio);
+
+        // ----- Save export -----
+        // Reads GCI saves out of the IDBFS-backed /save tree and triggers
+        // browser downloads. Exposed as window.exportSave(slot?) so a UI
+        // element can be wired up later. `slot`:
+        //   'a'  → only Card A's primary GCI (DobutsunomoriP_MURA.gci)
+        //   'b'  → every .gci found in /save/card_b/ (Card B is BYO town;
+        //          filename is whatever the user dropped in)
+        //   omit → both A and B (default)
+        // Returns the count of files that were downloaded (0 if nothing).
+        var CARD_A_DIR        = '/save/card_a';
+        var CARD_B_DIR        = '/save/card_b';
+        var CARD_A_GCI        = 'DobutsunomoriP_MURA.gci';
+        function _exportTimestamp() {
+            var pad2 = function(n) { return ('0' + n).slice(-2); };
+            var d = new Date();
+            return d.getFullYear() + pad2(d.getMonth() + 1) + pad2(d.getDate()) +
+                   '-' + pad2(d.getHours()) + pad2(d.getMinutes());
+        }
+        function _downloadBytes(bytes, fileName) {
+            var blob = new Blob([bytes], { type: 'application/octet-stream' });
+            var url  = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+        }
+        function _exportOneFile(path, baseName, stamp) {
+            var bytes;
+            try {
+                bytes = FS.readFile(path);
+            } catch (e) {
+                return false;
+            }
+            var stampedName = baseName.replace(/\.gci$/i, '') + '-' + stamp + '.gci';
+            _downloadBytes(bytes, stampedName);
+            console.log('[save-export] downloaded', stampedName,
+                        '(' + bytes.length + ' bytes from ' + path + ')');
+            return true;
+        }
+        function _listGcisIn(dir) {
+            try {
+                return FS.readdir(dir).filter(function(n) {
+                    return /\.gci$/i.test(n) && n !== '.' && n !== '..';
+                });
+            } catch (e) {
+                return [];
+            }
+        }
+        function exportSave(slot) {
+            if (typeof FS === 'undefined') {
+                console.warn('[save-export] FS not ready');
+                return 0;
+            }
+            // Best-effort flush MEMFS → IDBFS; the read below uses MEMFS
+            // either way, so this is just for durability.
+            try { FS.syncfs(false, function() {}); } catch (e) {}
+            var stamp = _exportTimestamp();
+            var count = 0;
+            if (slot === undefined || slot === 'a') {
+                if (_exportOneFile(CARD_A_DIR + '/' + CARD_A_GCI, CARD_A_GCI, stamp)) count++;
+                else if (slot === 'a') console.warn('[save-export] no save at', CARD_A_DIR + '/' + CARD_A_GCI);
+            }
+            if (slot === undefined || slot === 'b') {
+                var bGcis = _listGcisIn(CARD_B_DIR);
+                bGcis.forEach(function(name) {
+                    if (_exportOneFile(CARD_B_DIR + '/' + name, name, stamp)) count++;
+                });
+                if (slot === 'b' && bGcis.length === 0) {
+                    console.warn('[save-export] no .gci files in', CARD_B_DIR);
+                }
+            }
+            if (count === 0 && slot === undefined) {
+                console.warn('[save-export] no save data found in either slot');
+            }
+            return count;
+        }
+        window.exportSave = exportSave;
+
+        // ----- Save import -----
+        // Writes a GCI into the IDBFS-backed /save tree. Symmetric to
+        // exportSave; intended to be wired to a UI element later.
+        //   slot: 'a' (overwrites the canonical Card A save) or 'b'
+        //         (drops the file into card_b/ for visiting)
+        //   src : File / Blob / ArrayBuffer / Uint8Array
+        // Returns a Promise that resolves to true on success, false on
+        // validation/IO failure. Validation: GCI header gameName must
+        // be "GAFE" (USA AC); for slot 'a' the embedded fileName must
+        // additionally be "DobutsunomoriP_MURA" so a rogue Card B GCI
+        // can't clobber the real save.
+        function _toUint8Array(src) {
+            return new Promise(function(resolve, reject) {
+                if (src instanceof Uint8Array) { resolve(src); return; }
+                if (src instanceof ArrayBuffer) { resolve(new Uint8Array(src)); return; }
+                if (src && typeof src.arrayBuffer === 'function') {
+                    src.arrayBuffer().then(function(ab) { resolve(new Uint8Array(ab)); }, reject);
+                    return;
+                }
+                reject(new Error('importSave: unsupported source (need File/Blob/ArrayBuffer/Uint8Array)'));
+            });
+        }
+        function _readGciFileName(bytes) {
+            if (bytes.length < 0x28) return '';
+            var name = '';
+            for (var i = 0x08; i < 0x28; i++) {
+                var c = bytes[i];
+                if (c === 0) break;
+                name += String.fromCharCode(c);
+            }
+            return name;
+        }
+        function _validateGciHeader(bytes) {
+            if (bytes.length < 0x40) return 'file too small to be a GCI (need ≥64 bytes)';
+            // gameName "GAFE" (USA AC); other regions wouldn't run anyway
+            // since the port is built for GAFE01 Rev 0.
+            if (bytes[0] !== 0x47 /* G */ || bytes[1] !== 0x41 /* A */ ||
+                bytes[2] !== 0x46 /* F */ || bytes[3] !== 0x45 /* E */) {
+                return 'not a USA Animal Crossing GCI (gameName ≠ "GAFE")';
+            }
+            return null;
+        }
+        function importSave(slot, src) {
+            return _toUint8Array(src).then(function(bytes) {
+                if (typeof FS === 'undefined') {
+                    console.warn('[save-import] FS not ready');
+                    return false;
+                }
+                var headerErr = _validateGciHeader(bytes);
+                if (headerErr) {
+                    console.warn('[save-import]', headerErr);
+                    return false;
+                }
+                var embeddedName = _readGciFileName(bytes);
+                var path;
+                if (slot === 'a') {
+                    if (embeddedName !== 'DobutsunomoriP_MURA') {
+                        console.warn('[save-import] Card A requires DobutsunomoriP_MURA, got "' +
+                                     embeddedName + '"');
+                        return false;
+                    }
+                    try { FS.mkdir(CARD_A_DIR); } catch (e) { /* exists */ }
+                    path = CARD_A_DIR + '/' + CARD_A_GCI;
+                } else if (slot === 'b') {
+                    if (!embeddedName) {
+                        console.warn('[save-import] GCI has empty embedded filename');
+                        return false;
+                    }
+                    try { FS.mkdir(CARD_B_DIR); } catch (e) { /* exists */ }
+                    path = CARD_B_DIR + '/' + embeddedName + '.gci';
+                } else {
+                    console.warn('[save-import] slot must be "a" or "b"');
+                    return false;
+                }
+                try {
+                    FS.writeFile(path, bytes);
+                } catch (e) {
+                    console.warn('[save-import] write failed:', e && e.message);
+                    return false;
+                }
+                // Persist to IndexedDB so the import survives reload.
+                return new Promise(function(resolve) {
+                    FS.syncfs(false, function(err) {
+                        if (err) {
+                            console.warn('[save-import] syncfs failed:', err);
+                            resolve(false);
+                            return;
+                        }
+                        console.log('[save-import] wrote', path,
+                                    '(' + bytes.length + ' bytes)');
+                        resolve(true);
+                    });
+                });
+            }).catch(function(err) {
+                console.warn('[save-import]', err && err.message);
+                return false;
+            });
+        }
+        window.importSave = importSave;
     </script>
     {{{ SCRIPT }}}
 </body>
