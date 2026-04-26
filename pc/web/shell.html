@@ -38,8 +38,11 @@
             background: #000;
             outline: none;
             image-rendering: pixelated;
+            /* Display at the drawing buffer's aspect (we clamp it to ≤ 4:3 in JS),
+               so narrow windows letterbox top/bottom against the black body bg. */
             width: 100vw;
-            height: 100vh;
+            height: auto;
+            max-height: 100vh;
         }
         #status {
             position: fixed;
@@ -156,6 +159,11 @@
             var c = document.getElementById('canvas');
             var w = window.innerWidth;
             var h = window.innerHeight;
+            // Letterbox narrow windows: cap drawing-buffer aspect at 4:3 so
+            // the engine never sees a taller-than-4:3 viewport. Wide windows
+            // are left alone — the engine pillarboxes them itself.
+            var maxH = Math.floor(w * 3 / 4);
+            if (h > maxH) h = maxH;
             if (w > MAX_CANVAS_DIM || h > MAX_CANVAS_DIM) {
                 var scale = Math.min(MAX_CANVAS_DIM / w, MAX_CANVAS_DIM / h);
                 w = Math.floor(w * scale);
