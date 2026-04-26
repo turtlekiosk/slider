@@ -231,6 +231,35 @@
                    bytes[2] === 0x9F && bytes[3] === 0x3D;
         }
 
+        // The port is built against GAFE01 Rev 0 (Animal Crossing, USA,
+        // original revision). Other regions (GAFP/GAFJ) and revisions
+        // have different asset offsets/symbol layout and will crash
+        // shortly after boot, so reject them up-front.
+        //   bytes 0x00..0x05 = game code "GAFE01" (ASCII)
+        //   byte  0x07       = revision (0x00 for Rev 0)
+        var SUPPORTED_GAME_ID  = 'GAFE01';
+        var SUPPORTED_REVISION = 0x00;
+        function readGameId(buf) {
+            var bytes = new Uint8Array(buf, 0x00, 6);
+            var s = '';
+            for (var i = 0; i < 6; i++) s += String.fromCharCode(bytes[i]);
+            return s;
+        }
+        function readRevision(buf) {
+            return new Uint8Array(buf, 0x07, 1)[0];
+        }
+        function describeUnsupported(buf) {
+            var id  = readGameId(buf);
+            var rev = readRevision(buf);
+            return 'Unsupported version: ' + id + ' Rev ' + rev +
+                   '. This port supports ' + SUPPORTED_GAME_ID +
+                   ' Rev ' + SUPPORTED_REVISION + ' (Animal Crossing, USA) only.';
+        }
+        function isSupportedVersion(buf) {
+            return readGameId(buf) === SUPPORTED_GAME_ID &&
+                   readRevision(buf) === SUPPORTED_REVISION;
+        }
+
         function readFileAsArrayBuffer(file) {
             return new Promise(function(resolve, reject) {
                 var reader = new FileReader();
@@ -250,6 +279,10 @@
                         'That file isn’t a recognized GameCube disc image. ' +
                         'Expected an ACGC .iso/.gcm/.ciso. Please try again.',
                         true);
+                    return;
+                }
+                if (!isSupportedVersion(buf)) {
+                    setRomStatus(describeUnsupported(buf), true);
                     return;
                 }
                 try {
