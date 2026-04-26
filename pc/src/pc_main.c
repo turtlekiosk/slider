@@ -155,6 +155,39 @@ static void pc_web_mount_saves(void) {
         emscripten_sleep(10);
     }
 }
+/* Mount IndexedDB-backed filesystem on /orig (where pc_disc.c looks for the
+ * disc image) and pull any previously-uploaded ROM bytes back into the VFS. */
+static void pc_web_mount_rom(void) {
+    EM_ASM({
+        try { FS.mkdir('/orig'); } catch (e) { /* already exists */ }
+        FS.mount(IDBFS, {}, '/orig');
+        Module.__rom_ready = 0;
+        FS.syncfs(true, function(err) {
+            if (err) console.warn('IDBFS /orig load err:', err);
+            Module.__rom_ready = 1;
+        });
+    });
+    while (!EM_ASM_INT({ return Module.__rom_ready ? 1 : 0; })) {
+        emscripten_sleep(10);
+    }
+}
+/* Show the upload overlay defined in shell.html, then block (yielding via
+ * Asyncify) until the user picks a file that passes the GC magic-word check
+ * and the bytes have been flushed to IndexedDB. */
+static void pc_web_prompt_for_rom(void) {
+    EM_ASM({
+        Module.__rom_uploaded = 0;
+        if (typeof showRomPicker === 'function') {
+            showRomPicker();
+        } else {
+            console.error('showRomPicker() missing from shell.html');
+            Module.__rom_uploaded = 1; /* unblock so we don't deadlock */
+        }
+    });
+    while (!EM_ASM_INT({ return Module.__rom_uploaded ? 1 : 0; })) {
+        emscripten_sleep(50);
+    }
+}
 #endif
 
 void pc_platform_init(void) {
@@ -168,6 +201,7 @@ void pc_platform_init(void) {
     }
 #ifdef __EMSCRIPTEN__
     pc_web_mount_saves();
+    pc_web_mount_rom();
 #endif
 
 #if defined(TARGET_ANDROID) || defined(__EMSCRIPTEN__)
@@ -466,7 +500,15 @@ int main(int argc, char* argv[]) {
     pc_settings_load();
     pc_keybindings_load();
     pc_platform_init();
-    pc_disc_init();
+    if (!pc_disc_init()) {
+#ifdef __EMSCRIPTEN__
+        /* No disc found in /orig (or anywhere else searched). Prompt the
+         * user to upload one, then retry. The prompt blocks until a valid
+         * GC disc image lands in /orig and is persisted to IndexedDB. */
+        pc_web_prompt_for_rom();
+        pc_disc_init();
+#endif
+    }
     pc_assets_init();
 
     ac_entry();                         /* sets HotStartEntry = &entry */

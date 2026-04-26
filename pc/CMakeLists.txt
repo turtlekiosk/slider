@@ -490,14 +490,6 @@ elseif(EMSCRIPTEN)
         SUFFIX ".html"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/web"
     )
-    # Asset sources to embed. User must place pre-extracted DOL+REL under
-    # <repo>/orig/GAFE01_00/ (same layout the desktop .bin-fallback path uses).
-    set(_EMSCRIPTEN_ASSETS "${DECOMP_ROOT}/orig")
-    if(NOT EXISTS "${_EMSCRIPTEN_ASSETS}")
-        message(WARNING
-            "Emscripten build: ${_EMSCRIPTEN_ASSETS} not found. "
-            "Place pre-extracted game files there before running the wasm build.")
-    endif()
     target_link_options(ac_pc PRIVATE
         -sUSE_SDL=2
         -sUSE_WEBGL2=1
@@ -507,14 +499,13 @@ elseif(EMSCRIPTEN)
         -sALLOW_MEMORY_GROWTH=1
         -sINITIAL_MEMORY=268435456       # 256 MB
         -sSTACK_SIZE=5242880             # 5 MB: emu64 uses deep recursion
-        -g                                   # wasm debug info (C names in browser)
+        -g                               # wasm debug info (C names in browser)
         -sASYNCIFY=1
-        -sASYNCIFY_STACK_SIZE=4194304       # 4 MB: AC's main loop is deep
+        -sASYNCIFY_STACK_SIZE=4194304    # 4 MB: AC's main loop is deep
         -sASSERTIONS=2
         -sEXIT_RUNTIME=0
         -sFORCE_FILESYSTEM=1
         -lidbfs.js
-        "SHELL:--preload-file ${_EMSCRIPTEN_ASSETS}@/orig"
         # Use Android's GLES 300-flavored shaders — WebGL2 is GLES 3.0, not desktop GL.
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"

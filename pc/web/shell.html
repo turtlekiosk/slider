@@ -14,7 +14,14 @@
             padding: 0;
             background: #000;
             color: #ddd;
-            font-family: system-ui, sans-serif;
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                "Roboto",
+                "Helvetica Neue",
+                Arial,
+                sans-serif;
             height: 100%;
             overflow: hidden;
         }
@@ -51,6 +58,66 @@
             width: 0%;
             transition: width 0.2s;
         }
+        #rom-picker {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            color: #ddd;
+            z-index: 10;
+            padding: 32px 24px;
+            box-sizing: border-box;
+            overflow: auto;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 20px;
+        }
+        #rom-picker.visible { display: flex; }
+        #rom-picker h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        #rom-instructions {
+            max-width: 600px;
+            width: 100%;
+            line-height: 1.5;
+            font-size: 14px;
+            opacity: 0.85;
+            padding-left: 20px;
+        }
+        #rom-instructions li { margin: 6px 0; }
+        #rom-drop {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            min-height: 180px;
+            border: 2px dashed #4a9;
+            border-radius: 12px;
+            padding: 24px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            box-sizing: border-box;
+        }
+        #rom-drop:hover,
+        #rom-drop.dragging {
+            background: rgba(74,153,89,0.08);
+            border-color: #6c0;
+        }
+        #rom-drop input { display: none; }
+        #rom-drop .primary { font-size: 16px; margin-bottom: 4px; }
+        #rom-drop .secondary { font-size: 12px; opacity: 0.65; }
+        #rom-status {
+            min-height: 1.4em;
+            font-size: 13px;
+            opacity: 0.85;
+        }
+        #rom-status.error { color: #f88; opacity: 1; }
     </style>
 </head>
 <body>
@@ -59,6 +126,21 @@
     </div>
     <div id="status">loading…</div>
     <div id="progress"></div>
+
+    <div id="rom-picker" aria-hidden="true">
+        <h1>Slider – A Web Port of GC Animal Crossing</h1>
+        <ol id="rom-instructions">
+            <li>Although this is a port and not an emulator, no assets are distributed with here. A disc image file of AC is still necessary to play the game for this reason.</li>
+            <li>Thank you to ACreTeam and flyngmt for their work on the decomp and PC port of ACGC, on which this project is built on top of.</li>
+            <li>This software is provided as-is, without warranty of any kind. There's no guarantee it won't corrupt your save data at some point, so export your save data as often as necessary.</li>
+        </ol>
+        <label id="rom-drop" for="rom-file">
+            <div class="primary">Drag a USA (GAFE01 Rev 0) disc image here, or click to select</div>
+            <div class="secondary">.iso · .gcm · .ciso — stays on your device</div>
+            <input id="rom-file" type="file" accept=".iso,.gcm,.ciso">
+        </label>
+        <div id="rom-status"></div>
+    </div>
 
     <script type="text/javascript">
         var statusEl = document.getElementById('status');
@@ -114,6 +196,119 @@
             console.error(msg);
         };
 
+        // ----- ROM upload picker -----
+        // Shown by pc_web_prompt_for_rom() when the wasm side fails to find
+        // a disc image in the IDBFS-backed /orig directory. The file is
+        // validated (GameCube magic word at offset 0x1C), written to
+        // /orig/user-rom.iso, and persisted via FS.syncfs(false).
+        var pickerEl   = document.getElementById('rom-picker');
+        var dropEl     = document.getElementById('rom-drop');
+        var fileInput  = document.getElementById('rom-file');
+        var statusBox  = document.getElementById('rom-status');
+
+        function setRomStatus(msg, isError) {
+            statusBox.textContent = msg || '';
+            statusBox.className = isError ? 'error' : '';
+        }
+
+        function showRomPicker() {
+            pickerEl.classList.add('visible');
+            pickerEl.setAttribute('aria-hidden', 'false');
+            setRomStatus('');
+        }
+        function hideRomPicker() {
+            pickerEl.classList.remove('visible');
+            pickerEl.setAttribute('aria-hidden', 'true');
+        }
+        // Expose to wasm via Module global lookup
+        window.showRomPicker = showRomPicker;
+
+        // GC disc magic word lives at offset 0x1C, big-endian 0xC2339F3D.
+        function isValidGCImage(buf) {
+            if (buf.byteLength < 0x20) return false;
+            var bytes = new Uint8Array(buf, 0x1C, 4);
+            return bytes[0] === 0xC2 && bytes[1] === 0x33 &&
+                   bytes[2] === 0x9F && bytes[3] === 0x3D;
+        }
+
+        function readFileAsArrayBuffer(file) {
+            return new Promise(function(resolve, reject) {
+                var reader = new FileReader();
+                reader.onload  = function() { resolve(reader.result); };
+                reader.onerror = function() { reject(reader.error); };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function handleSelectedFile(file) {
+            if (!file) return;
+            setRomStatus('Reading file…');
+            readFileAsArrayBuffer(file).then(function(buf) {
+                setRomStatus('Validating…');
+                if (!isValidGCImage(buf)) {
+                    setRomStatus(
+                        'That file isn’t a recognized GameCube disc image. ' +
+                        'Expected an ACGC .iso/.gcm/.ciso. Please try again.',
+                        true);
+                    return;
+                }
+                try {
+                    FS.writeFile('/orig/user-rom.iso', new Uint8Array(buf));
+                } catch (e) {
+                    setRomStatus('Write failed: ' + (e && e.message || e), true);
+                    console.error('[rom] FS.writeFile failed', e);
+                    return;
+                }
+                setRomStatus('Saving to browser storage…');
+                FS.syncfs(false, function(err) {
+                    if (err) {
+                        setRomStatus('Persist failed: ' + err, true);
+                        console.error('[rom] FS.syncfs failed', err);
+                        return;
+                    }
+                    setRomStatus('Loading…');
+                    Module.__rom_uploaded = 1;
+                    hideRomPicker();
+                });
+            }).catch(function(err) {
+                setRomStatus('Read failed: ' + (err && err.message || err), true);
+                console.error('[rom] FileReader failed', err);
+            });
+        }
+
+        fileInput.addEventListener('change', function(ev) {
+            handleSelectedFile(ev.target.files && ev.target.files[0]);
+            ev.target.value = ''; /* allow re-selecting the same file after an error */
+        });
+
+        // Drag-and-drop on the dashed zone
+        ['dragenter', 'dragover'].forEach(function(t) {
+            dropEl.addEventListener(t, function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                dropEl.classList.add('dragging');
+            });
+        });
+        ['dragleave', 'drop'].forEach(function(t) {
+            dropEl.addEventListener(t, function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                dropEl.classList.remove('dragging');
+            });
+        });
+        dropEl.addEventListener('drop', function(ev) {
+            var f = ev.dataTransfer && ev.dataTransfer.files && ev.dataTransfer.files[0];
+            handleSelectedFile(f);
+        });
+
+        // Catch drops anywhere else on the page so the browser doesn't
+        // navigate away when the user misses the drop zone.
+        ['dragover', 'drop'].forEach(function(t) {
+            document.addEventListener(t, function(ev) {
+                if (pickerEl.classList.contains('visible')) ev.preventDefault();
+            });
+        });
+
         // Register the service worker on page load so the wasm bundle is
         // cached for offline use after the first visit. Requires HTTPS (or
         // localhost). Failure is non-fatal — the app still works online.
@@ -138,30 +333,40 @@
         // returning a non-empty string, which is the API's signal to
         // show the confirm dialog at all.
         //
-        // Only armed after the runtime is up, so the page can still be
-        // closed cleanly during the loading screen.
-        var _confirmCloseArmed = false;
+        // Only armed once the runtime is up AND the ROM picker is hidden —
+        // i.e. the user is actually playing. Otherwise (loading screen,
+        // ROM upload prompt) the page closes cleanly without a confirm.
+        var _runtimeReady = false;
         var _origOnRuntimeInitialized = Module.onRuntimeInitialized;
         Module.onRuntimeInitialized = function() {
             if (typeof _origOnRuntimeInitialized === 'function') {
                 _origOnRuntimeInitialized();
             }
-            _confirmCloseArmed = true;
+            _runtimeReady = true;
         };
         window.addEventListener('beforeunload', function(e) {
-            if (!_confirmCloseArmed) return;
+            if (!_runtimeReady) return;
+            if (pickerEl.classList.contains('visible')) return;
             e.preventDefault();
             e.returnValue = ''; // required by some browsers to trigger the dialog
             return '';
         });
 
-        // When the wasm runtime is paused (beforeunload prompt, tab in
-        // background, window blurred) the Web Audio graph keeps consuming
-        // its last queued samples, producing a loud buzz/loop. Suspend
-        // the AudioContext while paused and resume on focus.
+        // The Web Audio graph keeps replaying its last buffer when the
+        // wasm runtime is frozen (e.g. by the modal beforeunload prompt),
+        // producing a loud buzz. AudioContext.suspend() is async and
+        // doesn't take effect before the modal blocks JS, so we silence
+        // synchronously by disconnecting SDL's output node on beforeunload.
         function getAudioContext() {
             try { return Module && Module.SDL2 && Module.SDL2.audioContext; }
             catch (e) { return null; }
+        }
+        function getAudioOutputNode() {
+            try {
+                var a = Module && Module.SDL2 && Module.SDL2.audio;
+                if (!a) return null;
+                return a.scriptProcessorNode || a.audioWorkletNode || null;
+            } catch (e) { return null; }
         }
         function suspendAudio() {
             var ctx = getAudioContext();
@@ -171,14 +376,37 @@
             var ctx = getAudioContext();
             if (ctx && ctx.state === 'suspended') ctx.resume().catch(function() {});
         }
-        window.addEventListener('blur', suspendAudio);
-        window.addEventListener('focus', resumeAudio);
+        // Suspend only on genuine backgrounding (other tab, minimized
+        // browser). Window blur (alt-tab to another app, DevTools focus)
+        // leaves the tab visible — keep audio playing like YouTube/Spotify.
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) suspendAudio(); else resumeAudio();
         });
-        // Also suspend during the beforeunload dialog so the page goes
-        // silent the moment the prompt appears.
-        window.addEventListener('beforeunload', suspendAudio);
+        // Track the disconnected node so we can reconnect it if the user
+        // cancels the close-confirm dialog (SDL won't rebuild the graph
+        // on its own).
+        var _disconnectedAudioNode = null;
+        function reconnectAudio() {
+            var ctx = getAudioContext();
+            if (_disconnectedAudioNode && ctx) {
+                try { _disconnectedAudioNode.connect(ctx.destination); } catch (e) {}
+                _disconnectedAudioNode = null;
+            }
+            resumeAudio();
+        }
+        window.addEventListener('beforeunload', function() {
+            // Synchronous: disconnect the SDL output node so the audio
+            // graph stops feeding samples to the destination immediately,
+            // before the close-confirm modal freezes the wasm thread.
+            var node = getAudioOutputNode();
+            if (node) {
+                try { node.disconnect(); _disconnectedAudioNode = node; } catch (e) {}
+            }
+            suspendAudio();
+        });
+        // If the user cancels the close dialog, the page regains focus —
+        // reconnect the audio node we synchronously disconnected above.
+        window.addEventListener('focus', reconnectAudio);
     </script>
     {{{ SCRIPT }}}
 </body>
