@@ -327,12 +327,18 @@ int pc_platform_poll_events(void) {
                 }
                 break;
             case SDL_KEYDOWN:
+#ifndef __EMSCRIPTEN__
+                /* Web: SDL_ShowMessageBox isn't implemented, so the confirm
+                 * dialog returns "quit" by default — Escape would instantly
+                 * terminate the page. The browser tab close already prompts
+                 * via the beforeunload listener in shell.html. */
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     if (pc_confirm_quit()) {
                         g_pc_running = 0;
                         return 0;
                     }
                 }
+#endif
                 if (event.key.keysym.sym == SDLK_F3 && !event.key.repeat) {
                     g_pc_no_framelimit ^= 1;
                     printf("[PC] Frame limiter %s\n", g_pc_no_framelimit ? "OFF" : "ON");

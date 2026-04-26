@@ -130,6 +130,55 @@
         if (navigator.storage && navigator.storage.persist) {
             navigator.storage.persist().catch(function() { /* ignore */ });
         }
+
+        // Prompt before the user closes the tab / navigates away so an
+        // accidental close doesn't lose unsaved progress. The dialog text
+        // is browser-controlled (modern browsers ignore custom messages
+        // and show a generic "Leave site?" prompt) — what matters is
+        // returning a non-empty string, which is the API's signal to
+        // show the confirm dialog at all.
+        //
+        // Only armed after the runtime is up, so the page can still be
+        // closed cleanly during the loading screen.
+        var _confirmCloseArmed = false;
+        var _origOnRuntimeInitialized = Module.onRuntimeInitialized;
+        Module.onRuntimeInitialized = function() {
+            if (typeof _origOnRuntimeInitialized === 'function') {
+                _origOnRuntimeInitialized();
+            }
+            _confirmCloseArmed = true;
+        };
+        window.addEventListener('beforeunload', function(e) {
+            if (!_confirmCloseArmed) return;
+            e.preventDefault();
+            e.returnValue = ''; // required by some browsers to trigger the dialog
+            return '';
+        });
+
+        // When the wasm runtime is paused (beforeunload prompt, tab in
+        // background, window blurred) the Web Audio graph keeps consuming
+        // its last queued samples, producing a loud buzz/loop. Suspend
+        // the AudioContext while paused and resume on focus.
+        function getAudioContext() {
+            try { return Module && Module.SDL2 && Module.SDL2.audioContext; }
+            catch (e) { return null; }
+        }
+        function suspendAudio() {
+            var ctx = getAudioContext();
+            if (ctx && ctx.state === 'running') ctx.suspend().catch(function() {});
+        }
+        function resumeAudio() {
+            var ctx = getAudioContext();
+            if (ctx && ctx.state === 'suspended') ctx.resume().catch(function() {});
+        }
+        window.addEventListener('blur', suspendAudio);
+        window.addEventListener('focus', resumeAudio);
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) suspendAudio(); else resumeAudio();
+        });
+        // Also suspend during the beforeunload dialog so the page goes
+        // silent the moment the prompt appears.
+        window.addEventListener('beforeunload', suspendAudio);
     </script>
     {{{ SCRIPT }}}
 </body>
