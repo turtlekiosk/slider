@@ -510,12 +510,12 @@ elseif(EMSCRIPTEN)
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
     )
-    # Copy PWA assets (manifest + service worker + icons) next to the wasm
-    # output. The service worker registration in shell.html expects them at
-    # the same origin path as AnimalCrossing.html.
+    # Copy PWA assets (manifest + icons) next to the wasm output. The service
+    # worker registration in shell.html expects them at the same origin path
+    # as AnimalCrossing.html. (sw.js itself is configure_file'd below so the
+    # cache key gets the build SHA substituted in.)
     set(_PWA_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
-        "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js"
     )
     foreach(_pwa_file IN LISTS _PWA_FILES)
         if(EXISTS "${_pwa_file}")
@@ -524,6 +524,47 @@ elseif(EMSCRIPTEN)
                     "${_pwa_file}" "${CMAKE_BINARY_DIR}/web/")
         endif()
     endforeach()
+
+    # Service worker cache key: derive from the git short SHA so each deploy
+    # invalidates the previous SW cache automatically. Falls back to a
+    # timestamp on dirty trees or non-git checkouts so dev iterations also
+    # bust the cache instead of silently reusing stale bytes.
+    find_package(Git QUIET)
+    set(_pc_web_sha "")
+    if(Git_FOUND)
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_SOURCE_DIR}" rev-parse --short=12 HEAD
+            OUTPUT_VARIABLE _pc_web_sha
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            RESULT_VARIABLE _pc_web_git_rc
+            ERROR_QUIET
+        )
+        if(NOT _pc_web_git_rc EQUAL 0)
+            set(_pc_web_sha "")
+        endif()
+    endif()
+    if(_pc_web_sha)
+        set(PC_WEB_CACHE_VERSION "acgc-${_pc_web_sha}")
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_SOURCE_DIR}" status --porcelain
+            OUTPUT_VARIABLE _pc_web_status
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET
+        )
+        if(_pc_web_status)
+            string(TIMESTAMP _pc_web_ts "%Y%m%d%H%M")
+            set(PC_WEB_CACHE_VERSION "${PC_WEB_CACHE_VERSION}-dirty-${_pc_web_ts}")
+        endif()
+    else()
+        string(TIMESTAMP _pc_web_ts "%Y%m%d%H%M%S")
+        set(PC_WEB_CACHE_VERSION "acgc-dev-${_pc_web_ts}")
+    endif()
+    message(STATUS "PWA service-worker cache version: ${PC_WEB_CACHE_VERSION}")
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js.in"
+        "${CMAKE_BINARY_DIR}/web/sw.js"
+        @ONLY
+    )
     # Copy any icon-*.png that exist (icons are optional — the build still
     # works without them, the manifest just won't have art).
     file(GLOB _PWA_ICONS "${CMAKE_CURRENT_SOURCE_DIR}/web/icon-*.png")

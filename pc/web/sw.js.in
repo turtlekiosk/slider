@@ -1,7 +1,8 @@
-/* Cache-first service worker. On every release bump CACHE_VERSION so old
- * wasm/data don't keep getting served after a new build is deployed. */
+/* Cache-first service worker. CACHE_VERSION is substituted at build time
+ * from the git short SHA (see pc/CMakeLists.txt) so each new build evicts
+ * the previous cache automatically. */
 
-const CACHE_VERSION = 'acgc-v1';
+const CACHE_VERSION = '@PC_WEB_CACHE_VERSION@';
 const CORE_ASSETS = [
     './',
     './AnimalCrossing.html',
