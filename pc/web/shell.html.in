@@ -52,6 +52,17 @@
             opacity: 0.7;
             pointer-events: none;
         }
+        #build-tag {
+            position: fixed;
+            right: 8px;
+            bottom: 8px;
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 11px;
+            opacity: 0.45;
+            pointer-events: none;
+            user-select: none;
+            z-index: 1;
+        }
         #progress {
             position: fixed;
             bottom: 0;
@@ -129,6 +140,7 @@
     </div>
     <div id="status">loading…</div>
     <div id="progress"></div>
+    <div id="build-tag" title="Build identifier">@PC_WEB_BUILD_TAG@</div>
 
     <div id="rom-picker" aria-hidden="true">
         <h1>Slider – A Web Port of GC Animal Crossing</h1>

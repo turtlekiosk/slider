@@ -508,7 +508,7 @@ elseif(EMSCRIPTEN)
         -lidbfs.js
         # Use Android's GLES 300-flavored shaders — WebGL2 is GLES 3.0, not desktop GL.
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
-        "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+        "SHELL:--shell-file ${CMAKE_BINARY_DIR}/web/shell.html"
     )
     # Copy PWA assets (manifest + icons) next to the wasm output. The service
     # worker registration in shell.html expects them at the same origin path
@@ -544,7 +544,7 @@ elseif(EMSCRIPTEN)
         endif()
     endif()
     if(_pc_web_sha)
-        set(PC_WEB_CACHE_VERSION "acgc-${_pc_web_sha}")
+        set(PC_WEB_BUILD_TAG "${_pc_web_sha}")
         execute_process(
             COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_SOURCE_DIR}" status --porcelain
             OUTPUT_VARIABLE _pc_web_status
@@ -553,16 +553,22 @@ elseif(EMSCRIPTEN)
         )
         if(_pc_web_status)
             string(TIMESTAMP _pc_web_ts "%Y%m%d%H%M")
-            set(PC_WEB_CACHE_VERSION "${PC_WEB_CACHE_VERSION}-dirty-${_pc_web_ts}")
+            set(PC_WEB_BUILD_TAG "${PC_WEB_BUILD_TAG}-dirty-${_pc_web_ts}")
         endif()
     else()
         string(TIMESTAMP _pc_web_ts "%Y%m%d%H%M%S")
-        set(PC_WEB_CACHE_VERSION "acgc-dev-${_pc_web_ts}")
+        set(PC_WEB_BUILD_TAG "dev-${_pc_web_ts}")
     endif()
-    message(STATUS "PWA service-worker cache version: ${PC_WEB_CACHE_VERSION}")
+    set(PC_WEB_CACHE_VERSION "acgc-${PC_WEB_BUILD_TAG}")
+    message(STATUS "PWA build tag: ${PC_WEB_BUILD_TAG} (SW cache: ${PC_WEB_CACHE_VERSION})")
     configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js.in"
         "${CMAKE_BINARY_DIR}/web/sw.js"
+        @ONLY
+    )
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html.in"
+        "${CMAKE_BINARY_DIR}/web/shell.html"
         @ONLY
     )
     # Copy any icon-*.png that exist (icons are optional — the build still
