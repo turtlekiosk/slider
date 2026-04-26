@@ -18,7 +18,7 @@ extern "C" {
 
 typedef struct ac_shrine_s SHRINE_ACTOR;
 
-typedef void (*aSHR_ANIME_PLAY_PROC)();
+typedef void (*aSHR_ANIME_PLAY_PROC)(void);
 
 typedef struct ac_shrine_clip_s {
   aSHR_ANIME_PLAY_PROC anime_play_proc;

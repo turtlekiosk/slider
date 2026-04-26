@@ -759,47 +759,47 @@ static f32 weight_of_talk_position(ACTOR* actor) {
     }
 }
 
-static int allways_true() {
+static int allways_true(void) {
     return TRUE;
 }
 
-static int allways_false() {
+static int allways_false(void) {
     return FALSE;
 }
 
-static int scroll_check() {
+static int scroll_check(void) {
     return mPlib_check_request_main_wade_priority(gamePT);
 }
 
-static int scroll2_check() {
+static int scroll2_check(void) {
     return mPlib_check_request_main_demo_wade_priority(gamePT);
 }
 
-static int scroll3_check() {
+static int scroll3_check(void) {
     return mPlib_check_request_main_demo_geton_boat_wade_priority(gamePT);
 }
 
-static int door_check() {
+static int door_check(void) {
     return mPlib_check_request_main_door_type1_priority(gamePT);
 }
 
-static int door2_check() {
+static int door2_check(void) {
     return mPlib_check_request_main_door_type2_priority(gamePT);
 }
 
-static int outdoor_check() {
+static int outdoor_check(void) {
     return mPlib_check_request_main_outdoor_priority(gamePT);
 }
 
-static int talk_check() {
+static int talk_check(void) {
     return mPlib_check_request_main_talk_type1_priority(gamePT) != 0;
 }
 
-static int speak_check() {
+static int speak_check(void) {
     return mPlib_check_request_main_speak_type1_priority(gamePT) != 0;
 }
 
-typedef int (*mDemo_PROC)();
+typedef int (*mDemo_PROC)(void);
 
 static int choice_demo_sub() {
     static const mDemo_PROC check_func[mDemo_TYPE_NUM] = { &allways_true, &scroll_check,  &allways_true, &door_check,

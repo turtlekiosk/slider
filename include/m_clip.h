@@ -44,7 +44,7 @@
 extern "C" {
 #endif
 
-typedef void (*CLIP_NONE_PROC)();
+typedef void (*CLIP_NONE_PROC)(void);
 
 /* sizeof(Clip_c) == 0x104 */
 typedef struct clip_s {

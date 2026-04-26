@@ -978,27 +978,27 @@ static int dvderr_check_drive() {
   return err;
 }
 
-static void dvderr_draw_CoverOpen() {
+static void dvderr_draw_CoverOpen(void) {
   gSPDisplayList(this->gfx_p++, keikoku1_dvd_att_winT_model);
   gSPDisplayList(this->gfx_p++, keikoku1_dvd_att_moji_model);
 }
 
-static void dvderr_draw_NoDisk() {
+static void dvderr_draw_NoDisk(void) {
   gSPDisplayList(this->gfx_p++, keikoku2_dvd_att_winT_model);
   gSPDisplayList(this->gfx_p++, keikoku2_dvd_att_moji_model);
 }
 
-static void dvderr_draw_WrongDisk() {
+static void dvderr_draw_WrongDisk(void) {
   gSPDisplayList(this->gfx_p++, keikoku3_dvd_att_winT_model);
   gSPDisplayList(this->gfx_p++, keikoku3_dvd_att_moji_model);
 }
 
-static void dvderr_draw_Retry() {
+static void dvderr_draw_Retry(void) {
   gSPDisplayList(this->gfx_p++, keikoku4_dvd_att_winT_model);
   gSPDisplayList(this->gfx_p++, keikoku4_dvd_att_moji_model);
 }
 
-static void dvderr_draw_Fatal() {
+static void dvderr_draw_Fatal(void) {
   gSPDisplayList(this->gfx_p++, keikoku5_dvd_att_winT_model);
   gSPDisplayList(this->gfx_p++, keikoku5_dvd_att_moji_model);
 }

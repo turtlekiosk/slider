@@ -45,7 +45,7 @@ extern "C" {
 typedef void* (*MALLOC_ALIGN_FUNC)(size_t size, u32 align);
 typedef void (*MALLOC_FREE_FUNC)(void* ptr);
 typedef int (*MALLOC_GETMEMBLOCKSIZE_FUNC)(void* ptr);
-typedef int (*MALLOC_GETTOTALFREESIZE_FUNC)();
+typedef int (*MALLOC_GETTOTALFREESIZE_FUNC)(void);
 
 typedef struct malloc_s {
     MALLOC_ALIGN_FUNC malloc_align;

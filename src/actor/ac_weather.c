@@ -159,7 +159,7 @@ static aWeather_Priv* aWeather_GetWeatherPrv(u8 status, s16 timer, xyz_t* pos, x
     return NULL;
 }
 
-static int aWeather_StopSysLevSE() {
+static int aWeather_StopSysLevSE(void) {
     WEATHER_ACTOR* weather = (WEATHER_ACTOR*)Common_Get(clip.weather_clip)->actor;
     u8 current = weather->current_sound_effect;
 
@@ -174,7 +174,7 @@ static int aWeather_StopSysLevSE() {
     }
 }
 
-static int aWeather_StartSysLevSE() {
+static int aWeather_StartSysLevSE(void) {
     WEATHER_ACTOR* weather = (WEATHER_ACTOR*)Common_Get(clip.weather_clip)->actor;
     u8 current = weather->current_sound_effect;
 

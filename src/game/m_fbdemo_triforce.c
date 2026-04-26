@@ -105,4 +105,4 @@ void fbdemo_triforce_settype(fbdemo_triforce* this, int type) {
   this->direction = (type & 0xF) != 1;
 }
 
-void fbdemo_triforce_setcolor_rgba8888(void) {}
+void fbdemo_triforce_setcolor_rgba8888(fbdemo_triforce* this, u32 color) {}

@@ -1767,7 +1767,7 @@ BOOL Jam_TryInterrupt(seqp_* track)
  * Address:	80011800
  * Size:	000038
  */
-static u32 Cmd_OpenTrack()
+static u32 Cmd_OpenTrack(void)
 {
 	Jaq_OpenTrack(SEQ_P, SEQ_ARG[0], SEQ_ARG[1]);
 	return 0;
@@ -1778,7 +1778,7 @@ static u32 Cmd_OpenTrack()
  * Address:	80011840
  * Size:	000050
  */
-static u32 Cmd_OpenTrackBros()
+static u32 Cmd_OpenTrackBros(void)
 {
 	if (SEQ_P->parent) {
 		Jaq_OpenTrack(SEQ_P->parent, SEQ_ARG[0], SEQ_ARG[1]);
@@ -1793,7 +1793,7 @@ static u32 Cmd_OpenTrackBros()
  * Address:	800118A0
  * Size:	00003C
  */
-static u32 Cmd_Call()
+static u32 Cmd_Call(void)
 {
 	SEQ_P->callStack[SEQ_P->callStackDepth++] = SEQ_P->programCounter;
 	SEQ_P->programCounter                     = SEQ_ARG[0];
@@ -1805,7 +1805,7 @@ static u32 Cmd_Call()
  * Address:	800118E0
  * Size:	000100
  */
-static u32 Cmd_CallF()
+static u32 Cmd_CallF(void)
 {
 	u8 bVar1;
 	u32 uVar2;
@@ -1842,7 +1842,7 @@ static u32 Cmd_CallF()
  * Address:	800119E0
  * Size:	000028
  */
-static u32 Cmd_Ret()
+static u32 Cmd_Ret(void)
 {
 	SEQ_P->programCounter = SEQ_P->callStack[--SEQ_P->callStackDepth];
 	return 0;
@@ -1853,7 +1853,7 @@ static u32 Cmd_Ret()
  * Address:	80011A20
  * Size:	000060
  */
-static u32 Cmd_RetF()
+static u32 Cmd_RetF(void)
 {
 	// But why cast it...?  And why check if it explicitly equals TRUE...?
 	if ((u8)__ConditionCheck(SEQ_P, SEQ_ARG[0] & 0x0f) == TRUE) {
@@ -1867,7 +1867,7 @@ static u32 Cmd_RetF()
  * Address:	80011A80
  * Size:	00001C
  */
-static u32 Cmd_Jmp()
+static u32 Cmd_Jmp(void)
 {
 	SEQ_P->programCounter = SEQ_ARG[1];
 	return 0;
@@ -1878,7 +1878,7 @@ static u32 Cmd_Jmp()
  * Address:	80011AA0
  * Size:	000020
  */
-static u32 Cmd_JmpF()
+static u32 Cmd_JmpF(void)
 {
 	Cmd_CallF();
 }
@@ -1888,7 +1888,7 @@ static u32 Cmd_JmpF()
  * Address:	80011AC0
  * Size:	000048
  */
-static u32 Cmd_LoopS()
+static u32 Cmd_LoopS(void)
 {
 	SEQ_P->callStack[SEQ_P->callStackDepth]      = SEQ_P->programCounter;
 	SEQ_P->loopCounters[SEQ_P->callStackDepth++] = SEQ_ARG[0];
@@ -1900,7 +1900,7 @@ static u32 Cmd_LoopS()
  * Address:	80011B20
  * Size:	000078
  */
-static u32 Cmd_LoopE()
+static u32 Cmd_LoopE(void)
 {
 	u16 uVar1;
 
@@ -1928,7 +1928,7 @@ static u32 Cmd_LoopE()
  * Address:	80011BA0
  * Size:	000054
  */
-static u32 Cmd_ReadPort()
+static u32 Cmd_ReadPort(void)
 {
 	u16 temp;
 
@@ -1943,7 +1943,7 @@ static u32 Cmd_ReadPort()
  * Address:	80011C00
  * Size:	000040
  */
-static u32 Cmd_WritePort()
+static u32 Cmd_WritePort(void)
 {
 	SEQ_P->trackPort[SEQ_ARG[0]].value      = SEQ_ARG[1];
 	SEQ_P->trackPort[SEQ_ARG[0]].exportFlag = 1;
@@ -1955,7 +1955,7 @@ static u32 Cmd_WritePort()
  * Address:	80011C40
  * Size:	000044
  */
-static u32 Cmd_CheckPortImport()
+static u32 Cmd_CheckPortImport(void)
 {
 	Jam_WriteRegDirect(SEQ_P, 3, SEQ_P->trackPort[SEQ_ARG[0]].importFlag);
 	return 0;
@@ -1966,7 +1966,7 @@ static u32 Cmd_CheckPortImport()
  * Address:	80011CA0
  * Size:	000044
  */
-static u32 Cmd_CheckPortExport()
+static u32 Cmd_CheckPortExport(void)
 {
 	Jam_WriteRegDirect(SEQ_P, 3, SEQ_P->trackPort[SEQ_ARG[0]].exportFlag);
 	return 0;
@@ -1977,7 +1977,7 @@ static u32 Cmd_CheckPortExport()
  * Address:	80011D00
  * Size:	00002C
  */
-static u32 Cmd_WaitReg()
+static u32 Cmd_WaitReg(void)
 {
 	SEQ_P->waitTimer = SEQ_ARG[0];
 	return SEQ_ARG[0] ? 1 : 0;
@@ -1988,7 +1988,7 @@ static u32 Cmd_WaitReg()
  * Address:	80011D40
  * Size:	000028
  */
-static u32 Cmd_ConnectName()
+static u32 Cmd_ConnectName(void)
 {
 	SEQ_P->connectionId = SEQ_ARG[0] << 16 | SEQ_ARG[1];
 	return 0;
@@ -1999,7 +1999,7 @@ static u32 Cmd_ConnectName()
  * Address:	80011D80
  * Size:	000040
  */
-static u32 Cmd_ParentWritePort()
+static u32 Cmd_ParentWritePort(void)
 {
 	Jam_WritePortAppDirect(SEQ_P->parent, SEQ_ARG[0] & 0x0f, SEQ_ARG[1]);
 	return 0;
@@ -2010,7 +2010,7 @@ static u32 Cmd_ParentWritePort()
  * Address:	80011DC0
  * Size:	000048
  */
-static u32 Cmd_ChildWritePort()
+static u32 Cmd_ChildWritePort(void)
 {
 	Jam_WritePortAppDirect(SEQ_P->children[(SEQ_ARG[0] >> 4)], SEQ_ARG[0] & 0x0f, SEQ_ARG[1]);
 	return 0;
@@ -2021,7 +2021,7 @@ static u32 Cmd_ChildWritePort()
  * Address:	80011E20
  * Size:	000030
  */
-static u32 Cmd_SetLastNote()
+static u32 Cmd_SetLastNote(void)
 {
 	SEQ_P->_D5 = SEQ_ARG[0];
 	SEQ_P->_D5 += SEQ_P->finalTranspose;
@@ -2033,7 +2033,7 @@ static u32 Cmd_SetLastNote()
  * Address:	80011E60
  * Size:	00001C
  */
-static u32 Cmd_TimeRelate()
+static u32 Cmd_TimeRelate(void)
 {
 	SEQ_P->timeRelationMode = SEQ_ARG[0];
 	return 0;
@@ -2044,7 +2044,7 @@ static u32 Cmd_TimeRelate()
  * Address:	80011E80
  * Size:	000034
  */
-static u32 Cmd_SimpleOsc()
+static u32 Cmd_SimpleOsc(void)
 {
 	Osc_Setup_Simple(SEQ_P, SEQ_ARG[0]);
 	return 0;
@@ -2055,7 +2055,7 @@ static u32 Cmd_SimpleOsc()
  * Address:	80011EC0
  * Size:	000038
  */
-static u32 Cmd_SimpleEnv()
+static u32 Cmd_SimpleEnv(void)
 {
 	Osc_Setup_SimpleEnv(SEQ_P, SEQ_ARG[0], SEQ_ARG[1]);
 	return 0;
@@ -2066,7 +2066,7 @@ static u32 Cmd_SimpleEnv()
  * Address:	80011F00
  * Size:	000064
  */
-static u32 Cmd_SimpleADSR()
+static u32 Cmd_SimpleADSR(void)
 {
 	int i;
 	s16 local_10[5];
@@ -2083,7 +2083,7 @@ static u32 Cmd_SimpleADSR()
  * Address:	80011F80
  * Size:	000048
  */
-static u32 Cmd_Transpose()
+static u32 Cmd_Transpose(void)
 {
 	SEQ_P->transpose = SEQ_ARG[0];
 	if (SEQ_P->parent) {
@@ -2099,7 +2099,7 @@ static u32 Cmd_Transpose()
  * Address:	80011FE0
  * Size:	000068
  */
-static u32 Cmd_CloseTrack()
+static u32 Cmd_CloseTrack(void)
 {
 	u8 index = SEQ_ARG[0];
 	if (index >= (u32)ARRAY_COUNT(SEQ_P->children)) {
@@ -2115,7 +2115,7 @@ static u32 Cmd_CloseTrack()
  * Address:	80012060
  * Size:	000038
  */
-static u32 Cmd_OutSwitch()
+static u32 Cmd_OutSwitch(void)
 {
 	if (SEQ_P->outerParams) {
 		SEQ_P->outerParams->flags       = SEQ_ARG[0];
@@ -2130,7 +2130,7 @@ static u32 Cmd_OutSwitch()
  * Address:	800120A0
  * Size:	000034
  */
-static u32 Cmd_UpdateSync()
+static u32 Cmd_UpdateSync(void)
 {
 	Jam_UpdateTrack(SEQ_P, SEQ_ARG[0]);
 	return 0;
@@ -2141,7 +2141,7 @@ static u32 Cmd_UpdateSync()
  * Address:	800120E0
  * Size:	00002C
  */
-static u32 Cmd_BusConnect()
+static u32 Cmd_BusConnect(void)
 {
 	if (SEQ_ARG[0] < 6) {
 		SEQ_P->parentController.busConnect[SEQ_ARG[0]] = SEQ_ARG[1];
@@ -2154,7 +2154,7 @@ static u32 Cmd_BusConnect()
  * Address:	80012120
  * Size:	00001C
  */
-static u32 Cmd_PauseStatus()
+static u32 Cmd_PauseStatus(void)
 {
 	SEQ_P->pauseStatus = SEQ_ARG[0];
 	return 0;
@@ -2165,7 +2165,7 @@ static u32 Cmd_PauseStatus()
  * Address:	80012140
  * Size:	000044
  */
-static u32 Cmd_SetInterrupt()
+static u32 Cmd_SetInterrupt(void)
 {
 	SEQ_P->interruptEnable |= (1 << SEQ_ARG[0]);
 	SEQ_P->interruptAddresses[SEQ_ARG[0]] = SEQ_ARG[1];
@@ -2177,7 +2177,7 @@ static u32 Cmd_SetInterrupt()
  * Address:	800121A0
  * Size:	000030
  */
-static u32 Cmd_DisInterrupt()
+static u32 Cmd_DisInterrupt(void)
 {
 	u8 arg;
 	arg = SEQ_ARG[0];
@@ -2192,7 +2192,7 @@ static u32 Cmd_DisInterrupt()
  * Address:	800121E0
  * Size:	000014
  */
-static u32 Cmd_ClrI()
+static u32 Cmd_ClrI(void)
 {
 	SEQ_P->interruptActive = 0;
 	return 0;
@@ -2203,7 +2203,7 @@ static u32 Cmd_ClrI()
  * Address:	80012200
  * Size:	000014
  */
-static u32 Cmd_SetI()
+static u32 Cmd_SetI(void)
 {
 	SEQ_P->interruptActive = 1;
 	return 0;
@@ -2214,7 +2214,7 @@ static u32 Cmd_SetI()
  * Address:	80012220
  * Size:	00002C
  */
-static u32 Cmd_RetI()
+static u32 Cmd_RetI(void)
 {
 	SEQ_P->waitTimer       = SEQ_P->_3CC;
 	SEQ_P->interruptActive = 0;
@@ -2227,7 +2227,7 @@ static u32 Cmd_RetI()
  * Address:	80012260
  * Size:	000034
  */
-static u32 Cmd_IntTimer()
+static u32 Cmd_IntTimer(void)
 {
 	SEQ_P->timerCount = SEQ_ARG[0];
 	SEQ_P->timer      = SEQ_ARG[1];
@@ -2240,7 +2240,7 @@ static u32 Cmd_IntTimer()
  * Address:	800122A0
  * Size:	00002C
  */
-static u32 Cmd_ConnectOpen()
+static u32 Cmd_ConnectOpen(void)
 {
 	Jam_RegistTrack(SEQ_P, SEQ_P->connectionId);
 	return 0;
@@ -2251,7 +2251,7 @@ static u32 Cmd_ConnectOpen()
  * Address:	800122E0
  * Size:	000028
  */
-static u32 Cmd_ConnectClose()
+static u32 Cmd_ConnectClose(void)
 {
 	Jam_UnRegistTrack(SEQ_P);
 	return 0;
@@ -2262,7 +2262,7 @@ static u32 Cmd_ConnectClose()
  * Address:	80012320
  * Size:	000060
  */
-static u32 Cmd_SyncCPU()
+static u32 Cmd_SyncCPU(void)
 {
 	u16 seq_arg;
 	u16 param_3;
@@ -2282,7 +2282,7 @@ static u32 Cmd_SyncCPU()
  * Address:	80012380
  * Size:	000038
  */
-static u32 Cmd_FlushAll()
+static u32 Cmd_FlushAll(void)
 {
 	AllStop_1Shot(&SEQ_P->parentController);
 	FlushRelease_1Shot(&SEQ_P->parentController);
@@ -2294,7 +2294,7 @@ static u32 Cmd_FlushAll()
  * Address:	800123C0
  * Size:	00002C
  */
-static u32 Cmd_FlushRelease()
+static u32 Cmd_FlushRelease(void)
 {
 	FlushRelease_1Shot(&SEQ_P->parentController);
 	return 0;
@@ -2305,7 +2305,7 @@ static u32 Cmd_FlushRelease()
  * Address:	80012400
  * Size:	00002C
  */
-static u32 Cmd_Wait3()
+static u32 Cmd_Wait3(void)
 {
 	SEQ_P->waitTimer = SEQ_ARG[0];
 	return SEQ_ARG[0] ? 1 : 0;
@@ -2316,7 +2316,7 @@ static u32 Cmd_Wait3()
  * Address:	80012440
  * Size:	000044
  */
-static u32 Cmd_TimeBase()
+static u32 Cmd_TimeBase(void)
 {
 	SEQ_P->timeBase = SEQ_ARG[0];
 	if (!SEQ_P->parent) {
@@ -2330,7 +2330,7 @@ static u32 Cmd_TimeBase()
  * Address:	800124A0
  * Size:	000050
  */
-static u32 Cmd_Tempo()
+static u32 Cmd_Tempo(void)
 {
 	SEQ_P->tempo = SEQ_ARG[0];
 	if (!SEQ_P->parent) {
@@ -2346,7 +2346,7 @@ static u32 Cmd_Tempo()
  * Address:	80012500
  * Size:	0000CC
  */
-static u32 Cmd_Finish()
+static u32 Cmd_Finish(void)
 {
 	size_t i;
 	u32 updateFlags;
@@ -2375,7 +2375,7 @@ static u32 Cmd_Finish()
  * Address:	800125E0
  * Size:	000008
  */
-static u32 Cmd_Nop()
+static u32 Cmd_Nop(void)
 {
 	return 0;
 }
@@ -2385,7 +2385,7 @@ static u32 Cmd_Nop()
  * Address:	80012600
  * Size:	0000AC
  */
-static u32 Cmd_PanPowSet()
+static u32 Cmd_PanPowSet(void)
 {
 	size_t i;
 
@@ -2404,7 +2404,7 @@ static u32 Cmd_PanPowSet()
  * Address:	800126C0
  * Size:	000094
  */
-static u32 Cmd_IIRSet()
+static u32 Cmd_IIRSet(void)
 {
 
 	size_t i;
@@ -2426,7 +2426,7 @@ static u32 Cmd_IIRSet()
  * Address:	80012760
  * Size:	000044
  */
-static u32 Cmd_FIRSet()
+static u32 Cmd_FIRSet(void)
 {
 	Jam_SetExtFirFilterD(SEQ_P->outerParams, (s16*)Jam_OfsToAddr(SEQ_P, SEQ_ARG[0]));
 	return 0;
@@ -2437,7 +2437,7 @@ static u32 Cmd_FIRSet()
  * Address:	800127C0
  * Size:	000050
  */
-static u32 Cmd_EXTSet()
+static u32 Cmd_EXTSet(void)
 {
 	OuterParam_* ext;
 
@@ -2452,7 +2452,7 @@ static u32 Cmd_EXTSet()
  * Address:	80012820
  * Size:	0000C4
  */
-static u32 Cmd_PanSwSet()
+static u32 Cmd_PanSwSet(void)
 {
 	size_t i;
 
@@ -2475,7 +2475,7 @@ static u32 Cmd_PanSwSet()
  * Address:	80012900
  * Size:	000040
  */
-static u32 Cmd_OscRoute()
+static u32 Cmd_OscRoute(void)
 {
 	u8 uVar2;
 	u8 oscRoute;
@@ -2496,7 +2496,7 @@ static u32 Cmd_OscRoute()
  * Address:	80012940
  * Size:	0000A0
  */
-static u32 Cmd_IIRCutOff()
+static u32 Cmd_IIRCutOff(void)
 {
 	u8 index;
 	size_t i;
@@ -2519,7 +2519,7 @@ static u32 Cmd_IIRCutOff()
  * Address:	800129E0
  * Size:	000040
  */
-static u32 Cmd_OscFull()
+static u32 Cmd_OscFull(void)
 {
 	Osc_Setup_Full(SEQ_P, SEQ_ARG[0], SEQ_ARG[1], SEQ_ARG[2]);
 	return 0;
@@ -2530,7 +2530,7 @@ static u32 Cmd_OscFull()
  * Address:	80012A20
  * Size:	000068
  */
-static u32 Cmd_CheckWave()
+static u32 Cmd_CheckWave(void)
 {
 	SOUNDID_ soundID;
 	u32 uVar2;
@@ -2546,7 +2546,7 @@ static u32 Cmd_CheckWave()
  * Address:	80012AA0
  * Size:	000204
  */
-static u32 Cmd_Printf()
+static u32 Cmd_Printf(void)
 {
 	char fmtStr[0x80];
 	u8 fmtFlags[4];

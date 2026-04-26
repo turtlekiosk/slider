@@ -18,7 +18,7 @@ enum {
 
 typedef struct shop_umbrella_actor_s SHOP_UMBRELLA_ACTOR;
 
-typedef void (*aShopUmbrella_UMBRELLA_DMA_AGAIN_PROC)();
+typedef void (*aShopUmbrella_UMBRELLA_DMA_AGAIN_PROC)(void);
 typedef void (*aShopUmbrella_DELETE_UMBRELLA_PROC)(int ut_x, int ut_z);
 
 typedef struct shop_umbrella_actor_clip_s {

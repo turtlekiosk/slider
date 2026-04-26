@@ -188,7 +188,7 @@ typedef struct actor_structure_s STRUCTURE_ACTOR;
 typedef STRUCTURE_ACTOR* (*aSTR_SETUP_ACTOR_PROC)(GAME*, mActor_name_t, s16, f32, f32);
 typedef void (*aSTR_GET_OVERLAY_AREA_PROC)(ACTOR_DLFTBL*);
 typedef void (*aSTR_FREE_OVERLAY_AREA_PROC)(ACTOR_DLFTBL*);
-typedef STRUCTURE_ACTOR* (*aSTR_GET_ACTOR_AREA_PROC)();
+typedef STRUCTURE_ACTOR* (*aSTR_GET_ACTOR_AREA_PROC)(void);
 typedef void (*aSTR_FREE_ACTOR_AREA_PROC)(STRUCTURE_ACTOR*);
 typedef u16* (*aSTR_GET_PAL_SEGMENT_PROC)(s16);
 

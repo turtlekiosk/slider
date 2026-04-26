@@ -1,4 +1,4 @@
-static void aSHR_anime_play() {
+static void aSHR_anime_play(void) {
   aSHR_GET_CLIP()->play_flag = TRUE;
 }
 

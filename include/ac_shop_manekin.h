@@ -23,7 +23,7 @@ typedef struct manekin_actor_s {
 
 typedef struct shop_manekin_actor_s SHOP_MANEKIN_ACTOR;
 
-typedef void (*aSM_MANEKIN_DMA_AGAIN_PROC)();
+typedef void (*aSM_MANEKIN_DMA_AGAIN_PROC)(void);
 typedef void (*aSM_CHANGE2NAKEDMANEKIN_PROC)(int ut_x, int ut_z);
 typedef void (*aSM_NAKED2CLOTH_PROC)(int ut_x, int ut_z);
 

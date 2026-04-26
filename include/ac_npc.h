@@ -284,7 +284,7 @@ typedef void (*aNPC_MOVE_AFTER_PROC)(ACTOR*, GAME*);
 typedef void (*aNPC_DRAW_PROC)(ACTOR*, GAME*);
 typedef void (*aNPC_SET_DST_POS_PROC)(NPC_ACTOR*, f32, f32);
 
-typedef void (*aNPC_REBUILD_DMA_PROC)();
+typedef void (*aNPC_REBUILD_DMA_PROC)(void);
 typedef int (*aNPC_SET_REQUEST_ACT_PROC)(NPC_ACTOR* nactorx, u8 priority, u8 act_idx, u8 act_type, u16* arg_data);
 typedef int (*aNPC_SET_HEAD_REQUEST_PROC)(NPC_ACTOR* nactorx, u8 priority, u8 type, ACTOR* target_actor,
                                           xyz_t* target_pos);

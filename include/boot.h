@@ -24,7 +24,7 @@ extern void* HotStartEntry;
 extern OSTime InitialStartTime;
 extern u8 boot_sound_initializing;
 
-typedef void(*HotStartProc)();
+typedef void* (*HotStartProc)(void);
 
 #define NMISaveArea (void*)0x811FFFC0
 #ifdef TARGET_PC

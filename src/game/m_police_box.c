@@ -167,14 +167,14 @@ extern void mPB_keep_all_item_in_block(int blk_x, int blk_z) {
 }
 
 /* select random item function definition */
-typedef mActor_name_t (*mPB_get_force_set_proc)();
+typedef mActor_name_t (*mPB_get_force_set_proc)(void);
 
 /**
  * @brief Selects a random 'goods' item to add to the lost and found/
  *
  * @return The randomly selected item
  **/
-static mActor_name_t mPB_get_force_set_item_goods() {
+static mActor_name_t mPB_get_force_set_item_goods(void) {
     static int category_table[mSP_KIND_MAX] = {
         mSP_KIND_FURNITURE, mSP_KIND_PAPER, mSP_KIND_CLOTH, mSP_KIND_CARPET, mSP_KIND_WALLPAPER,
     };
@@ -208,7 +208,7 @@ static mActor_name_t mPB_get_force_set_item_goods() {
  *
  * @return The randomly selected item
  **/
-static mActor_name_t mPB_get_force_set_item_item() {
+static mActor_name_t mPB_get_force_set_item_item(void) {
     static mActor_name_t category_table[6] = { ITM_NET, ITM_AXE, ITM_SHOVEL, ITM_ROD, ITM_SAPLING, ITM_CEDAR_SAPLING };
 
     return category_table[(int)(fqrand() * 6.0f)];
@@ -219,7 +219,7 @@ static mActor_name_t mPB_get_force_set_item_item() {
  *
  * @return The randomly selected flower bag
  **/
-static mActor_name_t mPB_get_force_set_item_flower() {
+static mActor_name_t mPB_get_force_set_item_flower(void) {
     return ITM_WHITE_PANSY_BAG + (int)(fqrand() * 8.0f);
 }
 
@@ -228,7 +228,7 @@ static mActor_name_t mPB_get_force_set_item_flower() {
  *
  * @return The randomly selected umbrella
  **/
-static mActor_name_t mPB_get_force_set_item_umbrella() {
+static mActor_name_t mPB_get_force_set_item_umbrella(void) {
     mActor_name_t umbrella;
     mSP_RandomUmbSelect(&umbrella, 1);
 

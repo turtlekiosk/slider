@@ -102,43 +102,43 @@ static void Game_play_fbdemo_wipe_create_sub(GAME_PLAY* play) {
 #else
 #define FBDEMO_NO_CLEANUP none_proc1
 #endif
-    static void* wipe_normal_proc[] = {
-        fbdemo_wipe1_init,
-        FBDEMO_NO_CLEANUP,
-        fbdemo_wipe1_move,
-        fbdemo_wipe1_draw,
-        fbdemo_wipe1_startup,
-        fbdemo_wipe1_settype,
-        fbdemo_wipe1_setcolor_rgba8888,
-        NULL,
-        fbdemo_wipe1_is_finish,
+    static fbdemo_wipe_proc_c wipe_normal_proc = {
+        .init_proc       = (FBDEMO_INIT_PROC)fbdemo_wipe1_init,
+        .cleanup_proc    = (FBDEMO_CLEANUP_PROC)FBDEMO_NO_CLEANUP,
+        .move_proc       = (FBDEMO_MOVE_PROC)fbdemo_wipe1_move,
+        .draw_proc       = (FBDEMO_DRAW_PROC)fbdemo_wipe1_draw,
+        .startup_proc    = (FBDEMO_STARTUP_PROC)fbdemo_wipe1_startup,
+        .settype_proc    = (FBDEMO_SETTYPE_PROC)fbdemo_wipe1_settype,
+        .setcolor_proc   = (FBDEMO_SETCOLOR_PROC)fbdemo_wipe1_setcolor_rgba8888,
+        .unused_proc     = NULL,
+        .isfinished_proc = (FBDEMO_ISFINISHED_PROC)fbdemo_wipe1_is_finish,
     };
-    static void* wipe_triforce_proc[] = {
-        fbdemo_triforce_init,
-        FBDEMO_NO_CLEANUP,
-        fbdemo_triforce_move,
-        fbdemo_triforce_draw,
-        fbdemo_triforce_startup,
-        fbdemo_triforce_settype,
-        fbdemo_triforce_setcolor_rgba8888,
-        NULL,
-        fbdemo_triforce_is_finish,
+    static fbdemo_wipe_proc_c wipe_triforce_proc = {
+        .init_proc       = (FBDEMO_INIT_PROC)fbdemo_triforce_init,
+        .cleanup_proc    = (FBDEMO_CLEANUP_PROC)FBDEMO_NO_CLEANUP,
+        .move_proc       = (FBDEMO_MOVE_PROC)fbdemo_triforce_move,
+        .draw_proc       = (FBDEMO_DRAW_PROC)fbdemo_triforce_draw,
+        .startup_proc    = (FBDEMO_STARTUP_PROC)fbdemo_triforce_startup,
+        .settype_proc    = (FBDEMO_SETTYPE_PROC)fbdemo_triforce_settype,
+        .setcolor_proc   = (FBDEMO_SETCOLOR_PROC)fbdemo_triforce_setcolor_rgba8888,
+        .unused_proc     = NULL,
+        .isfinished_proc = (FBDEMO_ISFINISHED_PROC)fbdemo_triforce_is_finish,
     };
-    static void* wipe_fade_proc[] = {
-        fbdemo_fade_init,
-        FBDEMO_NO_CLEANUP,
-        fbdemo_fade_move,
-        fbdemo_fade_draw,
-        fbdemo_fade_startup,
-        fbdemo_fade_settype,
-        fbdemo_fade_setcolor_rgba8888,
-        NULL,
-        fbdemo_fade_is_finish,
+    static fbdemo_wipe_proc_c wipe_fade_proc = {
+        .init_proc       = (FBDEMO_INIT_PROC)fbdemo_fade_init,
+        .cleanup_proc    = (FBDEMO_CLEANUP_PROC)FBDEMO_NO_CLEANUP,
+        .move_proc       = (FBDEMO_MOVE_PROC)fbdemo_fade_move,
+        .draw_proc       = (FBDEMO_DRAW_PROC)fbdemo_fade_draw,
+        .startup_proc    = (FBDEMO_STARTUP_PROC)fbdemo_fade_startup,
+        .settype_proc    = (FBDEMO_SETTYPE_PROC)fbdemo_fade_settype,
+        .setcolor_proc   = (FBDEMO_SETCOLOR_PROC)fbdemo_fade_setcolor_rgba8888,
+        .unused_proc     = NULL,
+        .isfinished_proc = (FBDEMO_ISFINISHED_PROC)fbdemo_fade_is_finish,
     };
 
-    static void* wipe_proc[] = {
-        wipe_normal_proc,   wipe_triforce_proc, wipe_fade_proc, wipe_fade_proc,
-        wipe_triforce_proc, wipe_triforce_proc, wipe_fade_proc,
+    static fbdemo_wipe_proc_c* wipe_proc[] = {
+        &wipe_normal_proc,   &wipe_triforce_proc, &wipe_fade_proc, &wipe_fade_proc,
+        &wipe_triforce_proc, &wipe_triforce_proc, &wipe_fade_proc,
     };
 
     int type = play->fb_wipe_type;

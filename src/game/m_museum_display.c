@@ -272,7 +272,7 @@ static mMmd_fossil_data_c mMmd_museum_fossil_data[mMmd_FOSSIL_NUM] = {
   { mMmd_UT(10, 8), FTR_START(FTR_DIN_DUMMY), mRmTp_DIRECT_SOUTH } /* trilobite */
 };
 
-static void mMmd_MuseumFossilProcess_MakeFgData() {
+static void mMmd_MuseumFossilProcess_MakeFgData(void) {
   mMmd_fossil_data_c* fossil_data = mMmd_museum_fossil_data;
   mActor_name_t* fossil_fg = mFI_BkNumtoUtFGTop(0, 0);
   int fossil_ut;
@@ -308,9 +308,9 @@ static void mMmd_MuseumFossilProcess_MakeFgData() {
   }
 }
 
-static void mMmd_dummy_process() { }
+static void mMmd_dummy_process(void) { }
 
-typedef void (*mMmd_DISPLAY_PROC)();
+typedef void (*mMmd_DISPLAY_PROC)(void);
 
 typedef struct museum_display_scene_process_s {
   int scene_no;

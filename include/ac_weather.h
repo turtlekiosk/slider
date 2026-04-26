@@ -32,7 +32,7 @@ typedef void (*CHANGE_WEATHER_PROC)(ACTOR* actorx, s16 status, s16 level);
 typedef int (*GET_WEATHER_PRV_NUM)(ACTOR* actorx);
 typedef void (*REMOVE_WEATHER_PRV)(ACTOR* actorx, int id);
 typedef aWeather_Priv* (*GET_WEATHER_PRV)(u8 status, s16 timer, xyz_t* pos, xyz_t* speed, ACTOR* weather, int id);
-typedef int (*WEATHER_SOUND_EFFECT)();
+typedef int (*WEATHER_SOUND_EFFECT)(void);
 typedef void (*CHANGE_WEATER_INSTANCE_PROC)(ACTOR* actorx, s16 status, s16 level);
 
 typedef struct ac_weather_clip_s {

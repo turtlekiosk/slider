@@ -181,7 +181,7 @@ static void aSTR_free_overlay_area_proc(ACTOR_DLFTBL* dlftbl) {
     }
 }
 
-static STRUCTURE_ACTOR* aSTR_get_actor_area_proc() {
+static STRUCTURE_ACTOR* aSTR_get_actor_area_proc(void) {
     aSTR_Clip_c* clip = Common_Get(clip).structure_clip;
     STRUCTURE_ACTOR** str_tbl = clip->structure_actor_tbl;
     int* str_used_tbl = clip->structure_actor_used_tbl;

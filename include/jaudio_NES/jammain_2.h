@@ -24,7 +24,7 @@ typedef struct OuterParam_ OuterParam_;
 typedef struct RegisterParam_ RegisterParam_;
 typedef union URegisterParam_ URegisterParam_;
 
-typedef u32 (*CmdFunction)();              // TODO: Confirm return type
+typedef u32 (*CmdFunction)(void);              // TODO: Confirm return type
 typedef u16 (*TrackCallback)(seqp_*, u16); // TODO: Confirm return type
 
 typedef enum {

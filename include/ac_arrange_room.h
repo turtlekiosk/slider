@@ -10,7 +10,7 @@ extern "C" {
 
 typedef struct arrange_room_actor_s ARRANGE_ROOM_ACTOR;
 
-typedef void (*aAR_REDMA_PROC)();
+typedef void (*aAR_REDMA_PROC)(void);
 
 typedef struct arrange_room_actor_clip_s {
   ARRANGE_ROOM_ACTOR* arrange_room_actor_p;

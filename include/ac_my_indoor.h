@@ -30,8 +30,8 @@ typedef struct my_indoor_actor_s MY_INDOOR_ACTOR;
 
 typedef mActor_name_t (*aMI_CHANGE_WALL_PROC)(mActor_name_t item);
 typedef mActor_name_t (*aMI_CHANGE_CARPET_PROC)(mActor_name_t item);
-typedef void (*aMI_INDOOR_DMA_AGAIN_PROC)();
-typedef void (*aMI_CHANGE_2_DEFAULT_PROC)();
+typedef void (*aMI_INDOOR_DMA_AGAIN_PROC)(void);
+typedef void (*aMI_CHANGE_2_DEFAULT_PROC)(void);
 typedef mActor_name_t (*aMI_WALL_IDX_2_CHANGE_WALL_PROC)(int wall_idx, int is_original_design);
 typedef mActor_name_t (*aMI_FLOOR_IDX_2_CHANGE_FLOOR_PROC)(int floor_idx, int is_original_design);
 

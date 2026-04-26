@@ -20,7 +20,7 @@ enum dvderr_state {
   DVDERR_NUM
 };
 
-typedef void (*DVDERR_DRAW_PROC)();
+typedef void (*DVDERR_DRAW_PROC)(void);
 
 /* sizeof(dvderr_work) == 0x3F8 */
 typedef struct dvderr_work_s {

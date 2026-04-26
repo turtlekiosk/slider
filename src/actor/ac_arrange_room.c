@@ -4,7 +4,7 @@
 #include "m_rcp.h"
 #include "sys_matrix.h"
 
-static void aAR_Redma();
+static void aAR_Redma(void);
 
 extern Gfx rom_myhome2_floor_model[];
 extern Gfx rom_myhome2_wall_model[];
@@ -176,7 +176,7 @@ static void Arrange_Room_Actor_move(ACTOR* actor, GAME* game) {
 
 }
 
-static void aAR_Redma() {
+static void aAR_Redma(void) {
     aAR_Clip_c* clip = common_data.clip.arrange_room_clip;
     ARRANGE_ROOM_ACTOR* arrange_room = clip->arrange_room_actor_p;
 
