@@ -146,15 +146,23 @@
         var statusEl = document.getElementById('status');
         var progressEl = document.getElementById('progress');
 
-        // Match the canvas's drawing-buffer size to the viewport (in device
-        // pixels) so rendering is crisp at any window size. Called on init
-        // and on every resize; SDL2's Emscripten port picks up the new size
-        // via its own resize listener and dispatches an SDL_WINDOWEVENT_RESIZED.
+        // Match the canvas's drawing-buffer size to the viewport, capped
+        // at MAX_CANVAS_DIM per axis. The GameCube renders at 640×480
+        // natively — anything beyond ~1920 is wasted upsampling. DPR is
+        // intentionally ignored for the same reason. CSS stretches the
+        // canvas to fill the viewport.
+        var MAX_CANVAS_DIM = 1920;
         function resizeCanvasToViewport() {
             var c = document.getElementById('canvas');
-            var dpr = window.devicePixelRatio || 1;
-            c.width  = Math.floor(window.innerWidth  * dpr);
-            c.height = Math.floor(window.innerHeight * dpr);
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            if (w > MAX_CANVAS_DIM || h > MAX_CANVAS_DIM) {
+                var scale = Math.min(MAX_CANVAS_DIM / w, MAX_CANVAS_DIM / h);
+                w = Math.floor(w * scale);
+                h = Math.floor(h * scale);
+            }
+            c.width  = w;
+            c.height = h;
         }
         resizeCanvasToViewport();
         window.addEventListener('resize', resizeCanvasToViewport);

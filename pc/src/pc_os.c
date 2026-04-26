@@ -238,7 +238,12 @@ void LCDisable(void) {}
 /* --- Init --- */
 void OSInit(void) {
     if (!arena_memory) {
-        /* alloc arena at >=0x10000000 to avoid collision with N64 segment addresses */
+        /* alloc arena at >=0x10000000 to avoid collision with N64 segment addresses.
+         * Skip on Emscripten: wasm32 has a single linear-memory address space
+         * that grows from 0, so a fixed mmap at e.g. 0x40000000 forces the
+         * wasm heap to grow to ~1 GB just to satisfy the address — which can
+         * fail on retina/HiDPI under host compositor memory pressure. */
+#ifndef __EMSCRIPTEN__
         {
             u32 base;
             for (base = 0x10000000; base <= 0x50000000; base += 0x01000000) {
@@ -257,10 +262,14 @@ void OSInit(void) {
                 if (arena_memory) break;
             }
         }
+#endif
         if (!arena_memory) {
-            /* fallback (may cause seg2k0 issues) */
+            /* fallback (may cause seg2k0 issues on native if the high-address
+             * loop above was skipped or all candidates were taken). */
+#ifndef __EMSCRIPTEN__
             fprintf(stderr, "[PC] WARNING: VirtualAlloc at high address failed, "
                             "falling back to malloc (seg2k0 may misfire)\n");
+#endif
             arena_memory = (u8*)malloc(PC_MAIN_MEMORY_SIZE);
         }
         if (!arena_memory) {
