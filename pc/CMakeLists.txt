@@ -519,6 +519,28 @@ elseif(EMSCRIPTEN)
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
     )
+    # Copy PWA assets (manifest + service worker + icons) next to the wasm
+    # output. The service worker registration in shell.html expects them at
+    # the same origin path as AnimalCrossing.html.
+    set(_PWA_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js"
+    )
+    foreach(_pwa_file IN LISTS _PWA_FILES)
+        if(EXISTS "${_pwa_file}")
+            add_custom_command(TARGET ac_pc POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${_pwa_file}" "${CMAKE_BINARY_DIR}/web/")
+        endif()
+    endforeach()
+    # Copy any icon-*.png that exist (icons are optional — the build still
+    # works without them, the manifest just won't have art).
+    file(GLOB _PWA_ICONS "${CMAKE_CURRENT_SOURCE_DIR}/web/icon-*.png")
+    foreach(_icon IN LISTS _PWA_ICONS)
+        add_custom_command(TARGET ac_pc POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${_icon}" "${CMAKE_BINARY_DIR}/web/")
+    endforeach()
 else()
     # Desktop: standalone executable
     add_executable(ac_pc

@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Animal Crossing</title>
+    <meta name="theme-color" content="#1a1a1a">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>ACGC</title>
     <style>
         html, body {
             margin: 0;
@@ -109,6 +113,23 @@
             Module.setStatus('error — check console');
             console.error(msg);
         };
+
+        // Register the service worker on page load so the wasm bundle is
+        // cached for offline use after the first visit. Requires HTTPS (or
+        // localhost). Failure is non-fatal — the app still works online.
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('sw.js').catch(function(err) {
+                    console.warn('[pwa] service worker registration failed:', err);
+                });
+            });
+        }
+        // Ask the browser not to evict our IndexedDB (saves + future ROM
+        // storage) under storage pressure. Best-effort; users can still
+        // decline. No-op on browsers that don't support it.
+        if (navigator.storage && navigator.storage.persist) {
+            navigator.storage.persist().catch(function() { /* ignore */ });
+        }
     </script>
     {{{ SCRIPT }}}
 </body>
