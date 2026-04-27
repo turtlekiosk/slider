@@ -88,8 +88,8 @@ extern ACTOR_PROFILE Animal_Logo_Profile;
 
 // TODO: these are private but due to the way our build system works,
 // we must expose them to get them in a separate TU.
-extern void flash_rom_and_player_info_clear();
-extern int decide_next_scene_no();
+extern void flash_rom_and_player_info_clear(void);
+extern int decide_next_scene_no(void);
 extern void title_action_data_init_start_select(GAME_PLAY* play);
 
 #ifdef __cplusplus

@@ -17,11 +17,11 @@ extern MtxF MtxF_clear;
 extern Mtx Mtx_clear;
 
 extern void new_Matrix(GAME* game);
-extern void Matrix_push();
-extern void Matrix_pull();
+extern void Matrix_push(void);
+extern void Matrix_pull(void);
 extern void Matrix_get(MtxF* m);
 extern void Matrix_put(MtxF* m);
-extern MtxF* get_Matrix_now();
+extern MtxF* get_Matrix_now(void);
 extern void Matrix_mult(MtxF* m, u8 flag);
 extern void Matrix_translate(f32 x, f32 y, f32 z, u8 flag);
 extern void Matrix_scale(f32 x, f32 y, f32 z, u8 flag);

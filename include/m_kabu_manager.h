@@ -28,9 +28,9 @@ typedef struct kabu_price_s {
   /* 0x10 */ lbRTC_time_c update_time;
 } Kabu_price_c;
 
-extern void Kabu_decide_price_schedule();
-extern u16 Kabu_get_price();
-extern void Kabu_manager();
+extern void Kabu_decide_price_schedule(void);
+extern u16 Kabu_get_price(void);
+extern void Kabu_manager(void);
 
 #ifdef __cplusplus
 }

@@ -80,11 +80,11 @@ typedef struct vibration_work_data_S {
     int count;
 } mVibWorkData_c;
 
-extern void mVibctl_ct();
-extern void mVibctl_init0();
-extern void mVibctl_init();
-extern void mVibctl_cleanup();
-extern void mVibctl_reset();
+extern void mVibctl_ct(void);
+extern void mVibctl_init0(void);
+extern void mVibctl_init(void);
+extern void mVibctl_cleanup(void);
+extern void mVibctl_reset(void);
 extern void mVibctl_entry(int total_frames, int attack_type, int sustain_type, int release_type, int attack_frames,
                           int sustain_frames, int release_frames, f32 step);
 extern void mVibctl_simple_entry(int total_frames, int type, int attack_frames, int sustain_frames, int release_frames,

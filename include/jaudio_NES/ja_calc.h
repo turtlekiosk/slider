@@ -10,7 +10,7 @@ extern "C" {
 /////////// JAUDIO MATH DEFINITIONS ///////////
 f32 sqrtf2(f32);
 f32 atanf2(f32, f32);
-void Jac_InitSinTable();
+void Jac_InitSinTable(void);
 f32 sinf3(f32);
 
 ///////////////////////////////////////////////

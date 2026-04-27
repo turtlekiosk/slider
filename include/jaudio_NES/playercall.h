@@ -16,7 +16,7 @@ typedef struct PLAYER_CALL_ {
 	u32 DSP_mode;            // _08
 } PLAYER_CALL;
 
-extern void ResetPlayerCallback();
+extern void ResetPlayerCallback(void);
 extern s32 Jac_RegisterDspPlayerCallback(PlayerCallBack callback, void* arg);
 extern s32 Jac_RegisterPlayerCallback(PlayerCallBack callback, void* arg);
 
@@ -25,7 +25,7 @@ extern s32 Jac_RegisterPlayerCallback(PlayerCallBack callback, void* arg);
 #endif
 
 /* C++ linkage, should these go in a different header file? */
-extern void PlayerCallback();
-extern void DspPlayerCallback();
+extern void PlayerCallback(void);
+extern void DspPlayerCallback(void);
 
 #endif

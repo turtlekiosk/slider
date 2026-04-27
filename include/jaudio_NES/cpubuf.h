@@ -11,7 +11,7 @@ extern "C" {
 #endif
 
 s16* CpubufProcess(DSPBUF_EVENTS event);
-void CpuFrameEnd();
+void CpuFrameEnd(void);
 s16* MixCpu(s32 n_samples);
 
 /////////////////////////////////////////////////////

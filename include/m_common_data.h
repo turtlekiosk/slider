@@ -376,9 +376,9 @@ extern common_data_t common_data;
 #define CLIP(n) (Common_Get(clip).n)
 #define aMR_CLIP (Common_Get(clip).my_room_clip)
 
-extern void common_data_reinit();
-extern void common_data_init();
-extern void common_data_clear();
+extern void common_data_reinit(void);
+extern void common_data_init(void);
+extern void common_data_clear(void);
 
 //clang-format on
 

@@ -36,14 +36,14 @@ enum {
 #define mAGrw_CEDAR_BLOCK_Z_MAX 3 // [min, max)
 
 extern void mAGrw_PrintFossilHaniwa_debug(gfxprint_t* gfxprint);
-extern int mAGrw_CheckKabuPeddler();
-extern void mAGrw_OrderSetHaniwa();
+extern int mAGrw_CheckKabuPeddler(void);
+extern void mAGrw_OrderSetHaniwa(void);
 extern void mAGrw_ChangeItemBlock(mActor_name_t* block_items, mActor_name_t new_item, mActor_name_t target_item, u8 possible_num);
-extern void mAGrw_SetXmasTree();
+extern void mAGrw_SetXmasTree(void);
 extern void mAGrw_RenewalFgItem(lbRTC_time_c* time);
-extern void mAGrw_ChangeTree2FruitTree();
-extern void mAGrw_ChangeTree2Cedar();
-extern void mAGrw_ChangeCedar2Tree();
+extern void mAGrw_ChangeTree2FruitTree(void);
+extern void mAGrw_ChangeTree2Cedar(void);
+extern void mAGrw_ChangeCedar2Tree(void);
 
 #ifdef __cplusplus
 }

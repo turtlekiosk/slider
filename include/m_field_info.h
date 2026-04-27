@@ -213,16 +213,16 @@ enum {
     mFI_SOUND_SOURCE_NUM
 };
 
-extern void mFI_ClearFieldData();
-extern int mFI_CheckFieldData();
-extern mFM_block_info_c* mFI_GetBlockTopP();
-extern mActor_name_t mFI_GetFieldId();
+extern void mFI_ClearFieldData(void);
+extern int mFI_CheckFieldData(void);
+extern mFM_block_info_c* mFI_GetBlockTopP(void);
+extern mActor_name_t mFI_GetFieldId(void);
 extern int mFI_CheckShopFieldName(mActor_name_t field_name);
-extern int mFI_CheckShop();
-extern u8 mFI_GetBlockXMax();
-extern u8 mFI_GetBlockZMax();
-extern f32 mFI_GetBlockWidth();
-extern f32 mFI_GetBlockHeight();
+extern int mFI_CheckShop(void);
+extern u8 mFI_GetBlockXMax(void);
+extern u8 mFI_GetBlockZMax(void);
+extern f32 mFI_GetBlockWidth(void);
+extern f32 mFI_GetBlockHeight(void);
 extern int mFI_GetBlockNum(int block_x, int block_z);
 extern int mFI_BlockCheck(int block_x, int block_z);
 extern int mFI_UtNumCheck(int ut_x, int ut_z, int bx_max, int bz_max);
@@ -241,19 +241,19 @@ extern int mFI_BkNum2WposXZ(f32* wpos_x, f32* wpos_z, int bx, int bz);
 extern void mFI_UtNum2PosXZInBk(f32* pos_x, f32* pos_z, int ut_x, int ut_z);
 extern void mFI_BkandUtNum2Wpos(xyz_t* wpos, int bx, int bz, int ut_x, int ut_z);
 extern void mFI_BkandUtNum2CenterWpos(xyz_t* wpos, int bx, int bz, int ut_x, int ut_z);
-extern mFM_field_draw_info_c* mFI_BGDisplayListTop();
-extern mFM_field_pal_c* mFI_GetFieldPal();
+extern mFM_field_draw_info_c* mFI_BGDisplayListTop(void);
+extern mFM_field_pal_c* mFI_GetFieldPal(void);
 extern int mFI_GetPlayerHouseFloorNo(int scene);
-extern int mFI_GetNowPlayerHouseFloorNo();
-extern void mFI_InitRegisterBgInfo();
+extern int mFI_GetNowPlayerHouseFloorNo(void);
+extern void mFI_InitRegisterBgInfo(void);
 extern int mFI_CheckBgDma(int bx, int bz);
 extern f32 mFI_UtNum2BaseHeight(int ut_x, int ut_z);
 extern f32 mFI_BkNum2BaseHeight(int bx, int bz);
 extern u8 mFI_BkNum2BlockType(int bx, int bz);
 #if VERSION != VER_GAFU01_00
-extern int mFI_GetPuleIdx();
+extern int mFI_GetPuleIdx(void);
 #else
-extern int mFI_GetPoolIdx();
+extern int mFI_GetPoolIdx(void);
 #define mFI_GetPuleIdx() mFI_GetPoolIdx()
 #endif
 extern u32 mFI_BkNum2BlockKind(int bx, int bz);
@@ -264,18 +264,18 @@ extern void mFI_GetSpecialBlockNum(int* block_pos, u32* kinds, int count);
 extern void mFI_GetIslandBlockNumX(int* island_x_blocks);
 extern mCoBG_Collision_u* mFI_GetBkNum2ColTop(int bx, int bz);
 extern mCoBG_Collision_u* mFI_UtNum2UtCol(int ut_x, int ut_z);
-extern void mFI_ClearColKeep();
+extern void mFI_ClearColKeep(void);
 extern mCoBG_Collision_u* mFI_GetUnitCol(xyz_t wpos);
 extern u8 mFI_UtNum2UtKeepH(int ut_x, int ut_z);
 extern mFM_bg_sound_source_c* mFI_GetSoundSourcePBlockNum(int bx, int bz);
 extern Gfx* mFI_GetBGDisplayListRom(int bx, int bz);
 extern Gfx* mFI_GetBGDisplayListRom_XLU(int bx, int bz);
 extern EVW_ANIME_DATA* mFI_GetBGTexAnimInfo(s8* anim_num, int bx, int bz);
-extern void mFI_InitAreaInfo();
+extern void mFI_InitAreaInfo(void);
 extern void mFI_BGDisplayListRefresh(xyz_t wpos);
-extern int mFI_CheckInIsland();
-extern int mFI_CheckInJustIslandOutdoor();
-extern u32 mFI_CheckPlayerBlockInfo();
+extern int mFI_CheckInIsland(void);
+extern int mFI_CheckInJustIslandOutdoor(void);
+extern u32 mFI_CheckPlayerBlockInfo(void);
 extern mActor_name_t* mFI_BkNumtoUtFGTop(int bx, int bz);
 extern mActor_name_t* mFI_BkNum2UtFGTop_layer(int bx, int bz, int layer);
 extern mActor_name_t* mFI_UtNum2UtFG(int ut_x, int ut_z);
@@ -290,12 +290,12 @@ extern void mFI_InitItemTable(mFI_item_table_c* vis_block_info);
 extern int mFI_GetOldItemTableIdx(int n);
 extern int mFI_GetItemTable_NoReset(mFI_item_table_c* item_table, xyz_t wpos);
 extern int mFI_GetItemTable(mFI_item_table_c* item_table, xyz_t wpos, char* file, int line);
-extern int mFI_FGisUpDate();
-extern void mFI_SetFGUpData();
-extern void mFI_BornItemON();
+extern int mFI_FGisUpDate(void);
+extern void mFI_SetFGUpData(void);
+extern void mFI_BornItemON(void);
 // extern MATCH_FORCESTRIP void mFI_BornItemOFF();
-extern int mFI_ItemisBorn();
-extern int mFI_ActorisBorn();
+extern int mFI_ItemisBorn(void);
+extern int mFI_ActorisBorn(void);
 extern void mFI_SetBearActor(GAME_PLAY* play, xyz_t wpos, int set_flag);
 extern int mFI_search_unit_around(xyz_t* wpos, mActor_name_t item);
 extern MATCH_FORCESTRIP int mFI_search_unit_around2(xyz_t* wpos, mActor_name_t item);
@@ -319,10 +319,10 @@ extern int mFI_RegistMoveActorList(mActor_name_t actor_name, int bx, int bz, int
 extern int mFI_UnregistMoveActorList(mActor_name_t actor_name, int bx, int bz);
 extern int mFI_AddMoveActorList(mActor_name_t actor_name, int bx, int bz, int ut_x, int ut_z, s16 arg);
 extern mFM_move_actor_c* mFI_MoveActorListDma(int bx, int bz);
-extern void mFI_InitMoveActorBitData();
+extern void mFI_InitMoveActorBitData(void);
 extern void mFI_SetPlayerWade(GAME* game);
 extern int mFI_CheckPlayerWade(int wade);
-extern int mFI_GetPlayerWade();
+extern int mFI_GetPlayerWade(void);
 extern int mFI_GetNextBlockNum(int* bx, int* bz);
 extern u16* mFI_GetDepositP(int bx, int bz);
 extern void mFI_ClearDeposit(int bx, int bz);
@@ -347,23 +347,23 @@ extern void mFI_ClearBeecomb(int bx, int bz);
 extern int mFI_SetFGStructure_common(mActor_name_t structure_name, int bx, int bz, int ut_x, int ut_z, int set_type);
 extern int mFI_CheckStructureArea(int ut_x, int ut_z, mActor_name_t structure_name, int structure_ut_x,
                                   int structure_ut_z);
-extern mActor_name_t mFI_GetOtherFruit();
+extern mActor_name_t mFI_GetOtherFruit(void);
 extern int mFI_CheckFGNpcOn(mActor_name_t item);
 extern int mFI_CheckLapPolice(int bx, int bz, int ut_x, int ut_z);
 extern int mFI_GetWaveUtinBlock(int* ut_x, int* ut_z, int bx, int bz);
 extern int mFI_ClearBlockItemRandom_common(mActor_name_t item, int clear_num, mActor_name_t* fg_p, u16* deposit_p,
                                            int delete_buried);
-extern void mFI_SetFirstSetShell();
+extern void mFI_SetFirstSetShell(void);
 extern void mFI_FieldMove(xyz_t player_pos);
 extern void mFI_PrintNowBGNum(gfxprint_t* gfxprint);
 extern void mFI_PrintFgAttr(gfxprint_t* gfxprint);
 extern int mFI_SetOyasiroPos(s16* oyasiro_p);
 extern int mFI_SetTreasure(int* selected_bx, int* selected_bz, mActor_name_t item);
-extern int mFI_GetClimate();
+extern int mFI_GetClimate(void);
 extern void mFI_SetClimate(int climate);
-extern int mFI_CheckBeforeScenePerpetual();
-extern void mFI_ChangeClimate_ForEventNotice();
-extern void mFI_PullTanukiPathTrees();
+extern int mFI_CheckBeforeScenePerpetual(void);
+extern void mFI_ChangeClimate_ForEventNotice(void);
+extern void mFI_PullTanukiPathTrees(void);
 
 #ifdef __cplusplus
 }

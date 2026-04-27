@@ -89,8 +89,8 @@ typedef struct {
 extern padmgr padmgr_class;
 
 extern int padmgr_isConnectedController(int pad);
-extern void padmgr_force_stop_ON();
-extern void padmgr_force_stop_OFF();
+extern void padmgr_force_stop_ON(void);
+extern void padmgr_force_stop_OFF(void);
 extern void padmgr_RumbleSet(int pad, int intensity);
 extern void padmgr_Create(OSMessageQueue* queue, OSId id, OSPri priority, void* stack, size_t stackSize);
 extern void padmgr_Init(OSMessageQueue* queue);

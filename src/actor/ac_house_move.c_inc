@@ -473,13 +473,18 @@ static void aHUS_open_door(HOUSE_ACTOR* house, GAME_PLAY* play) {
     }
 }
 
+/* aHUS_ACTION_NEXT_SCENE_WAIT is a no-op state — the actor sits idle while
+ * a scene transition runs. Original code stored &none_proc1 here, relying on
+ * PowerPC's tolerance of arity-mismatched indirect calls. */
+static void aHUS_action_none(STRUCTURE_ACTOR* _p0, GAME_PLAY* _p1) { (void)_p0; (void)_p1; }
+
 static void aHUS_setup_action(HOUSE_ACTOR* house, int action) {
     // clang-format off
-    static void* process[] = {
+    static aSTR_MOVE_PROC process[] = {
         &aHUS_wait,
         &aHUS_open_door_wait,
         &aHUS_open_door,
-        &none_proc1,
+        &aHUS_action_none,
     };
     // clang-format on
 

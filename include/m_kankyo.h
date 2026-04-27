@@ -140,9 +140,9 @@ extern void staffroll_light_proc_start(GAME_PLAY* play);
 extern int staffroll_light_proc_end(GAME_PLAY* play);
 extern void staffroll_light_dt(GAME_PLAY* play);
 extern void mEnv_GetShadowPrimColor_Light(u8* r, u8* g, u8* b, GAME* game);
-extern int mEnv_PointLightMin();
-extern int mEnv_HereIsPlayerSelect();
-extern f32 mKK_windowlight_alpha_get();
+extern int mEnv_PointLightMin(void);
+extern int mEnv_HereIsPlayerSelect(void);
+extern f32 mKK_windowlight_alpha_get(void);
 extern int mEnv_ReqeustChangeWeatherEnviroment(s16 now_weather, s16 next_weather);
 extern int mEnv_ReservePointLight(GAME_PLAY* play, xyz_t* pos, u8 r, u8 g, u8 b, s16 power);
 extern void mEnv_OperateReservedPointLight_Position(int point_light_idx, xyz_t* pos);
@@ -152,17 +152,17 @@ extern void mEnv_OperateReservedPointLight(int point_light_idx, xyz_t* pos, u8 r
 extern int mEnv_CancelReservedPointLight(int point_light_idx, GAME_PLAY* play);
 extern void mEnv_DecideWindDirect(s_xyz* dir, s16 x, s16 z);
 extern void mEnv_RandomWeather(s16* next_weather, s16* next_intensity);
-extern s16 mEnv_GetWindAngleS();
-extern f32 mEnv_GetWindPowerF();
-extern f32 mEnv_GetWindPowerF_Windmill();
-extern void mEnv_DecideTodayWindPowerRange();
-extern void mEnv_ChangeWind();
-extern void mEnv_WindMove();
-extern void mEnv_DecideWeather_GameStart();
-extern void mEnv_DecideWeather_FirstGameStart();
-extern void mEnv_PreRainNowFine_Init();
-extern void mEnv_DecideWeather_NormalGameStart();
-extern int mEnv_NowWeather();
+extern s16 mEnv_GetWindAngleS(void);
+extern f32 mEnv_GetWindPowerF(void);
+extern f32 mEnv_GetWindPowerF_Windmill(void);
+extern void mEnv_DecideTodayWindPowerRange(void);
+extern void mEnv_ChangeWind(void);
+extern void mEnv_WindMove(void);
+extern void mEnv_DecideWeather_GameStart(void);
+extern void mEnv_DecideWeather_FirstGameStart(void);
+extern void mEnv_PreRainNowFine_Init(void);
+extern void mEnv_DecideWeather_NormalGameStart(void);
+extern int mEnv_NowWeather(void);
 
 #ifdef __cplusplus
 }

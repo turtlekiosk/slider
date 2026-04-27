@@ -24,13 +24,13 @@ extern u16 pact2_head_table[];
 extern u16 pact3_head_table[];
 extern u16 pact4_head_table[];
 
-extern int mTD_demono_get();
+extern int mTD_demono_get(void);
 extern void title_demo_move(GAME_PLAY* play);
 extern void mTD_player_keydata_init(GAME_PLAY* play);
-extern void mTD_rtc_set();
-extern void mTD_rtc_reserve();
-extern int mTD_get_titledemo_no();
-extern int mTD_tdemo_button_ok_check();
+extern void mTD_rtc_set(void);
+extern void mTD_rtc_reserve(void);
+extern int mTD_get_titledemo_no(void);
+extern int mTD_tdemo_button_ok_check(void);
 
 #ifdef __cplusplus
 }

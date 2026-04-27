@@ -121,8 +121,8 @@ enum {
   mSC_LIGHTHOUSE_PERIOD_NUM
 };
 
-extern u8 mSC_get_soncho_event();
-extern u8 mSC_get_soncho_field_event();
+extern u8 mSC_get_soncho_event(void);
+extern u8 mSC_get_soncho_field_event(void);
 extern void mSC_delete_soncho(ACTOR* actor, GAME_PLAY* play);
 extern int mSC_trophy_get(u8 num);
 extern void mSC_trophy_set(u8 num);
@@ -138,16 +138,16 @@ extern int mSC_LightHouse_day(const lbRTC_time_c* time);
 extern int mSC_LightHouse_Event_Check(int player_no);
 extern void mSC_LightHouse_Event_Clear(int player_no);
 extern mActor_name_t mSC_LightHouse_Event_Present_Item(u32 player_no);
-extern int mSC_LightHouse_Event_Start();
-extern int mSC_LightHouse_Talk_After_Check();
-extern void mSC_LightHouse_Quest_Start();
-extern int mSC_LightHouse_Switch_Check();
-extern int mSC_LightHouse_In_Check();
-extern void mSC_LightHouse_Switch_On();
+extern int mSC_LightHouse_Event_Start(void);
+extern int mSC_LightHouse_Talk_After_Check(void);
+extern void mSC_LightHouse_Quest_Start(void);
+extern int mSC_LightHouse_Switch_Check(void);
+extern int mSC_LightHouse_In_Check(void);
+extern void mSC_LightHouse_Switch_On(void);
 extern void mSC_LightHouse_Delete_Player(int player_no);
-extern int mSC_LightHouse_travel_check();
+extern int mSC_LightHouse_travel_check(void);
 extern void mSC_change_player_freeze(GAME_PLAY* play);
-extern u32 mSC_check_ArbeitPlayer();
+extern u32 mSC_check_ArbeitPlayer(void);
 
 #ifdef __cplusplus
 }

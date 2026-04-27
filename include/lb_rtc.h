@@ -102,9 +102,9 @@ enum RTC_EQUALITY_FLAGS {
                     lbRTC_CHECK_YEARS
 };
 
-extern OSTime lbRTC_HardTime();
-extern int lbRTC_IsAbnormal();
-extern void lbRTC_Sampling();
+extern OSTime lbRTC_HardTime(void);
+extern int lbRTC_IsAbnormal(void);
+extern void lbRTC_Sampling(void);
 extern void lbRTC_SetTime(lbRTC_time_c* time);
 extern void lbRTC_GetTime(lbRTC_time_c* time);
 extern lbRTC_day_t lbRTC_GetDaysByMonth(lbRTC_year_t year, lbRTC_month_t month);

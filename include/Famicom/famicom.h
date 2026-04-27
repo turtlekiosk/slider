@@ -133,28 +133,28 @@ typedef struct MemcardGameHeader_t {
 
 typedef int (*FAMICOM_GETSAVECHAN_PROC)(int* player_no, s32* slot_card_result);
 
-extern int famicom_getErrorChan();
+extern int famicom_getErrorChan(void);
 extern void famicom_setCallback_getSaveChan(FAMICOM_GETSAVECHAN_PROC proc);
-extern int famicom_mount_archive_end_check();
-extern void famicom_mount_archive();
+extern int famicom_mount_archive_end_check(void);
+extern void famicom_mount_archive(void);
 extern int famicom_init(int rom_idx, Famicom_MallocInfo* malloc_info, int player_no);
-extern int famicom_cleanup();
-extern void famicom_1frame();
-extern int famicom_rom_load_check();
-extern int famicom_internal_data_load();
-extern int famicom_internal_data_save();
-extern int famicom_external_data_save();
-extern int famicom_external_data_save_check();
+extern int famicom_cleanup(void);
+extern void famicom_1frame(void);
+extern int famicom_rom_load_check(void);
+extern int famicom_internal_data_load(void);
+extern int famicom_internal_data_save(void);
+extern int famicom_external_data_save(void);
+extern int famicom_external_data_save_check(void);
 extern int famicom_get_disksystem_titles(int* n_games, char* title_name_bufp, int namebuf_size);
 
 extern void nesinfo_tags_set(int rom_no);
 extern void nesinfo_tag_process1(u8* save_data, int mode, u32* max_ofs_p);
-extern void nesinfo_tag_process2();
+extern void nesinfo_tag_process2(void);
 extern void nesinfo_tag_process3(u8* save_data);
 extern void nesinfo_update_highscore(u8* save_data, int mode);
-extern int nesinfo_get_highscore_num();
-extern u8* nesinfo_get_moriName();
-extern void nesinfo_init();
+extern int nesinfo_get_highscore_num(void);
+extern u8* nesinfo_get_moriName(void);
+extern void nesinfo_init(void);
 extern void highscore_setup_flags(u8* flags);
 
 #ifdef __cplusplus

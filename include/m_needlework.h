@@ -67,9 +67,9 @@ typedef struct needlework_s {
   /* 0x0000 */  mNW_original_design_c original_design[mNW_TOTAL_DESIGN_NUM];
 } mNW_needlework_c;
 
-extern void mNW_InitMyOriginal();
+extern void mNW_InitMyOriginal(void);
 extern void mNW_InitOneMyOriginal(int player_no);
-extern void mNW_InitNeedleworkData();
+extern void mNW_InitNeedleworkData(void);
 extern void mNW_AGB_to_GC_texture(u8* agb, u8* gc);
 extern void mNW_GC_to_Agb_texture(u8* gc, u8* agb);
 extern u16* mNW_PaletteIdx2Palette(int palette_idx);

@@ -84,12 +84,12 @@ typedef struct island_s {
   /* 0x18E3 */ u8 unused_18E3[29]; /* unused */
 } Island_c;
 
-extern void mISL_ClearKeepIsland();
+extern void mISL_ClearKeepIsland(void);
 extern void mISL_KeepIsland(Island_c* island);
-extern void mISL_ChangeBG();
-extern void mISL_RestoreIsland();
+extern void mISL_ChangeBG(void);
+extern void mISL_RestoreIsland(void);
 extern void mISL_init(Island_c* island);
-extern void mISL_ClearNowPlayerAction();
+extern void mISL_ClearNowPlayerAction(void);
 extern void mISL_SetPlayerAction(PersonalID_c* pid, u32 action);
 extern void mISL_SetNowPlayerAction(u32 action);
 extern int mISL_CheckPlayerAction(PersonalID_c* pid, u32 action);

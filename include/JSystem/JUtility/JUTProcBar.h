@@ -81,7 +81,7 @@ class JUTProcBar {
     JUTProcBar();  // unused / inlined
     ~JUTProcBar(); // unused / inlined
 
-    static JUTProcBar* create();
+    static JUTProcBar* create(void);
     static void destroy();
     static void clear();
 

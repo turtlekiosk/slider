@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-int Hu_IsStub();
+int Hu_IsStub(void);
 
 void DBInitComm(volatile u8** param_1, __OSInterruptHandler param_2);
 void DBInitInterrupts(void);

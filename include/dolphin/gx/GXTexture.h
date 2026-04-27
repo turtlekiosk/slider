@@ -20,7 +20,7 @@ void GXInitTexObjLOD(GXTexObj* obj, GXTexFilter min_filt, GXTexFilter mag_filt, 
                      GXBool bias_clamp, GXBool do_edge_lod, GXAnisotropy max_aniso);
 void GXLoadTexObj(GXTexObj* obj, GXTexMapID id);
 u32 GXGetTexBufferSize(u16 width, u16 height, u32 format, GXBool mipmap, u8 max_lod);
-void GXInvalidateTexAll();
+void GXInvalidateTexAll(void);
 void GXInitTexObjWrapMode(GXTexObj* obj, GXTexWrapMode s, GXTexWrapMode t);
 void GXInitTlutObj(GXTlutObj* tlut_obj, void* lut, GXTlutFmt fmt, u16 n_entries);
 void GXLoadTlut(GXTlutObj* obj, u32 idx);

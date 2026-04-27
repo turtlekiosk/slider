@@ -20,7 +20,7 @@ extern size_t zelda_GetMemBlockSize(void*);
 extern void zelda_InitArena(void*, size_t);
 extern void zelda_AddBlockArena(void*, size_t);
 extern void zelda_CleanupArena(void);
-extern int zelda_MallocIsInitalized();
+extern int zelda_MallocIsInitalized(void);
 
 #ifdef __cplusplus
 }

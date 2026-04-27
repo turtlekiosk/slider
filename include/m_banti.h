@@ -52,8 +52,8 @@ typedef struct banti_s {
   lbRTC_time_c next_time; /* displayed during transition animation for any animations */
 } Banti_c;
 
-extern void banti_ct();
-extern void banti_dt();
+extern void banti_ct(void);
+extern void banti_dt(void);
 extern void banti_move(GAME_PLAY* play);
 extern void banti_draw(GAME_PLAY* play);
 

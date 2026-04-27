@@ -290,8 +290,8 @@ extern int mCD_GetThisLandSlotNo_code(int* player_no, s32* slot_card_results);
 extern int mCD_GetThisLandSlotNo(void);
 extern int mCD_GetSaveHomeSlotNo(void);
 extern void mCD_save_data_aram_malloc(void);
-extern void mCD_set_aram_save_data();
-extern void mCD_init_card();
+extern void mCD_set_aram_save_data(void);
+extern void mCD_init_card(void);
 extern int mCD_InitGameStart_bg(int player_no, int card_private_idx, int start_cond, s32* mounted_chan);
 extern int mCD_GetCardPrivateNameCopy(u8* name, int idx);
 extern int mCD_CheckCardPlayerNative(int idx);
@@ -304,9 +304,9 @@ extern int mCD_SaveStation_NextLand_bg(s32* chan);
 extern int mCD_SaveStation_Passport_bg(s32* chan);
 
 extern void mCD_PrintErrInfo(gfxprint_t* gfxprint);
-extern void mCD_InitAll();
+extern void mCD_InitAll(void);
 extern void mCD_LoadLand(void);
-extern void mCD_toNextLand();
+extern void mCD_toNextLand(void);
 
 extern int mCD_EraseBrokenLand_bg(int* slot);
 extern int mCD_EraseLand_bg(int* slot);

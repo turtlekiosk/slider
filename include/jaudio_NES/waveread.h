@@ -12,7 +12,7 @@ extern "C" {
 CtrlGroup_* Wave_Test(u8*);
 void GetSound_Test(u32);
 BOOL Wavegroup_Regist(void*, u32);
-void Wavegroup_Init();
+void Wavegroup_Init(void);
 CtrlGroup_* WaveidToWavegroup(u32, u32);
 BOOL WaveScene_Set(u32, u32);
 BOOL WaveScene_Load(u32, u32);

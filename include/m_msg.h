@@ -264,20 +264,20 @@ struct message_window_s {
     /* 0x460 */ mMsg_Request_Data_c request_data;
 };
 
-extern void mMsg_aram_init();
-extern void mMsg_aram_init2();
+extern void mMsg_aram_init(void);
+extern void mMsg_aram_init2(void);
 extern void mMsg_ct(GAME* game);
 extern void mMsg_dt(GAME* game);
 extern void mMsg_debug_draw(gfxprint_t* gfxprint);
 extern void mMsg_Main(GAME* game);
 extern void mMsg_Draw(GAME* game);
-extern mMsg_Window_c* mMsg_Get_base_window_p();
+extern mMsg_Window_c* mMsg_Get_base_window_p(void);
 extern int mMsg_Check_request_priority(mMsg_Window_c* msg_p, int request_priority);
 extern int mMsg_Check_main_index(mMsg_Window_c* msg_p, int main_index);
 extern int mMsg_Check_main_wait(mMsg_Window_c* msg_p);
 extern int mMsg_Check_not_series_main_wait(mMsg_Window_c* msg_p);
 extern int mMsg_Check_main_hide(mMsg_Window_c* msg_p);
-extern int mMsg_request_main_forceoff();
+extern int mMsg_request_main_forceoff(void);
 extern int mMsg_request_main_disappear(mMsg_Window_c* msg_p);
 extern int mMsg_request_main_appear(mMsg_Window_c* msg_p, ACTOR* client_actor_p, int show_name, rgba_t* window_color,
                                     int msg_no, int request_priority);
@@ -298,7 +298,7 @@ extern void mMsg_Set_continue_msg_num(mMsg_Window_c* msg_p, int msg_no);
 extern int mMsg_Get_msg_num(mMsg_Window_c* msg_p);
 extern void mMsg_Get_BodyParam(u32 table_addr, u32 data_addr, int index, u32* addr, u32* size);
 extern int mMsg_ChangeMsgData(mMsg_Window_c* msg_p, int index);
-extern int mMsg_Check_NowUtter();
+extern int mMsg_Check_NowUtter(void);
 extern int mMsg_Get_Length_String(u8* str, int str_len);
 extern int mMsg_Check_MainNormalContinue(mMsg_Window_c* msg_p);
 extern int mMsg_Check_MainNormal(mMsg_Window_c* msg_p);

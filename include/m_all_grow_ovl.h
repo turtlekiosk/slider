@@ -158,8 +158,8 @@ typedef struct carp_info_s {
   u8 villager_house_blocks;
 } mAGrw_CarpInfo_c;
 
-extern void mAGrw_ClearMoneyStoneShineGround();
-extern void mAGrw_ClearAllShine_Stone();
+extern void mAGrw_ClearMoneyStoneShineGround(void);
+extern void mAGrw_ClearAllShine_Stone(void);
 extern void mAGrw_RestoreStoneShine(int player_no);
 extern void mAGrw_SetHideUtInfo(u16* hide, mActor_name_t* items);
 extern void mAGrw_SearchDump(mFI_unit_c* dump_info);

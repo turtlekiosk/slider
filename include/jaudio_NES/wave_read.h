@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 int WaveScene_Set(u32, u32);
-void Wavegroup_Init();
+void Wavegroup_Init(void);
 int Wavegroup_Regist(void*, u32);
 #ifdef __cplusplus
 }

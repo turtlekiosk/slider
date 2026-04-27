@@ -106,13 +106,13 @@ typedef struct gba2_joywork_s {
 
 extern int Port;
 
-extern void mGcgba_Init();
-extern void mGcgba_InitVar();
-extern void mGcgba_EndComm();
-extern int mGcgba_ConnectEnabled();
+extern void mGcgba_Init(void);
+extern void mGcgba_InitVar(void);
+extern void mGcgba_EndComm(void);
+extern int mGcgba_ConnectEnabled(void);
 extern int mGcgba_Boot(u8* data_buf, size_t buf_size);
-extern int mGcgba_IsEditor();
-extern int mGcgba_IsIsland();
+extern int mGcgba_IsEditor(void);
+extern int mGcgba_IsIsland(void);
 extern int mGcgba_Recv(u8* recv_bufp, size_t recv_buf_size);
 extern int mGcgba_Read(u8* read_buf, size_t read_buf_size, u8 prog_type);
 extern int mGcgba_CheckRecv(u8* recv_bufp, size_t recv_buf_size);

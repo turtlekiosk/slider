@@ -12,7 +12,7 @@ extern "C" {
 Bank_* Bank_Test(u8*);
 BOOL Bank_Regist(void*, u32);
 BOOL Bank_Regist_Direct(void*, u32, u32);
-void Bank_Init();
+void Bank_Init(void);
 Bank_* Bank_Get(u32);
 
 #ifdef __cplusplus

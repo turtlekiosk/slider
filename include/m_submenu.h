@@ -203,13 +203,13 @@ struct submenu_s {
 
 extern int mSM_COLLECT_INSECT_GET(int idx);
 extern void mSM_COLLECT_INSECT_SET(int idx);
-extern int mSM_CHECK_ALL_INSECT_GET();
+extern int mSM_CHECK_ALL_INSECT_GET(void);
 extern int mSM_CHECK_LAST_INSECT_GET(int idx);
 extern int mSM_COLLECT_FISH_GET(int idx);
 extern void mSM_COLLECT_FISH_SET(int idx);
-extern int mSM_CHECK_ALL_FISH_GET();
+extern int mSM_CHECK_ALL_FISH_GET(void);
 extern int mSM_CHECK_LAST_FISH_GET(int idx);
-extern int SubmenuArea_IsPlayer();
+extern int SubmenuArea_IsPlayer(void);
 extern void* mSM_ovlptr_dllcnv(void* proc, Submenu* submenu, int dlf_idx);
 extern void mSM_submenu_ovlptr_init(GAME_PLAY* play);
 extern void mSM_submenu_ovlptr_cleanup(Submenu* submenu);

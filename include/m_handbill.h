@@ -60,7 +60,7 @@ struct handbill_data_s {
     int capital_flag;
 };
 
-extern void mHandbill_aram_init();
+extern void mHandbill_aram_init(void);
 extern void mHandbill_Set_free_str(int str_num, u8* str, int str_len);
 extern void mHandbill_Set_free_str_art(int str_num, u8* str, int str_len, int article);
 extern int mHandbill_MoveDataCut(u8* data, int buf_size, int dst_idx, int src_idx, int data_len, int fill_type);

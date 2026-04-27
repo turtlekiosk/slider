@@ -31,7 +31,7 @@ enum {
   mItemDebug_CATEGORY_NUM
 };
 
-extern void mItemDebug_ItemDebugMain();
+extern void mItemDebug_ItemDebugMain(void);
 extern void mItemDebug_ItemDebugDraw(gfxprint_t* gfxprint);
 
 #ifdef __cplusplus

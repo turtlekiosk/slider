@@ -48,11 +48,11 @@ typedef struct good_field_s {
 } mFAs_GoodField_c;
 
 
-extern void mFAs_ClearGoodField();
-extern int mFAs_CheckGoodField();
+extern void mFAs_ClearGoodField(void);
+extern int mFAs_CheckGoodField(void);
 extern int mFAs_GetFieldRank_Condition(int* rank, int* block_x, int* block_z);
-extern void mFAs_SetFieldRank();
-extern int mFAs_GetFieldRank();
+extern void mFAs_SetFieldRank(void);
+extern int mFAs_GetFieldRank(void);
 extern void mFAs_PrintFieldAssessment(gfxprint_t* gfxprint);
 
 #ifdef __cplusplus

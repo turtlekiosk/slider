@@ -128,7 +128,7 @@ extern int mMl_send_mail_postoffice(PersonalID_c* recipient_pid, int player_no, 
                                     mActor_name_t paper, int mail_no, u8* sender_name, u32 proc_type, u8 mail_type);
 extern int mMl_send_mail(PersonalID_c* recipient_pid, int player_no, mActor_name_t present, mActor_name_t paper,
                          int mail_no, u8* sender_name, u32 proc_type);
-extern void mMl_start_send_mail();
+extern void mMl_start_send_mail(void);
 
 #ifdef __cplusplus
 }

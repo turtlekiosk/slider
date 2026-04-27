@@ -47,17 +47,17 @@ typedef int(save_check_proc)(void);
 
 extern MATCH_FORCESTRIP void mFRm_PrintErrInfo(gfxprint_t* gfxprint);
 extern void mFRm_set_msg_idx(int idx);
-extern int mFRm_get_msg_idx();
+extern int mFRm_get_msg_idx(void);
 extern u16 mFRm_ReturnCheckSum(u16* data, int size);
 extern u16 mFRm_GetFlatCheckSum(u16* data, int size, u16 now_checksum);
 extern int mFRm_CheckSaveData_ID(mFRm_chk_t* save_check);
 extern int mFRm_CheckSaveData_common(mFRm_chk_t* save_check, u16 land_id);
-extern int mFRm_CheckSaveData();
+extern int mFRm_CheckSaveData(void);
 extern void mFRm_ClearSaveCheckData(mFRm_chk_t* save_check);
 extern void mFRm_SetSaveCheckData(mFRm_chk_t* save_check);
 extern void mFRm_PrintSavedDebug(gfxprint_t* gfxprint);
-extern void mFRm_clear_err_info();
-extern void mFRm_save_data_check();
+extern void mFRm_clear_err_info(void);
+extern void mFRm_save_data_check(void);
 extern void mFRm_display_errInfo(gfxprint_t* gfxprint);
 
 #ifdef __cplusplus

@@ -168,7 +168,7 @@ enum {
   mMkRm_FACE_TYPE_NUM
 };
 
-extern void mMkRm_ReportChangePlayerRoom();
+extern void mMkRm_ReportChangePlayerRoom(void);
 extern void mMkRm_MarkRoom(GAME* game);
 
 #ifdef __cplusplus

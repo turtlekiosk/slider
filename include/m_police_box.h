@@ -28,10 +28,10 @@ typedef struct police_box_s {
 } PoliceBox_c;
 
 extern void mPB_copy_itemBuf(mActor_name_t* item_buf);
-extern int mPB_get_keep_item_sum();
+extern int mPB_get_keep_item_sum(void);
 extern void mPB_keep_item(mActor_name_t item_no);
 extern void mPB_keep_all_item_in_block(int blk_x, int blk_z);
-extern void mPB_force_set_keep_item();
+extern void mPB_force_set_keep_item(void);
 extern void mPB_police_box_init(GAME* game);
 
 #ifdef __cplusplus

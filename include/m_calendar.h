@@ -29,7 +29,7 @@ typedef struct calendar_player_info_s {
 
 extern void mCD_calendar_clear(int player_no);
 extern void mCD_calendar_check_delete(int player_no, lbRTC_year_t year, lbRTC_month_t month, lbRTC_day_t day);
-extern void mCD_calendar_wellcome_on();
+extern void mCD_calendar_wellcome_on(void);
 extern void mCD_calendar_event_on(lbRTC_year_t year, lbRTC_month_t month, lbRTC_day_t day, u8 event);
 extern int mCD_calendar_event_check(lbRTC_year_t year, lbRTC_month_t month, lbRTC_day_t day, int player_no, u8 event);
 

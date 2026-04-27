@@ -329,9 +329,9 @@ typedef struct camera_s {
 
 extern s16 getCamera2AngleY(GAME_PLAY* play);
 extern int Camera2_change_priority(GAME_PLAY* play, int priority);
-extern xyz_t* Camera2_getEyePos_p();
-extern xyz_t* Camera2_getCenterPos_p();
-extern int Camera2_CheckCullingMode();
+extern xyz_t* Camera2_getEyePos_p(void);
+extern xyz_t* Camera2_getCenterPos_p(void);
+extern int Camera2_CheckCullingMode(void);
 extern int Camera2_CheckEnterCullingArea(f32 pos_x, f32 pos_z, f32 width);
 extern void Camera2_ClearActorTalking_Cull(GAME_PLAY* play);
 extern int Camera2_Check_main_index(GAME_PLAY* play, int main_index);

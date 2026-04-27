@@ -94,12 +94,12 @@ extern void mMmd_SetInsect(int insect_no);
 extern void mMmd_SetFish(int fish_no);
 extern int mMmd_GetDisplayInfo(mActor_name_t item);
 extern int mMmd_RequestMuseumDisplay(mActor_name_t item);
-extern void mMmd_MakeMuseumDisplayData();
+extern void mMmd_MakeMuseumDisplayData(void);
 extern void mMmd_DeletePresentedByPlayer(u8 player_no);
-extern int mMmd_CountDisplayedFossil();
-extern int mMmd_CountDisplayedArt();
-extern int mMmd_CountDisplayedInsect();
-extern int mMmd_CountDisplayedFish();
+extern int mMmd_CountDisplayedFossil(void);
+extern int mMmd_CountDisplayedArt(void);
+extern int mMmd_CountDisplayedInsect(void);
+extern int mMmd_CountDisplayedFish(void);
 
 #ifdef __cplusplus
 }

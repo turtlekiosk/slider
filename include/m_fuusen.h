@@ -24,8 +24,8 @@ extern void Balloon_init(GAME_PLAY*);
 extern void Balloon_make_fuusen(GAME_PLAY* play);
 extern void Balloon_chk_make_fuusen(GAME_PLAY* play);
 extern void Balloon_move(GAME_PLAY* play);
-extern void Balloon_kill();
-extern void Balloon_look_up();
+extern void Balloon_kill(void);
+extern void Balloon_look_up(void);
 
 #ifdef __cplusplus
 }

@@ -12,7 +12,7 @@ extern void ksNesDrawMakeOBJIndTex(ksNesCommonWorkObj* wp);
 extern void ksNesDrawMakeOBJIndTexMMC5(ksNesCommonWorkObj* wp);
 extern void ksNesConvertChrToI8(ksNesCommonWorkObj* wp, const unsigned char* foo, unsigned long bar);
 extern void ksNesConvertChrToI8MMC5(ksNesCommonWorkObj* wp, const unsigned char* foo, unsigned long bar);
-extern void ksNesQDSoundSync();
+extern void ksNesQDSoundSync(void);
 extern int ksNesQDFastLoad(ksNesCommonWorkObj* wp, ksNesStateObj* sp);
 extern int ksNesQDFastSave(ksNesCommonWorkObj* wp, ksNesStateObj* sp);
 extern void ksNesPushResetButton(ksNesStateObj* sp);

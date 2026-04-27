@@ -526,7 +526,7 @@ typedef struct font_sentence_s {
 typedef void (*mFont_ControlCodeCharFunc)(mFontChar*, Gfx**);
 typedef void (*mFont_ControlCodeSentenceFunc)(mFontSentence*, Gfx**);
 
-extern void mFont_ct();
+extern void mFont_ct(void);
 extern int mFont_UnintToString(u8* str, int figure, u32 num, int figure_start, int left_cut, int fill_zero, int separator);
 extern int mFont_char_save_data_check(u8 c);
 extern u8 mFont_small_to_capital(u8 small);

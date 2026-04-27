@@ -18,7 +18,7 @@ typedef struct contpak_s {
 extern int mCPk_InitPak(int pak_idx);
 extern int mCPk_PakOpen(mCPk_c* cpak, int pak_idx);
 extern int  mCPk_SavePak(Private_c* private_data, Animal_c* animals, mCPk_c* cpak);
-extern mCPk_c* mCPk_get_pkinfo();
+extern mCPk_c* mCPk_get_pkinfo(void);
 
 #ifdef __cplusplus
 }

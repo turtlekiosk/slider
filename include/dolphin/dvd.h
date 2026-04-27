@@ -109,15 +109,15 @@ typedef struct DVDBB2 {
 
 ///////// DVD FUNCTIONS //////////
 // Basic DVD functions.
-void DVDInit();
+void DVDInit(void);
 BOOL DVDOpen(char* filename, DVDFileInfo* fileInfo);
 BOOL DVDFastOpen(s32 entryNum, DVDFileInfo* fileInfo);
 s32 DVDReadPrio(DVDFileInfo* fileInfo, void* addr, s32 length, s32 offset, s32 prio);
 BOOL DVDReadAsyncPrio(DVDFileInfo* fileInfo, void* addr, s32 length, s32 offset, DVDCallback callback, s32 prio);
 BOOL DVDClose(DVDFileInfo* fileInfo);
 
-void DVDResume();
-void DVDReset();
+void DVDResume(void);
+void DVDReset(void);
 
 BOOL DVDCancelAsync(DVDCommandBlock* block, DVDCBCallback callback);
 s32 DVDCancel(volatile DVDCommandBlock* block);
@@ -127,9 +127,9 @@ BOOL DVDChangeDiskAsync(DVDCommandBlock* block, DVDDiskID* id, DVDCBCallback cal
 
 // Status functions.
 s32 DVDGetCommandBlockStatus(const DVDCommandBlock* block);
-s32 DVDGetDriveStatus();
+s32 DVDGetDriveStatus(void);
 BOOL DVDSetAutoInvalidation(BOOL doAutoInval);
-void* DVDGetFSTLocation();
+void* DVDGetFSTLocation(void);
 
 // DVD Dir functions.
 BOOL DVDOpenDir(char* dirName, DVDDir* dir);
@@ -141,23 +141,23 @@ s32 DVDConvertPathToEntrynum(char* path);
 
 // Other disk functions.
 s32 DVDGetTransferredSize(DVDFileInfo* fileInfo);
-DVDDiskID* DVDGetCurrentDiskID();
+DVDDiskID* DVDGetCurrentDiskID(void);
 BOOL DVDCompareDiskID(DVDDiskID* id1, DVDDiskID* id2);
-DVDLowCallback DVDLowClearCallback();
+DVDLowCallback DVDLowClearCallback(void);
 BOOL DVDPrepareStreamAsync(DVDFileInfo* fileInfo, u32 length, u32 offset, DVDCallback callback);
 s32 DVDCancelStream(DVDCommandBlock* block);
 
-BOOL DVDCheckDisk();
+BOOL DVDCheckDisk(void);
 
 // Unused/inlined in P2.
-void DVDPause();
+void DVDPause(void);
 s32 DVDSeekPrio(DVDFileInfo* fileInfo, s32 offset, s32 prio);
 BOOL DVDSeekAsyncPrio(DVDFileInfo* fileInfo, s32 offset, DVDCallback callback, s32 prio);
 // s32 DVDGetFileInfoStatus(DVDFileInfo* fileInfo);
 BOOL DVDFastOpenDir(s32 entryNum, DVDDir* dir);
 BOOL DVDCancelAllAsync(DVDCBCallback callback);
-s32 DVDCancelAll();
-void DVDDumpWaitingQueue();
+s32 DVDCancelAll(void);
+void DVDDumpWaitingQueue(void);
 
 //////////////////////////////////
 

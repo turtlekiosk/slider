@@ -62,14 +62,14 @@ typedef struct PADStatus
 // PAD.c
 BOOL PADReset(u32 mask);
 BOOL PADRecalibrate(u32 mask);
-BOOL PADInit();
+BOOL PADInit(void);
 u32 PADRead(PADStatus* status);
 void PADSetSamplingRate(u32 msec);
 void __PADTestSamplingRate(u32 tvmode);
 void PADControlAllMotors(const u32 *commandArray);
 void PADControlMotor(s32 chan, u32 command);
 void PADSetSpec(u32 spec);
-u32 PADGetSpec();
+u32 PADGetSpec(void);
 BOOL PADGetType(s32 chan, u32* type);
 BOOL PADSync(void);
 void PADSetAnalogMode(u32 mode);

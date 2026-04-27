@@ -31,7 +31,7 @@ struct ARQRequest {
 
 /////////////// AR FUNCTIONS ///////////////
 // ARQ functions.
-void ARQInit();
+void ARQInit(void);
 void ARQPostRequest(ARQRequest* task, u32 owner, u32 type, u32 priority, u32 source, u32 dest, u32 length, ARQCallback callback);
 
 // AR functions.
@@ -40,15 +40,15 @@ u32 ARGetDMAStatus();
 void ARStartDMA(u32 type, u32 mainmem_addr, u32 aram_addr, u32 length);
 u32 ARAlloc(u32 length);
 u32 ARInit(u32* stack_index_addr, u32 num_entries);
-u32 ARGetBaseAddress();
-u32 ARGetSize();
+u32 ARGetBaseAddress(void);
+u32 ARGetSize(void);
 
 // Unused/inlined in P2.
 u32 ARFree(u32* length);
-BOOL ARCheckInit();
+BOOL ARCheckInit(void);
 void ARReset();
 void ARSetSize();
-u32 ARGetInternalSize();
+u32 ARGetInternalSize(void);
 void ARClear(u32 flag);
 
 ////////////////////////////////////////////

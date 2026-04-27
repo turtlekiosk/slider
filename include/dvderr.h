@@ -36,8 +36,8 @@ typedef struct dvderr_work_s {
   /* 0x3F4 */ int next_error;             // next dvd error
 } dvderr_work;
 
-extern int dvderr_draw();
-extern void dvderr_init();
+extern int dvderr_draw(void);
+extern void dvderr_init(void);
 
 #ifdef __cplusplus
 };

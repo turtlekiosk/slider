@@ -36,17 +36,17 @@ typedef struct controller_s {
 #define STICK_UNCORRECTED_SCALE (1.0f / STICK_MAX)
 #define STICK_CORRECTED_SCALE (1.0f / (STICK_MAX - STICK_MIN))
 
-extern void mCon_ct();
-extern void mCon_dt();
+extern void mCon_ct(void);
+extern void mCon_dt(void);
 extern void mCon_calc(MCON* mcon, f32 stick_x, f32 stick_y);
 extern void mCon_main(GAME* game);
 
 extern int chkButton(u16 button);
-extern u16 getButton();
+extern u16 getButton(void);
 extern int chkTrigger(u16 button);
-extern u16 getTrigger();
-extern int getJoystick_X();
-extern int getJoystick_Y();
+extern u16 getTrigger(void);
+extern int getJoystick_X(void);
+extern int getJoystick_Y(void);
 
 #ifdef __cplusplus
 }

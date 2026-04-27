@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-extern void Z_osWritebackDCacheAll();
+extern void Z_osWritebackDCacheAll(void);
 extern void osInvalDCache2(void* src, s32 size);
 extern void osWritebackDCache2(void* src, s32 size);
 extern void Z_osCreateMesgQueue(OSMesgQueue* mq, OSMesg* msg, s32 count);

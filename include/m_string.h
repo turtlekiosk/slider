@@ -12,7 +12,7 @@ extern "C" {
 #define mString_MAX_STR 0x7FF
 #define mString_DEFAULT_STR_SIZE 16
 
-extern void mString_aram_init();
+extern void mString_aram_init(void);
 extern void mString_Load_StringFromRom(u8* dst, int dst_len, int str_no);
 extern int mString_Load_YearStringFromRom(u8* dst, lbRTC_year_t year);
 extern int mString_Load_MonthStringFromRom(u8* dst, lbRTC_month_t month);

@@ -22,7 +22,13 @@
                 "Helvetica Neue",
                 Arial,
                 sans-serif;
-            height: 100%;
+            /* dvh/dvw track the *visible* viewport on mobile (account
+               for the URL bar / soft keyboard); 100vh/100% would resolve
+               to the layout viewport, which on Android Chrome can be
+               larger than what's actually visible — that's what was
+               pushing the canvas content under the URL bar. */
+            height: 100dvh;
+            width: 100dvw;
             overflow: hidden;
         }
         #container {
@@ -38,13 +44,15 @@
             background: #000;
             outline: none;
             image-rendering: pixelated;
-            /* Display the canvas at its drawing-buffer aspect (the JS
-               below pins that buffer to 4:3 in both portrait and
-               landscape), letting the flex parent letterbox/pillarbox
-               whichever axis is "extra". */
+            /* Fill the viewport horizontally; CSS height auto preserves
+               the drawing buffer's aspect (which the JS pins to ≤ 4:3
+               in portrait but lets stay wide otherwise so the engine's
+               PC_ENHANCEMENTS hor+ widescreen path engages). max-height
+               uses dvh so the URL bar on Android Chrome doesn't push
+               content under itself. */
             width: 100vw;
             height: auto;
-            max-height: 100vh;
+            max-height: 100dvh;
         }
         #status {
             position: fixed;
@@ -365,31 +373,26 @@
         function resizeCanvasToViewport() {
             var c = document.getElementById('canvas');
             var vp = _viewportSize();
-            var vw = vp.w, vh = vp.h;
-            var w, h;
-            if (vw * 3 >= vh * 4) {
-                // Viewport wider-or-equal to 4:3 → height-limited.
-                h = vh;
-                w = Math.floor(h * 4 / 3);
-            } else {
-                // Viewport narrower than 4:3 → width-limited.
-                w = vw;
-                h = Math.floor(w * 3 / 4);
-            }
+            var w = vp.w, h = vp.h;
+            // Portrait clamp only: cap height to width × 3/4 so the engine
+            // never sees a taller-than-4:3 viewport (which it doesn't
+            // render gracefully). Wide viewports are passed through
+            // verbatim so the engine's PC_ENHANCEMENTS hor+ path engages.
+            var maxH = Math.floor(w * 3 / 4);
+            if (h > maxH) h = maxH;
             if (w > MAX_CANVAS_DIM || h > MAX_CANVAS_DIM) {
                 var scale = Math.min(MAX_CANVAS_DIM / w, MAX_CANVAS_DIM / h);
                 w = Math.floor(w * scale);
                 h = Math.floor(h * scale);
             }
             if (w <= 0 || h <= 0) return;
-            // Avoid no-op writes — setting canvas.width clears the GL
-            // backing store, so only touch it when the size actually
-            // changed.
+            // Setting canvas.width clears the GL backing store — only
+            // touch it when the dims actually change.
             if (c.width !== w || c.height !== h) {
                 c.width  = w;
                 c.height = h;
-                console.log('[canvas] resized to', w, 'x', h,
-                            '(viewport', vw, 'x', vh, ')');
+                console.log('[canvas] buffer', w, 'x', h,
+                            'viewport', vp.w, 'x', vp.h);
             }
         }
         resizeCanvasToViewport();

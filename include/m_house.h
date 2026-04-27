@@ -31,7 +31,7 @@ enum {
   mHS_HOUSE_NUM
 };
 
-extern void mHS_house_init();
+extern void mHS_house_init(void);
 extern int mHS_get_arrange_idx(int player_no);
 extern int mHS_get_pl_no(int house_no);
 extern int mHS_get_pl_no_detail(int home_no);

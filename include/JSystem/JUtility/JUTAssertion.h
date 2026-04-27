@@ -8,9 +8,9 @@
 extern "C" {
 
 namespace JUTAssertion {
-void create();
-void flushMessage();
-void flushMessage_dbPrint();
+void create(void);
+void flushMessage(void);
+void flushMessage_dbPrint(void);
 u32 getSDevice(void);
 
 void changeDisplayTime(u32 time);

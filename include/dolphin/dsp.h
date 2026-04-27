@@ -47,13 +47,13 @@ typedef struct STRUCT_DSP_TASK {
 
 } DSPTaskInfo;
 
-void DSPInit();
+void DSPInit(void);
 void DSPReset();
 void DSPHalt();
 void DSPSendMailToDSP(u32 mail);
-u32 DSPCheckMailToDSP();
-u32 DSPCheckMailFromDSP();
-u32 DSPReadMailFromDSP();
+u32 DSPCheckMailToDSP(void);
+u32 DSPCheckMailFromDSP(void);
+u32 DSPReadMailFromDSP(void);
 u32 DSPGetDMAStatus();
 
 DSPTaskInfo* DSPAddTask(DSPTaskInfo* task);

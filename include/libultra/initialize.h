@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-extern void __osInitialize_common();
+extern void __osInitialize_common(void);
 extern BOOL osIsEnableShutdown(void);
 extern BOOL osIsDisableShutdown(void);
 extern OSTime osGetDisableShutdownTime(void);

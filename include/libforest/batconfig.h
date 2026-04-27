@@ -10,9 +10,9 @@
 extern "C" {
 #endif
 
-void Config24MB();
-void Config48MB();
-void ReconfigBATs();
+void Config24MB(void);
+void Config48MB(void);
+void ReconfigBATs(void);
 
 
 #ifdef __cplusplus

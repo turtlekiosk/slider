@@ -248,7 +248,7 @@ class JUTGamePad : public JKRDisposer {
 
         void clear();
         u32 update(s8 x, s8 y, JUTGamePad::EStickMode, JUTGamePad::EWhichStick);
-        u32 getButton();
+        u32 getButton(void);
 
         f32 mX;
         f32 mY;

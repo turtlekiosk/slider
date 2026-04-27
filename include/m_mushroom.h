@@ -24,7 +24,7 @@ typedef struct mushroom_time_s {
   /* 0x04 */ u8 pad2:3;
 } mMsr_time_c;
 
-extern void mMsr_FirstClearMushroom();
+extern void mMsr_FirstClearMushroom(void);
 extern void mMsr_SetMushroom(xyz_t player_pos);
 
 #ifdef __cplusplus

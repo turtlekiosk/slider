@@ -31,9 +31,9 @@ struct OSResetFunctionInfo {
   OSResetFunctionInfo* prev;
 };
 
-u32 OSGetResetCode();
+u32 OSGetResetCode(void);
 void OSResetSystem(int reset, u32 resetCode, BOOL forceMenu);
-BOOL OSGetResetSwitchState();
+BOOL OSGetResetSwitchState(void);
 void OSGetSaveRegion(void** start, void** end);
 void OSRegisterResetFunction(OSResetFunctionInfo* info);
 

@@ -8,9 +8,9 @@
 extern "C" {
 #endif
 
-extern int aWeather_ChangingWeather();
-extern void aWeather_RequestChangeWeatherToIsland();
-extern void aWeather_RequestChangeWeatherFromIsland();
+extern int aWeather_ChangingWeather(void);
+extern void aWeather_RequestChangeWeatherToIsland(void);
+extern void aWeather_RequestChangeWeatherFromIsland(void);
 
 extern ACTOR_PROFILE Weather_Profile;
 

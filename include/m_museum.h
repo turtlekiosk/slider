@@ -50,7 +50,7 @@ typedef struct museum_record_s {
 
 extern void mMsm_ClearRecord(mMsm_record_c* record);
 extern void mMsm_GetMuseumMailName(Mail_nm_c* name);
-extern void mMsm_SendInformationMail();
+extern void mMsm_SendInformationMail(void);
 extern void mMsm_SendMuseumMail(Mail_c* mail);
 extern int mMsm_GetDepositAbleNum(mActor_name_t* fg_items, mCoBG_Collision_u* col_data);
 extern void mMsm_DepositItemBlock_cancel(mActor_name_t* fg_items, mActor_name_t deposit_item, mCoBG_Collision_u* col_data, u16* deposit, u16* cancel_ut, u8 valid_ut_count);
@@ -58,8 +58,8 @@ extern void mMsm_DepositItemBlock(mActor_name_t* fg_items, mActor_name_t item, i
 extern int mMsm_RecordDepositFossil(u8* record, mActor_name_t item, int block_x);
 extern u8 mMsm_GetDepositBlockNum(u8 record);
 extern void mMsm_DepositFossil(u8 deposit_record, int fossil_count, u16* cancel_ut, int send_order_info);
-extern void mMsm_SetCompMail();
-extern void mMsm_SendCompMail();
+extern void mMsm_SetCompMail(void);
+extern void mMsm_SendCompMail(void);
 
 #ifdef __cplusplus
 }

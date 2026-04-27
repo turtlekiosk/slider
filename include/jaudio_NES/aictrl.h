@@ -34,9 +34,9 @@ extern u32 JAC_SYSTEM_OUTPUT_MODE;
 //////////// JAUDIO AI CONTROL FUNCTIONS ////////////
 void Jac_HeapSetup(void* heap, s32 size);
 void* OSAlloc2(u32 size);
-void Jac_Init();
-void Jac_VframeWork();
-void Jac_UpdateDAC();
+void Jac_Init(void);
+void Jac_VframeWork(void);
+void Jac_UpdateDAC(void);
 void Jac_SetOutputMode(int mode);
 int Jac_GetOutputMode();
 void Jac_SetMixerLevel(f32, f32);

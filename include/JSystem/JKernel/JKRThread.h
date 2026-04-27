@@ -138,7 +138,7 @@ class JKRTask : public JKRThread {
 
     bool request(RequestCallback, void*, void*);
 
-    static JKRTask* create();
+    static JKRTask* create(void);
 
     // unused/inlined:
     Request* searchBlank();

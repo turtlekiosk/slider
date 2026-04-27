@@ -9,10 +9,10 @@ extern "C"
 #endif
 
 void GXSetMisc(GXMiscToken token, u32 val);
-void GXFlush();
-void GXResetWriteGatherPipe();
+void GXFlush(void);
+void GXResetWriteGatherPipe(void);
 
-void GXAbortFrame();
+void GXAbortFrame(void);
 
 #ifdef __cplusplus
 }

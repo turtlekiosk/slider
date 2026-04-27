@@ -62,14 +62,14 @@ typedef struct SIPacket {
 
 typedef void (*SITypeCallback)(s32, u32);
 
-BOOL SIBusy();
+BOOL SIBusy(void);
 BOOL SIIsChanBusy(s32 chan);
-void SIInit();
-unsigned long SISync();
+void SIInit(void);
+unsigned long SISync(void);
 u32 SIGetStatus(s32 chan);
 void SISetCommand(long chan, unsigned long command);
 unsigned long SIGetCommand(long chan);
-void SITransferCommands();
+void SITransferCommands(void);
 unsigned long SISetXY(unsigned long x, unsigned long y);
 unsigned long SIEnablePolling(unsigned long poll);
 unsigned long SIDisablePolling(unsigned long poll);

@@ -18,8 +18,8 @@ extern "C" {
 #define INITIAL_MENU_OSMESG_LOAD_GAME_DONE 0x9999
 
 extern void make_dl_nintendo_logo(Gfx** gpp, u32 alpha);
-extern void initial_menu_init();
-extern void initial_menu_cleanup();
+extern void initial_menu_init(void);
+extern void initial_menu_cleanup(void);
 
 #ifdef __cplusplus
 }

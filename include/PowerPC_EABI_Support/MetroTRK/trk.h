@@ -27,7 +27,7 @@ DSError TRKDoUnsupported(TRKBuffer*);
 DSError TRKDoCPUType(TRKBuffer*);
 DSError TRKDoFlushCache(TRKBuffer*);
 
-void __TRK_copy_vectors();
+void __TRK_copy_vectors(void);
 
 void SetBufferPosition(TRKBuffer*, u32);
 void SetTRKConnected(int);
@@ -58,8 +58,8 @@ void InitMetroTRK_BBA(void);
 void EnableMetroTRKInterrupts(void);
 
 void TRKLoadContext(OSContext* ctx, u32);
-void TRKSaveExtended1Block();
-void TRKRestoreExtended1Block();
+void TRKSaveExtended1Block(void);
+void TRKRestoreExtended1Block(void);
 int InitMetroTRKCommTable(int);
 void TRK_board_display(char*);
 ////////////////////////////////////
@@ -115,15 +115,15 @@ BOOL TRKGetNextEvent(TRKEvent* event);
 DSError TRKDispatchMessage(TRKBuffer*);
 void* TRKGetBuffer(int);
 void TRKReleaseBuffer(int);
-void TRKGetInput();
+void TRKGetInput(void);
 ////////////////////////////////////
 
 ///////// TARGET FUNCTIONS /////////
 DSError TRKTargetContinue(void);
 DSError TRKTargetInterrupt(TRKEvent*);
-BOOL TRKTargetStopped();
+BOOL TRKTargetStopped(void);
 void TRKTargetSetStopped(uint);
-DSError TRKTargetSupportRequest();
+DSError TRKTargetSupportRequest(void);
 ////////////////////////////////////
 
 ////// NUB AND MEM FUNCTIONS ///////
@@ -144,13 +144,13 @@ void* TRK_memcpy(void* dst, const void* src, size_t n);
 ////////////////////////////////////
 
 /////// INITIALIZE FUNCTIONS ///////
-DSError TRKInitializeEventQueue();
-DSError TRKInitializeMessageBuffers();
-DSError TRKInitializeDispatcher();
+DSError TRKInitializeEventQueue(void);
+DSError TRKInitializeMessageBuffers(void);
+DSError TRKInitializeDispatcher(void);
 DSError InitializeProgramEndTrap();
-DSError TRKInitializeSerialHandler();
-DSError TRKTerminateSerialHandler();
-DSError TRKInitializeTarget();
+DSError TRKInitializeSerialHandler(void);
+DSError TRKTerminateSerialHandler(void);
+DSError TRKInitializeTarget(void);
 ////////////////////////////////////
 
 ////////// EXI2 FUNCTIONS //////////
@@ -164,13 +164,13 @@ void MWTRACE(u8, char*, ...);
 ////////////////////////////////////
 
 //////// SUPPORT FUNCTIONS /////////
-DSError TRKRequestSend();
+DSError TRKRequestSend(TRKBuffer* msgBuf, int* bufferId, u32 p1, u32 p2, int p3);
 u32 TRKAccessFile(u32, u32, u32*, u8*);
 ////////////////////////////////////
 
 ///// SERIAL POLLING FUNCTIONS /////
 TRKBufferID TRKTestForPacker();
-void TRKGetInput();
+void TRKGetInput(void);
 void TRKProcessInput(TRKBufferID bufID);
 ////////////////////////////////////
 
@@ -178,19 +178,19 @@ void TRKProcessInput(TRKBufferID bufID);
 DSError TRK_main(void);
 UARTError InitializeUART(UARTBaudRate baudRate);
 DSError TRKInitializeIntDrivenUART(u32, u32, u32, volatile u8**);
-int TRKPollUART();
+int TRKPollUART(void);
 UARTError TRKReadUARTN(void*, u32);
 UARTError TRKWriteUARTN(const void* bytes, u32 length);
-void usr_put_initialize();
+void usr_put_initialize(void);
 void TRKTargetSetInputPendingPtr(void*);
 void SetUseSerialIO(u8);
 u8 GetUseSerialIO(void);
-u8 TRKTargetCPUMinorType();
+u8 TRKTargetCPUMinorType(void);
 
 DSError TRKTargetAddStopInfo(TRKBuffer*);
 DSError TRKTargetAddExceptionInfo(TRKBuffer*);
-void TRKInterruptHandler();
-void TRKPostInterruptEvent();
+void TRKInterruptHandler(void);
+void TRKPostInterruptEvent(void);
 BOOL usr_puts_serial(const char* msg);
 ////////////////////////////////////
 

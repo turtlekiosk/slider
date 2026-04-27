@@ -17,7 +17,7 @@ typedef struct boot_tbl_s {
 } boot_tbl_t;
 
 extern u32 convert_partial_address(u32 partial_addr);
-extern void HotResetIplMenu();
+extern void HotResetIplMenu(void);
 
 extern void* boot_copyDate;
 extern void* HotStartEntry;

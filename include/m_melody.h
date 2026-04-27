@@ -10,7 +10,7 @@ extern "C" {
 
 #define mMld_MELODY_LEN 16
 
-extern void mMld_SetDefaultMelody();
+extern void mMld_SetDefaultMelody(void);
 extern void mMld_TransformMelodyData_u64_2_u8(u8* dst, u64 src);
 extern void mMld_TransformMelodyData_u8_2_u64(u64* dst, u8* src);
 extern void mMld_GetMelody(u8* dst);

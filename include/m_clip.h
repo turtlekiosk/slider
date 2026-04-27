@@ -108,7 +108,7 @@ typedef struct clip_s {
     /* 0x100 */ void* _100;
 } Clip_c;
 
-extern void clip_clear();
+extern void clip_clear(void);
 
 #ifdef __cplusplus
 }

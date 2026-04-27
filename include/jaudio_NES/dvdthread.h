@@ -15,7 +15,7 @@ extern "C" {
 extern void DVDT_ExtendPath(char* dst, char* ext);
 extern s32 DVDT_AddTaskHigh(TaskCallback callback, void* stackp, size_t len);
 extern s32 DVDT_AddTask(TaskCallback callback, void* stackp, size_t len);
-extern void jac_dvdproc_init();
+extern void jac_dvdproc_init(void);
 extern void* jac_dvdproc(void*);
 extern s32 DVDT_LoadtoARAM_Main(void* arg);
 extern s32 DVDT_LoadtoARAM(u32 owner, char* name, u32 dst, u32 src, u32 length, u32* status, Jac_DVDCallback callback);

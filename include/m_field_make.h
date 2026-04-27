@@ -336,13 +336,13 @@ extern void mFM_GetPolicePos(int* bx, int* bz, int* ut_x, int* ut_z);
 extern void mFM_DecideBgTexIdx(u8* bg_tex_idx);
 extern void mFM_SetFieldInitData(int bg_disp_num, int bg_disp_size);
 extern void mFM_FieldInit(GAME_PLAY* play);
-extern void mFM_Field_dt();
-extern void mFM_SetBlockKindLoadCombi();
+extern void mFM_Field_dt(void);
+extern void mFM_SetBlockKindLoadCombi(void);
 extern void mFM_InitFgCombiSaveData(GAME* game);
-extern void mFM_RenewalReserve();
+extern void mFM_RenewalReserve(void);
 extern mActor_name_t mFM_GetReseveName(int bx, int bz);
-extern void mFM_toSummer();
-extern void mFM_returnSeason();
+extern void mFM_toSummer(void);
+extern void mFM_returnSeason(void);
 extern void mFM_RestoreIslandBG(int* island_x_blocks, int bx_num);
 extern void mFM_SetIslandNpcRoomData(GAME* game, int malloc_flag);
 

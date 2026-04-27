@@ -46,13 +46,13 @@ typedef struct post_office_s {
 } PostOffice_c;
 
 extern int mPO_count_mail(int house_no);
-extern int mPO_get_keep_mail_sum();
+extern int mPO_get_keep_mail_sum(void);
 extern int mPO_receipt_proc(Mail_c* mail, int send_type);
 extern int mPO_delivery_one_address(int house_no);
-extern void mPO_delivery_all_address_proc();
+extern void mPO_delivery_all_address_proc(void);
 extern void mPO_business_proc(GAME_PLAY* play);
-extern void mPO_first_work();
-extern void mPO_post_office_init();
+extern void mPO_first_work(void);
+extern void mPO_post_office_init(void);
 
 #ifdef __cplusplus
 }

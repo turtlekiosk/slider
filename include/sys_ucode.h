@@ -27,10 +27,10 @@ extern long long int gspF3DZEX2_NoN_PosLight_fifoTextStart[];
 extern unsigned long long gspS2DEX2_fifoDataStart[];
 extern unsigned long long gspS2DEX2_fifoTextStart[];
 
-extern long long int* ucode_GetPolyTextStart();
-extern long long int* ucode_GetPolyDataStart();
-extern unsigned long long* ucode_GetSpriteTextStart();
-extern unsigned long long* ucode_GetSpriteDataStart();
+extern long long int* ucode_GetPolyTextStart(void);
+extern long long int* ucode_GetPolyDataStart(void);
+extern unsigned long long* ucode_GetSpriteTextStart(void);
+extern unsigned long long* ucode_GetSpriteDataStart(void);
 
 #ifdef __cplusplus
 };

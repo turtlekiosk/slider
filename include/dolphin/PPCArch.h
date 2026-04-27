@@ -44,27 +44,27 @@ extern "C"
 #define SRR1_DMA_BIT 0x00200000
 #define SRR1_L2DP_BIT 0x00100000
 
-    u32 PPCMfmsr();
+    u32 PPCMfmsr(void);
     void PPCMtmsr(u32 newMSR);
     // u32 PPCOrMsr(u32 value);
     void PPCOrMsr();
-    u32 PPCMfhid0();
+    u32 PPCMfhid0(void);
     void PPCMthid0(u32 newHID0);
-    u32 PPCMfl2cr();
+    u32 PPCMfl2cr(void);
     void PPCMtl2cr(u32 newL2cr);
     void PPCMtdec(u32 newDec);
-    void PPCSync();
-    void PPCHalt();
+    void PPCSync(void);
+    void PPCHalt(void);
     u32 PPCMffpscr();
     void PPCMtfpscr(u32 newFPSCR);
-    u32 PPCMfhid2();
+    u32 PPCMfhid2(void);
     void PPCMthid2(u32 newhid2);
     u32 PPCMfwpar();
     void PPCMtwpar(u32 newwpar);
     void PPCEnableSpeculation();
-    void PPCDisableSpeculation();
+    void PPCDisableSpeculation(void);
     void PPCSetFpIEEEMode();
-    void PPCSetFpNonIEEEMode();
+    void PPCSetFpNonIEEEMode(void);
 
 #ifdef __cplusplus
 }

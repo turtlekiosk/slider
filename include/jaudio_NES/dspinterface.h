@@ -40,12 +40,12 @@ void DSP_SetIIRFilterParam(u8 idx, s16* param_2);
 void DSP_SetFIR8FilterParam(u8 idx, s16* param_2);
 void DSP_SetFilterMode(u8 idx, u16 filterMode);
 void DSP_InitFilter(u8 idx);
-void DSP_FlushBuffer();
+void DSP_FlushBuffer(void);
 void DSP_FlushChannel(u8 idx);
-void DSP_InvalChannelAll();
-void DSP_ClearBuffer();
-void DSP_SetupBuffer();
-void DSP_InitBuffer();
+void DSP_InvalChannelAll(void);
+void DSP_ClearBuffer(void);
+void DSP_SetupBuffer(void);
+void DSP_InitBuffer(void);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Based on `ZeldaAudioRenderer::VPB` from Dolphin Emulator. Thank you all!

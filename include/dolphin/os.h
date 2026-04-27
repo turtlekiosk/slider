@@ -26,16 +26,16 @@ extern "C" {
 #endif
 
 // __ppc_eabi_init
-extern void __OSPSInit();
-extern void __OSFPRInit();
-extern void __OSCacheInit();
+extern void __OSPSInit(void);
+extern void __OSFPRInit(void);
+extern void __OSCacheInit(void);
 
 void OSPanic(const char* file, int line, const char* message, ...);
 void OSVReport(const char* fmt, va_list list);
 void OSReport(const char* fmt, ...);
 
-extern void __OSPSInit();
-extern void __OSCacheInit();
+extern void __OSPSInit(void);
+extern void __OSCacheInit(void);
 
 #define OSErrorLine(line, ...) OSPanic(__FILE__, line, __VA_ARGS__)
 
@@ -71,7 +71,7 @@ void OSInit(void);
 
 #define OS_CONSOLE_DEV_MASK 0x10000000
 
-u32 OSGetConsoleType();
+u32 OSGetConsoleType(void);
 #define OS_CONSOLE_IS_DEV() ((OSGetConsoleType() & OS_CONSOLE_DEV_MASK) != 0)
 
 #define OSHalt(msg) OSPanic(__FILE__, __LINE__, msg)

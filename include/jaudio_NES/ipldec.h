@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-BOOL DspExtraTaskCheck();
+BOOL DspExtraTaskCheck(void);
 void Jac_DSPcardDecodeAsync(void*, void*, DSPCallback);
 void Jac_DSPagbDecodeAsync(void* task, void* cmd, DSPCallback callback);
 

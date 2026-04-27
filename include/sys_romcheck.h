@@ -9,7 +9,7 @@ extern "C" {
 
 #define SYS_ROMCHECK_DEBUG_ROM_VERSION 0x90
 
-extern void sys_romcheck();
+extern void sys_romcheck(void);
 
 #ifdef __cplusplus
 }

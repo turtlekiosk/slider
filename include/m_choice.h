@@ -107,10 +107,10 @@ struct choice_s {
 
 extern void mChoice_Main(mChoice_c* choice, GAME* game);
 extern void mChoice_Draw(mChoice_c* choice, GAME* game, int mode);
-extern void mChoice_aram_init();
+extern void mChoice_aram_init(void);
 extern void mChoice_ct(mChoice_c* choice, GAME* game);
 extern void mChoice_dt(mChoice_c* choice, GAME* game);
-extern mChoice_c* mChoice_Get_base_window_p();
+extern mChoice_c* mChoice_Get_base_window_p(void);
 extern void mChoice_Change_request_main_index(mChoice_c* choice, int request_main_index);
 extern int mChoice_check_main_index(mChoice_c* choice);
 extern int mChoice_check_main_normal(mChoice_c* choice);

@@ -9,10 +9,10 @@ extern "C" {
 
 unsigned int TRKTargetContinue(void);
 void TRKTargetSetStopped(unsigned int);
-void TRKSwapAndGo();
+void TRKSwapAndGo(void);
 
-void UnreserveEXI2Port();
-void ReserveEXI2Port();
+void UnreserveEXI2Port(void);
+void ReserveEXI2Port(void);
 
 #ifdef __cplusplus
 };

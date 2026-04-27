@@ -171,9 +171,9 @@ class JUTConsoleManager {
 
 extern "C" {
 void JUTConsole_print_f_va_(JUTConsole*, const char*, va_list);
-JUTConsole* JUTGetReportConsole();
+JUTConsole* JUTGetReportConsole(void);
 void JUTSetReportConsole(JUTConsole*);
-JUTConsole* JUTGetWarningConsole();
+JUTConsole* JUTGetWarningConsole(void);
 void JUTSetWarningConsole(JUTConsole*);
 void JUTReportConsole(const char*);
 void JUTReportConsole_f(const char*, ...);

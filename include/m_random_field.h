@@ -62,11 +62,11 @@ extern void mRF_MakeRandomField(mFM_combination_c* combi_table, mFM_combo_info_c
 extern u32 mRF_Type2BlockInfo(u8 type);
 extern int mRF_SearchPond(int* ut_x, int* ut_z, int block_x, int block_z);
 extern mRF_gate_c* mRF_BlockTypeDirect2GateData(int* gate_count, u8 block_type, int direct);
-extern void mRF_CheckBeastRoad();
+extern void mRF_CheckBeastRoad(void);
 extern int mRF_RiverIdx2NextDirect(int river_idx);
 extern int mRF_BlockType2RiverNextDirect(u8 type);
-extern void mRF_IslandBgData_To_VillageData();
-extern int mRF_CheckFieldStep3();
+extern void mRF_IslandBgData_To_VillageData(void);
+extern int mRF_CheckFieldStep3(void);
 
 extern mFM_combo_info_c data_combi_table[];
 extern int data_combi_table_number;

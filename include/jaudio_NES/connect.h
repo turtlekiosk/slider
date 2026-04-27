@@ -21,7 +21,7 @@ u16 Jac_BnkPhysicalToVirtual(u16);
 u16 Jac_WsPhysicalToVirtual(u16);
 void Jac_WsConnectTableSet(u32, u32);
 void Jac_BnkConnectTableSet(u32, u32);
-void Jac_ConnectTableInit();
+void Jac_ConnectTableInit(void);
 struct WaveID_* __GetSoundHandle(CtrlGroup_*, u32, u32);
 
 #ifdef __cplusplus

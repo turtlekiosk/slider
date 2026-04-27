@@ -10,7 +10,7 @@ extern "C" {
 
 /////////// JAUDIO DRIVER INTERFACE DEFINITIONS ///////////
 void Channel_SetMixerLevel(f32);
-jcs_* Get_GlobalHandle();
+jcs_* Get_GlobalHandle(void);
 int List_CountChannel(jc_**);
 int List_CutChannel(jc_*);
 jc_* List_GetChannel(jc_**);
@@ -22,7 +22,7 @@ int FixReleaseChannelAll(jcs_*);
 int FixMoveChannelAll(jcs_*, jcs_*);
 void InitJcs(jcs_*);
 void Channel_Init(jc_*);
-void InitGlobalChannel();
+void InitGlobalChannel(void);
 void UpdateJcToDSP(jc_*);
 void UpdateEffecterParam(jc_*);
 void DoEffectOsc(jc_*, u8, f32);
@@ -33,7 +33,7 @@ BOOL ResetInitialVolume(jc_*);
 BOOL Add_WaitDSPChannel(jc_*);
 BOOL Del_WaitDSPChannel(jc_*);
 void __Entry_WaitChannel(u8);
-void EntryCheck_WaitDSPChannel();
+void EntryCheck_WaitDSPChannel(void);
 BOOL ForceStopLogicalChannel(jc_*);
 
 ///////////////////////////////////////////////////////////

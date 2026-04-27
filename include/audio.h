@@ -55,7 +55,7 @@ enum {
 extern void sAdo_Calc_MicPosition_forTrig(f32* fcalc, u16* scalc, const xyz_t* pos);
 extern void sAdo_Calc_MicPosition_forLevel(f32* fcalc, u16* scalc, const xyz_t* pos);
 
-extern void sAdo_GameFrame();
+extern void sAdo_GameFrame(void);
 extern void sAdo_BgmStart(u8 id);
 extern void sAdo_BgmStop(u16 id);
 extern void sAdo_SysTrgStart(u16 id);
@@ -73,7 +73,7 @@ extern void sAdo_VoiceSe(u8 num, u8 num2, u8 num3, s16 character_idx, u8 scale, 
 extern void sAdo_Inst(u16 num, u8* p);
 extern void sAdo_MessageStatus(u8 status);
 extern void sAdo_MessageSpeed(u8 speed);
-extern u8 sAdo_MessageSpeedGet();
+extern u8 sAdo_MessageSpeedGet(void);
 
 extern void sAdo_SysLevStop(u8 id);
 extern void sAdo_SysLevStart(u8 id);
@@ -88,7 +88,7 @@ extern void sAdo_FloorTrgStart(u8 id, const xyz_t* pos);
 
 extern void sAdo_RhythmStart(u32 id, s8 type, s8 wait);
 extern void sAdo_RhythmStop(u32 id);
-extern void sAdo_RhythmAllStop();
+extern void sAdo_RhythmAllStop(void);
 
 extern void sAdo_FurnitureInst(u32 id, u8 inst, u8* melody, const xyz_t* pos);
 extern void sAdo_Pause(u8 mode);
@@ -98,7 +98,7 @@ extern s8 sAdo_GetRhythmDelay(u32 id);
 extern void sAdo_GetRhythmInfo(TempoBeat_c* rhythm);
 extern void sAdo_SetRhythmInfo(TempoBeat_c* rhythm);
 
-extern s8 sAdo_InstCountGet();
+extern s8 sAdo_InstCountGet(void);
 
 extern void sAdo_RhythmPos(u32 id, u8 haniwa_id, const xyz_t* pos);
 
@@ -108,9 +108,9 @@ extern void sAdo_MDPlayerPos(const xyz_t* pos, u16 s1, u16 s2, u32 p);
 extern void sAdo_BGMVolume(f32 f, u16 volume);
 extern void sAdo_BgmCrossfadeStart(u8 b);
 
-extern void sAdo_SubGameStart();
-extern void sAdo_SubGameEnd();
-extern int sAdo_SubGameOK();
+extern void sAdo_SubGameStart(void);
+extern void sAdo_SubGameEnd(void);
+extern int sAdo_SubGameOK(void);
 
 extern void sAdo_Tenki(u8 mode);
 
@@ -129,13 +129,13 @@ extern void sAdo_OngenTrgStartSpeed(f32 speed, u16 s1, const xyz_t* pos);
 extern void sAdo_TrgSeEcho(u8 b);
 extern void sAdo_LevSeEcho(u8 b);
 
-extern u8 sAdo_BgmFadeoutCheck();
-extern u8 sAdo_SeFadeoutCheck();
+extern u8 sAdo_BgmFadeoutCheck(void);
+extern u8 sAdo_SeFadeoutCheck(void);
 
 extern void sAdo_RoomType(u8 type);
 extern void sAdo_Museum(u8 type);
 
-extern void sAdo_SoftReset();
+extern void sAdo_SoftReset(void);
 
 extern u16 sAdo_Get_WalkLabel(int type);
 extern u16 sAdo_Get_KokeruLabel(int type);
@@ -146,12 +146,12 @@ extern u8 sAdo_RoomIncectPos(u32 f, u8 u, const xyz_t* pos);
 extern void sAdo_FurnitureInstPos(u32 id, const xyz_t* pos);
 extern void sAdo_Set_ongenpos_refuse_fg(int state);
 
-extern int sAdo_GameframeEnd_Check();
-extern u32 sAdo_GetSoundFrameCounter();
+extern int sAdo_GameframeEnd_Check(void);
+extern u32 sAdo_GetSoundFrameCounter(void);
 
 extern int sAdo_CheckOnPlussBridge(const xyz_t* pos, u32 atr);
 extern void sAdo_RegistPlussBridge(const xyz_t* pos);
-extern void sAdo_DeletePlussBridge();
+extern void sAdo_DeletePlussBridge(void);
 
 extern void sAdo_kazagurumaLevel(f32 level);
 

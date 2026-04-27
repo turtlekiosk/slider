@@ -3,8 +3,8 @@
 
 #include "types.h"
 
-void _prolog();
-void _epilog();
-void _unresolved();
+void _prolog(void);
+void _epilog(void);
+void _unresolved(void);
 
 #endif
