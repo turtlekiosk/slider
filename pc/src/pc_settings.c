@@ -154,6 +154,14 @@ void pc_settings_load(void) {
     g_pc_settings.msaa = 0;  /* MSAA handled at EGL level on Android */
     return;
 #endif
+#ifdef __EMSCRIPTEN__
+    /* Web: settings can't meaningfully persist (settings.ini lives in MEMFS,
+     * which is wiped on reload) and most fields are no-ops in the browser
+     * (window size comes from the canvas, fullscreen is browser-controlled,
+     * vsync is implicit via requestAnimationFrame, MSAA sample count is
+     * browser-chosen). Keep the in-struct defaults. */
+    return;
+#endif
     FILE* f = fopen(SETTINGS_FILE, "r");
     if (!f) {
         write_defaults(SETTINGS_FILE);
