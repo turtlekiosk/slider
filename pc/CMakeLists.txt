@@ -561,13 +561,17 @@ elseif(EMSCRIPTEN)
     endif()
     set(PC_WEB_CACHE_VERSION "acgc-${PC_WEB_BUILD_TAG}")
     message(STATUS "PWA build tag: ${PC_WEB_BUILD_TAG} (SW cache: ${PC_WEB_CACHE_VERSION})")
+    # Both files are real .html / .js source; configure_file just stamps
+    # in the @PC_WEB_BUILD_TAG@ / @PC_WEB_CACHE_VERSION@ markers. Kept on
+    # the real extensions so editors / linters / formatters treat them as
+    # plain HTML/JS — see the comments next to each @VAR@ in the sources.
     configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js"
         "${CMAKE_BINARY_DIR}/web/sw.js"
         @ONLY
     )
     configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
         "${CMAKE_BINARY_DIR}/web/shell.html"
         @ONLY
     )

@@ -38,8 +38,10 @@
             background: #000;
             outline: none;
             image-rendering: pixelated;
-            /* Display at the drawing buffer's aspect (we clamp it to ≤ 4:3 in JS),
-               so narrow windows letterbox top/bottom against the black body bg. */
+            /* Display the canvas at its drawing-buffer aspect (the JS
+               below pins that buffer to 4:3 in both portrait and
+               landscape), letting the flex parent letterbox/pillarbox
+               whichever axis is "extra". */
             width: 100vw;
             height: auto;
             max-height: 100vh;
@@ -132,6 +134,144 @@
             opacity: 0.85;
         }
         #rom-status.error { color: #f88; opacity: 1; }
+
+        #settings-gear {
+            display: none;
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            z-index: 5;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            background: rgba(0,0,0,0.45);
+            color: #ddd;
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+        }
+        #settings-gear:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.7);
+            border-color: rgba(255,255,255,0.35);
+        }
+        #settings-menu {
+            color: #ddd;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 0;
+            max-width: 560px;
+            width: 90vw;
+            font-family: inherit;
+        }
+        #settings-menu::backdrop {
+            background: rgba(0,0,0,0.6);
+        }
+        #settings-menu .menu-body {
+            padding: 20px 24px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #settings-menu h2 {
+            margin: 0 0 16px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        #settings-menu h3 {
+            margin: 18px 0 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #aaa;
+        }
+        #settings-menu h3:first-of-type { margin-top: 0; }
+        #settings-menu .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        #settings-menu button.action {
+            flex: 1 1 auto;
+            min-width: 140px;
+            padding: 8px 12px;
+            background: #1a1a1a;
+            color: #ddd;
+            border: 1px solid #4a9;
+            border-radius: 6px;
+            font: inherit;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.1s, border-color 0.1s;
+        }
+        #settings-menu button.action:hover:not(:disabled) {
+            background: rgba(74,153,89,0.12);
+            border-color: #6c0;
+        }
+        #settings-menu button.action:disabled {
+            opacity: 0.5;
+            cursor: default;
+        }
+        #settings-menu .toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        #settings-menu .toggle input { width: 16px; height: 16px; cursor: pointer; }
+        #settings-menu .status {
+            font-size: 12px;
+            opacity: 0.75;
+            min-height: 1.2em;
+            margin-top: 4px;
+        }
+        #settings-menu .status.error { color: #f88; opacity: 1; }
+        #settings-menu .status.ok    { color: #6c0; opacity: 1; }
+        #settings-menu table.controls {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        #settings-menu table.controls th,
+        #settings-menu table.controls td {
+            text-align: left;
+            padding: 4px 8px;
+            border-bottom: 1px solid #222;
+        }
+        #settings-menu table.controls th {
+            color: #aaa;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        #settings-menu .menu-footer {
+            display: flex;
+            justify-content: flex-end;
+            padding: 12px 24px;
+            border-top: 1px solid #222;
+        }
+        #settings-menu .menu-footer button {
+            padding: 6px 14px;
+            background: #222;
+            color: #ddd;
+            border: 1px solid #444;
+            border-radius: 6px;
+            font: inherit;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        #settings-menu .menu-footer button:hover {
+            background: #2a2a2a;
+            border-color: #666;
+        }
     </style>
 </head>
 <body>
@@ -140,6 +280,9 @@
     </div>
     <div id="status">loading…</div>
     <div id="progress"></div>
+    <!-- @PC_WEB_BUILD_TAG@ is stamped in at build time by configure_file()
+         in pc/CMakeLists.txt. If you open this file directly without
+         building, you'll see the literal "@PC_WEB_BUILD_TAG@" text. -->
     <div id="build-tag" title="Build identifier">@PC_WEB_BUILD_TAG@</div>
 
     <div id="rom-picker" aria-hidden="true">
@@ -157,35 +300,125 @@
         <div id="rom-status"></div>
     </div>
 
+    <button id="settings-gear" type="button" aria-label="Settings" title="Settings">⚙</button>
+
+    <dialog id="settings-menu" aria-labelledby="settings-title">
+        <div class="menu-body">
+            <h2 id="settings-title">Settings</h2>
+
+            <h3>Saves</h3>
+            <div class="row">
+                <button class="action" id="btn-export-a" type="button">Export Card A</button>
+                <button class="action" id="btn-export-b" type="button">Export Card B</button>
+            </div>
+            <div class="row">
+                <button class="action" id="btn-import-a" type="button">Import to Card A…</button>
+                <button class="action" id="btn-import-b" type="button">Import to Card B…</button>
+            </div>
+            <div id="save-status" class="status"></div>
+            <input id="import-file" type="file" accept=".gci" style="display:none">
+
+            <h3>Audio</h3>
+            <label class="toggle">
+                <input id="toggle-mute" type="checkbox">
+                <span>Mute audio</span>
+            </label>
+
+            <h3>Controls</h3>
+            <table class="controls">
+                <thead>
+                    <tr><th>GameCube</th><th>Keyboard</th><th>Gamepad</th></tr>
+                </thead>
+                <tbody id="controls-body"></tbody>
+            </table>
+        </div>
+        <div class="menu-footer">
+            <button id="btn-close-menu" type="button">Close</button>
+        </div>
+    </dialog>
+
     <script type="text/javascript">
         var statusEl = document.getElementById('status');
         var progressEl = document.getElementById('progress');
 
-        // Match the canvas's drawing-buffer size to the viewport, capped
-        // at MAX_CANVAS_DIM per axis. The GameCube renders at 640×480
-        // natively — anything beyond ~1920 is wasted upsampling. DPR is
-        // intentionally ignored for the same reason. CSS stretches the
-        // canvas to fill the viewport.
+        // Match the drawing buffer to the largest 4:3 box that fits in
+        // the viewport, capped at MAX_CANVAS_DIM per axis. The CSS rule
+        // above pins the displayed canvas to 4:3, so picking a 4:3
+        // drawing buffer means the engine renders at the exact pixel
+        // count we display (no GPU upscale, sharpest result). The
+        // GameCube renders at 640×480 natively, so anything beyond
+        // ~1920 is wasted upsampling. DPR is intentionally ignored.
+        //
+        // On Android Chrome `window.innerWidth/innerHeight` reflect the
+        // *layout* viewport, which during page-load animations of the
+        // URL bar lags behind the actual visible area. `visualViewport`
+        // tracks the true visible rectangle and updates synchronously as
+        // chrome shows/hides — prefer it when present.
         var MAX_CANVAS_DIM = 1920;
+        function _viewportSize() {
+            var vv = window.visualViewport;
+            if (vv && vv.width > 0 && vv.height > 0) {
+                return { w: Math.round(vv.width), h: Math.round(vv.height) };
+            }
+            return { w: window.innerWidth, h: window.innerHeight };
+        }
         function resizeCanvasToViewport() {
             var c = document.getElementById('canvas');
-            var w = window.innerWidth;
-            var h = window.innerHeight;
-            // Letterbox narrow windows: cap drawing-buffer aspect at 4:3 so
-            // the engine never sees a taller-than-4:3 viewport. Wide windows
-            // are left alone — the engine pillarboxes them itself.
-            var maxH = Math.floor(w * 3 / 4);
-            if (h > maxH) h = maxH;
+            var vp = _viewportSize();
+            var vw = vp.w, vh = vp.h;
+            var w, h;
+            if (vw * 3 >= vh * 4) {
+                // Viewport wider-or-equal to 4:3 → height-limited.
+                h = vh;
+                w = Math.floor(h * 4 / 3);
+            } else {
+                // Viewport narrower than 4:3 → width-limited.
+                w = vw;
+                h = Math.floor(w * 3 / 4);
+            }
             if (w > MAX_CANVAS_DIM || h > MAX_CANVAS_DIM) {
                 var scale = Math.min(MAX_CANVAS_DIM / w, MAX_CANVAS_DIM / h);
                 w = Math.floor(w * scale);
                 h = Math.floor(h * scale);
             }
-            c.width  = w;
-            c.height = h;
+            if (w <= 0 || h <= 0) return;
+            // Avoid no-op writes — setting canvas.width clears the GL
+            // backing store, so only touch it when the size actually
+            // changed.
+            if (c.width !== w || c.height !== h) {
+                c.width  = w;
+                c.height = h;
+                console.log('[canvas] resized to', w, 'x', h,
+                            '(viewport', vw, 'x', vh, ')');
+            }
         }
         resizeCanvasToViewport();
         window.addEventListener('resize', resizeCanvasToViewport);
+        // Mobile Chrome reports an unstable inner{Width,Height} during the
+        // first ~second of a fresh load (the URL bar is animating in/out)
+        // and on `orientationchange` (layout settles after the event fires,
+        // not before). Hook all the viewport-related signals we can and
+        // re-poke the canvas a few times after load so SDL's resize event
+        // flushes the corrected dimensions through to the wasm side.
+        window.addEventListener('orientationchange', function() {
+            // Layout hasn't reflowed yet at orientationchange time on
+            // most mobile browsers — wait a frame, then a tick, then
+            // longer for stragglers.
+            requestAnimationFrame(resizeCanvasToViewport);
+            setTimeout(resizeCanvasToViewport, 100);
+            setTimeout(resizeCanvasToViewport, 400);
+        });
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', resizeCanvasToViewport);
+        }
+        window.addEventListener('load', function() {
+            // URL-bar / soft-keyboard chrome on Android Chrome can keep
+            // shifting innerHeight for a moment after `load`. Sample a
+            // few more times to settle on the stable size.
+            setTimeout(resizeCanvasToViewport, 50);
+            setTimeout(resizeCanvasToViewport, 250);
+            setTimeout(resizeCanvasToViewport, 800);
+        });
 
         var Module = {
             canvas: (function() {
@@ -443,30 +676,91 @@
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) suspendAudio(); else resumeAudio();
         });
-        // Track the disconnected node so we can reconnect it if the user
-        // cancels the close-confirm dialog (SDL won't rebuild the graph
-        // on its own).
-        var _disconnectedAudioNode = null;
+        // ----- Settings persistence -----
+        // Single localStorage entry, JSON-encoded. Loaded synchronously so
+        // initial state (mute, etc.) is available before the audio chain
+        // is wired and before the menu is opened.
+        var SETTINGS_KEY = 'acgc-settings';
+        var _settings = { muteAudio: false };
+        function loadSettings() {
+            try {
+                var raw = localStorage.getItem(SETTINGS_KEY);
+                if (!raw) return;
+                var parsed = JSON.parse(raw);
+                if (parsed && typeof parsed === 'object') {
+                    if (typeof parsed.muteAudio === 'boolean') _settings.muteAudio = parsed.muteAudio;
+                }
+            } catch (e) { /* corrupt entry — ignore, defaults stand */ }
+        }
+        function saveSettings(patch) {
+            try {
+                if (patch && typeof patch === 'object') Object.assign(_settings, patch);
+                localStorage.setItem(SETTINGS_KEY, JSON.stringify(_settings));
+            } catch (e) { /* private mode / quota — non-fatal */ }
+        }
+        loadSettings();
+
+        // Audio chain: SDL output node → GainNode → destination. The gain
+        // stage gives us a JS-controllable mute (settings menu) and is
+        // also the node we disconnect on beforeunload to silence the buzz
+        // synchronously. Wired once when SDL audio first appears.
+        var _audioChain = { sdl: null, gain: null, connected: false };
+        function _wireAudioGainNow() {
+            if (_audioChain.connected) return true;
+            var ctx = getAudioContext();
+            var sdl = getAudioOutputNode();
+            if (!ctx || !sdl) return false;
+            try {
+                var gain = ctx.createGain();
+                gain.gain.value = _settings.muteAudio ? 0 : 1;
+                sdl.disconnect();
+                sdl.connect(gain);
+                gain.connect(ctx.destination);
+                _audioChain.sdl  = sdl;
+                _audioChain.gain = gain;
+                _audioChain.connected = true;
+                return true;
+            } catch (e) {
+                console.warn('[audio] gain wire failed:', e && e.message);
+                return false;
+            }
+        }
+        // Poll for the SDL audio node to appear (SDL doesn't create it
+        // until first playback). Bail on first hit.
+        var _audioWireInterval = setInterval(function() {
+            if (_wireAudioGainNow()) clearInterval(_audioWireInterval);
+        }, 250);
+        function setAudioMuted(muted) {
+            _settings.muteAudio = !!muted;
+            saveSettings({ muteAudio: _settings.muteAudio });
+            if (_audioChain.gain) _audioChain.gain.gain.value = muted ? 0 : 1;
+        }
+        // Track whether we've disconnected the gain on beforeunload, so
+        // focus can put it back if the user cancels the close dialog.
+        var _gainDisconnected = false;
         function reconnectAudio() {
             var ctx = getAudioContext();
-            if (_disconnectedAudioNode && ctx) {
-                try { _disconnectedAudioNode.connect(ctx.destination); } catch (e) {}
-                _disconnectedAudioNode = null;
+            if (_gainDisconnected && _audioChain.gain && ctx) {
+                try { _audioChain.gain.connect(ctx.destination); } catch (e) {}
+                _gainDisconnected = false;
             }
             resumeAudio();
         }
         window.addEventListener('beforeunload', function() {
-            // Synchronous: disconnect the SDL output node so the audio
-            // graph stops feeding samples to the destination immediately,
-            // before the close-confirm modal freezes the wasm thread.
-            var node = getAudioOutputNode();
-            if (node) {
-                try { node.disconnect(); _disconnectedAudioNode = node; } catch (e) {}
+            // Synchronous: disconnect the gain stage so no more samples
+            // reach the destination before the close-confirm modal
+            // freezes the wasm thread. Also covers the case where the
+            // gain hasn't been wired yet — fall back to the raw SDL node.
+            if (_audioChain.gain) {
+                try { _audioChain.gain.disconnect(); _gainDisconnected = true; } catch (e) {}
+            } else {
+                var node = getAudioOutputNode();
+                if (node) { try { node.disconnect(); } catch (e) {} }
             }
             suspendAudio();
         });
         // If the user cancels the close dialog, the page regains focus —
-        // reconnect the audio node we synchronously disconnected above.
+        // reconnect the gain stage so audio resumes.
         window.addEventListener('focus', reconnectAudio);
 
         // ----- Save export -----
@@ -649,6 +943,138 @@
             });
         }
         window.importSave = importSave;
+
+        // ----- Settings menu -----
+        var menuEl     = document.getElementById('settings-menu');
+        var gearEl     = document.getElementById('settings-gear');
+        var muteEl     = document.getElementById('toggle-mute');
+        var saveStatus = document.getElementById('save-status');
+        var importInputEl = document.getElementById('import-file');
+
+        function setSaveStatus(text, kind) {
+            saveStatus.textContent = text || '';
+            saveStatus.className = 'status' + (kind ? ' ' + kind : '');
+        }
+
+        // Show the gear once the runtime is up AND the ROM picker is gone.
+        // Polled because both flags can flip independently of any event we
+        // already hook (no point adding bespoke events for this).
+        setInterval(function() {
+            var ready = _runtimeReady && !pickerEl.classList.contains('visible');
+            gearEl.style.display = ready ? 'block' : 'none';
+        }, 200);
+
+        function openMenu() {
+            // Sync the mute checkbox with current setting on every open
+            // (in case it was toggled in another tab via storage event etc.)
+            muteEl.checked = !!_settings.muteAudio;
+            setSaveStatus('');
+            if (typeof menuEl.showModal === 'function') {
+                menuEl.showModal();
+            } else {
+                // Fallback for browsers without <dialog> support — extremely
+                // rare in modern targets but keeps the page from being inert.
+                menuEl.setAttribute('open', '');
+            }
+        }
+        function closeMenu() {
+            if (typeof menuEl.close === 'function') menuEl.close();
+            else menuEl.removeAttribute('open');
+            // Restore canvas focus so gameplay input resumes.
+            document.getElementById('canvas').focus();
+        }
+        gearEl.addEventListener('click', openMenu);
+        document.getElementById('btn-close-menu').addEventListener('click', closeMenu);
+        // Click outside the dialog body (on the backdrop) closes too.
+        menuEl.addEventListener('click', function(ev) {
+            if (ev.target === menuEl) closeMenu();
+        });
+        // Native ESC fires `close` — refocus canvas there as well.
+        menuEl.addEventListener('close', function() {
+            document.getElementById('canvas').focus();
+        });
+
+        // Save export buttons.
+        function exportButton(slot, btn) {
+            btn.disabled = true;
+            var prev = btn.textContent;
+            try {
+                var n = window.exportSave(slot);
+                if (n > 0) {
+                    setSaveStatus('Exported ' + n + ' file' + (n === 1 ? '' : 's') + '.', 'ok');
+                } else {
+                    setSaveStatus('No save found in slot ' + slot.toUpperCase() + '.', 'error');
+                }
+            } catch (e) {
+                setSaveStatus('Export failed: ' + (e && e.message || e), 'error');
+            }
+            setTimeout(function() { btn.disabled = false; btn.textContent = prev; }, 400);
+        }
+        document.getElementById('btn-export-a').addEventListener('click', function() {
+            exportButton('a', this);
+        });
+        document.getElementById('btn-export-b').addEventListener('click', function() {
+            exportButton('b', this);
+        });
+
+        // Save import: stash the target slot on the input element, share one
+        // file picker for both buttons.
+        function pickImportFile(slot) {
+            importInputEl.value = '';                  // allow same-file re-pick
+            importInputEl.dataset.slot = slot;
+            importInputEl.click();
+        }
+        document.getElementById('btn-import-a').addEventListener('click', function() {
+            pickImportFile('a');
+        });
+        document.getElementById('btn-import-b').addEventListener('click', function() {
+            pickImportFile('b');
+        });
+        importInputEl.addEventListener('change', function() {
+            var f = this.files && this.files[0];
+            if (!f) return;
+            var slot = this.dataset.slot;
+            setSaveStatus('Importing to Card ' + slot.toUpperCase() + '…');
+            window.importSave(slot, f).then(function(ok) {
+                if (ok) setSaveStatus('Imported to Card ' + slot.toUpperCase() +
+                                      '. Reload to load the save in-game.', 'ok');
+                else    setSaveStatus('Import failed — see console for details.', 'error');
+            });
+        });
+
+        // Mute toggle.
+        muteEl.checked = !!_settings.muteAudio;
+        muteEl.addEventListener('change', function() {
+            setAudioMuted(this.checked);
+        });
+
+        // ----- Controls reference table -----
+        // Defaults from pc/include/pc_keybindings.h + pc/src/pc_keybindings.c.
+        // Gamepad column is the SDL_GameController layout from pc/src/pc_pad.c
+        // (face buttons, shoulders/triggers, sticks, d-pad).
+        var KEY_MAP = [
+            { gc: 'A',         keyboard: 'Space',      gamepad: 'A (face)' },
+            { gc: 'B',         keyboard: 'Left Shift', gamepad: 'B (face)' },
+            { gc: 'X',         keyboard: 'X',          gamepad: 'X (face)' },
+            { gc: 'Y',         keyboard: 'Y',          gamepad: 'Y (face)' },
+            { gc: 'Start',     keyboard: 'Enter',      gamepad: 'Start / Back' },
+            { gc: 'Z',         keyboard: 'Z',          gamepad: 'R Shoulder / R Trigger' },
+            { gc: 'L',         keyboard: 'Q',          gamepad: 'L Trigger' },
+            { gc: 'R',         keyboard: 'E',          gamepad: 'R Trigger' },
+            { gc: 'Main Stick',keyboard: 'W A S D',    gamepad: 'Left Stick' },
+            { gc: 'C-Stick',   keyboard: 'Arrow keys', gamepad: 'Right Stick' },
+            { gc: 'D-Pad',     keyboard: 'I J K L',    gamepad: 'D-Pad' }
+        ];
+        (function renderControls() {
+            var tbody = document.getElementById('controls-body');
+            var html = '';
+            for (var i = 0; i < KEY_MAP.length; i++) {
+                var r = KEY_MAP[i];
+                html += '<tr><td>' + r.gc + '</td><td>' + r.keyboard +
+                        '</td><td>' + r.gamepad + '</td></tr>';
+            }
+            tbody.innerHTML = html;
+        })();
     </script>
     {{{ SCRIPT }}}
 </body>
