@@ -30,8 +30,8 @@ ACTOR_PROFILE Arrange_Room_Profile = {
     NULL,
 };
 
-static void* aAR_SecureDmaRam(GAME* game, size_t size) { 
-    zelda_malloc_align(size, 0x20); 
+static void* aAR_SecureDmaRam(GAME* game, size_t size) {
+    return zelda_malloc_align(size, 0x20);
 }
 
 static void aAR_SetClip(ACTOR* actor, int flag) {
