@@ -17,9 +17,10 @@
 #define RING_BUF_SAMPLES (32768) /* ~512ms at 32kHz stereo */
 #define RING_BUF_MASK    (RING_BUF_SAMPLES - 1)
 
-/* Produce more samples when buffer drops below this level.
- * ~4 audio frames ahead = ~70ms of buffer at 32kHz stereo. */
-#define AUDIO_PRODUCE_THRESHOLD 4480
+/* Produce more samples when buffer drops below this level. ~75 ms keeps
+ * latency tight; the catch-up loop in pc_audio_pump_if_needed refills
+ * after stutters drop the ring lower, so this is a floor, not a target. */
+#define AUDIO_PRODUCE_THRESHOLD 4800
 
 static s16 ring_buffer[RING_BUF_SAMPLES];
 static SDL_atomic_t ring_write_pos; /* written by audio producer thread */
@@ -66,9 +67,15 @@ void pc_audio_start_producer_thread(void) {
 }
 
 /* Called from pc_vi.c under Emscripten (and harmlessly on other platforms).
- * Keeps the ring buffer filled without a dedicated thread. */
+ * Keeps the ring buffer filled without a dedicated thread. On web the game
+ * loop runs single-threaded, so if its frame rate dips below 60 Hz a single
+ * audio-frame-per-game-frame can't keep up with the audio device's pull
+ * rate. Loop until the ring is at or above the threshold so we catch up
+ * after a stutter rather than dragging behind it. Bounded so a stuck
+ * sequencer can't burn unbounded time here. */
 void pc_audio_pump_if_needed(void) {
-    if (pc_audio_get_buffer_fill() < AUDIO_PRODUCE_THRESHOLD) {
+    int safety = 16;
+    while (safety-- > 0 && pc_audio_get_buffer_fill() < AUDIO_PRODUCE_THRESHOLD) {
         pc_audio_process_frame();
     }
 }
@@ -116,6 +123,10 @@ void AIInit(u8* stack) {
     want.freq = PC_AUDIO_SAMPLE_RATE;
     want.format = AUDIO_S16SYS;
     want.channels = 2;
+    /* 512 samples (~16 ms) is the lowest-latency request; SDL/the OS
+     * may coerce upward (Android in particular often picks ≥1024). The
+     * catch-up loop in pc_audio_pump_if_needed handles short stutters
+     * without needing the device buffer to grow. */
     want.samples = 512;
     want.callback = pc_audio_callback;
 

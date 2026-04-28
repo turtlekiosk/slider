@@ -216,7 +216,10 @@ void pc_platform_init(void) {
 #endif
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-#ifdef PC_ENHANCEMENTS
+#if defined(PC_ENHANCEMENTS) && !defined(__EMSCRIPTEN__)
+    /* MSAA via SDL → WebGL antialias=true on Emscripten causes meaningful
+     * GPU/thermal load on mobile (every fragment shaded N times) for very
+     * little visual gain at small screen sizes, so skip it on web. */
     if (g_pc_settings.msaa > 0) {
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, g_pc_settings.msaa);

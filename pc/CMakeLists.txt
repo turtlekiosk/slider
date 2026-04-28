@@ -490,6 +490,15 @@ elseif(EMSCRIPTEN)
         SUFFIX ".html"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/web"
     )
+    # `-g` and `-sASSERTIONS=2` are debug-only — they bloat the wasm binary
+    # by 50–100 MB and add per-allocation overhead, both of which push iOS
+    # Safari past its per-tab memory budget. `MAXIMUM_MEMORY` caps wasm heap
+    # growth so we OOM cleanly (handled by m_malloc) instead of getting
+    # silently killed by Safari's tab watchdog.
+    set(_pc_web_debug_flags "")
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(_pc_web_debug_flags -g -sASSERTIONS=2)
+    endif()
     target_link_options(ac_pc PRIVATE
         -sUSE_SDL=2
         -sUSE_WEBGL2=1
@@ -497,12 +506,13 @@ elseif(EMSCRIPTEN)
         -sMIN_WEBGL_VERSION=2
         -sMAX_WEBGL_VERSION=2
         -sALLOW_MEMORY_GROWTH=1
-        -sINITIAL_MEMORY=268435456       # 256 MB
+        -sINITIAL_MEMORY=134217728       # 128 MB — start small, grow on demand. iPhone SE 3
+                                         # has a tight per-tab budget; reserving 256 MB upfront
+                                         # tips us over before the game has a chance to run.
         -sSTACK_SIZE=5242880             # 5 MB: emu64 uses deep recursion
-        -g                               # wasm debug info (C names in browser)
+        ${_pc_web_debug_flags}
         -sASYNCIFY=1
         -sASYNCIFY_STACK_SIZE=4194304    # 4 MB: AC's main loop is deep
-        -sASSERTIONS=2
         -sEXIT_RUNTIME=0
         -sFORCE_FILESYSTEM=1
         -lidbfs.js

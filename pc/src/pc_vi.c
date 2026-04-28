@@ -76,9 +76,15 @@ void VIWaitForRetrace(void) {
                 if (remain_ms < 1) remain_ms = 1;
             }
         }
+        /* Floor: yield at least 4 ms so iOS Safari has breathing room
+         * for raster/compositing. Doesn't extend tab lifetime on devices
+         * hitting iOS Safari's deterministic energy watchdog (~50 s on
+         * iPhone SE 3 regardless of yield amount), but reduces sustained
+         * CPU on capable devices and helps with thermals broadly. */
+        if (remain_ms < 4) remain_ms = 4;
         emscripten_sleep(remain_ms);
     } else {
-        emscripten_sleep(0); /* still yield so the browser can repaint */
+        emscripten_sleep(4); /* minimum yield so the browser can repaint */
     }
 #else
     if (!g_pc_no_framelimit) {

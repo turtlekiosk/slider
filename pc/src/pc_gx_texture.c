@@ -16,8 +16,17 @@ static u32 tlut_content_hash(const void* data, int tlut_fmt, int n_entries, int 
  * each TLUT slot to detect content changes and force reloads. */
 u16 s_tlut_first_word[16];
 
-/* --- texture cache --- */
+/* --- texture cache ---
+ *
+ * Each entry holds a decoded RGBA8 GL texture; on mobile/web GPUs holding
+ * thousands of textures simultaneously is enough to trip Safari's tab
+ * memory watchdog (iPhone SE 3 reloads the page once total GPU+heap
+ * working set crosses ~1–1.5 GB). Native desktop has the headroom. */
+#if defined(__EMSCRIPTEN__) || defined(TARGET_ANDROID)
+#define TEX_CACHE_SIZE 384
+#else
 #define TEX_CACHE_SIZE 2048
+#endif
 
 typedef struct {
     u32 data_ptr;
