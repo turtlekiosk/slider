@@ -8,6 +8,22 @@ static u8* arena_memory = NULL;
 static u8* arena_lo = NULL;
 static u8* arena_hi = NULL;
 
+#ifdef __EMSCRIPTEN__
+/* On Emscripten, dlmalloc returns a session-dependent address; some sessions
+ * land inside emu64::seg2k0's N64-segment-collision range (0x03000000–
+ * 0x0FFFFFFF) and produce intermittent JKRHeap::alloc OOBs. mmap with
+ * MAP_FIXED at a high address isn't honored by emscripten's mmap.
+ *
+ * Static-allocate the arena instead. The linker places it in the wasm
+ * linear-memory static-data region (well below 0x03000000 given typical
+ * static-data sizes), so its address is fixed and below the collision
+ * zone every load. Zero-init is free — wasm linear memory starts zeroed.
+ *
+ * Adds 24 MB to the wasm module's required startup memory (BSS), which
+ * is already comfortably within INITIAL_MEMORY. */
+static u8 arena_memory_static[PC_MAIN_MEMORY_SIZE] __attribute__((aligned(32)));
+#endif
+
 /* Exported for seg2k0 collision avoidance */
 u8* pc_arena_base = NULL;
 u8* pc_arena_end  = NULL;
@@ -238,12 +254,15 @@ void LCDisable(void) {}
 /* --- Init --- */
 void OSInit(void) {
     if (!arena_memory) {
-        /* alloc arena at >=0x10000000 to avoid collision with N64 segment addresses.
-         * Skip on Emscripten: wasm32 has a single linear-memory address space
-         * that grows from 0, so a fixed mmap at e.g. 0x40000000 forces the
-         * wasm heap to grow to ~1 GB just to satisfy the address — which can
-         * fail on retina/HiDPI under host compositor memory pressure. */
-#ifndef __EMSCRIPTEN__
+        /* Allocate the 24 MB arena at a virtual address that won't collide
+         * with N64-segment addresses (range 0x03000000–0x0FFFFFFF) that
+         * emu64::seg2k0 would mis-translate. */
+#ifdef __EMSCRIPTEN__
+        /* Static BSS array — linker-fixed address in the static data
+         * region (always <0x03000000 in practice), no allocation can
+         * fail, deterministic across sessions. See declaration at top. */
+        arena_memory = arena_memory_static;
+#else
         {
             u32 base;
             for (base = 0x10000000; base <= 0x50000000; base += 0x01000000) {
@@ -262,16 +281,13 @@ void OSInit(void) {
                 if (arena_memory) break;
             }
         }
-#endif
         if (!arena_memory) {
-            /* fallback (may cause seg2k0 issues on native if the high-address
-             * loop above was skipped or all candidates were taken). */
-#ifndef __EMSCRIPTEN__
-            fprintf(stderr, "[PC] WARNING: VirtualAlloc at high address failed, "
+            /* fallback (may cause seg2k0 issues if all candidates were taken). */
+            fprintf(stderr, "[PC] WARNING: high-address arena alloc failed, "
                             "falling back to malloc (seg2k0 may misfire)\n");
-#endif
             arena_memory = (u8*)malloc(PC_MAIN_MEMORY_SIZE);
         }
+#endif
         if (!arena_memory) {
             fprintf(stderr, "Failed to allocate main memory arena\n");
             exit(1);
