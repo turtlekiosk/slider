@@ -86,7 +86,19 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: #000;
+            /* Background: pre-decoded blurhash baked into a 6×6 SVG of
+               1×1 colored rects with a Gaussian-blur filter. SVG is
+               re-rasterized at the viewport size every paint, so it
+               scales cleanly to any DPR / window size with no stored
+               raster. The linear-gradient layer dims it so the
+               foreground text and inputs stay readable.
+               (Source blurhash: okG^6Du6K+rB…, see decoder script.) */
+            background:
+                linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+                url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 6' preserveAspectRatio='xMidYMid slice'%3E%3Cfilter id='b' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeGaussianBlur stdDeviation='0.5'/%3E%3C/filter%3E%3Cg filter='url(%23b)'%3E%3Crect x='0' y='0' width='1' height='1' fill='%2399d8ff'/%3E%3Crect x='1' y='0' width='1' height='1' fill='%23a5e1ff'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%2380c9fa'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%239dc1ea'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%2399bad7'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%235db2dd'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%23a0daf0'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23a1d5f4'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23b7daf0'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23bdc5d4'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23ad9195'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2397aab4'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%238bcdec'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%2382ccf3'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23add4ed'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23c8aab3'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23b56034'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%239a9ca0'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%237dc9e7'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%238ad0f8'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%2385bfe1'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23a79ba3'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23a18167'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23709aa0'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%2391cadc'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%239ed5fa'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%2398bdd4'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%239f928d'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23a47a5c'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%237a887d'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%2388c6e2'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%2385d0f4'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%237eb4c8'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%2391837f'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23907647'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%23668774'/%3E%3C/g%3E%3C/svg%3E"),
+                #000;
+            background-size: cover;
+            background-position: center;
             color: #ddd;
             z-index: 10;
             padding: 32px 24px;
@@ -121,7 +133,7 @@
             width: 100%;
             max-width: 600px;
             min-height: 180px;
-            border: 2px dashed #4a9;
+            border: 2px dashed #888;
             border-radius: 12px;
             padding: 24px;
             cursor: pointer;
@@ -130,8 +142,8 @@
         }
         #rom-drop:hover,
         #rom-drop.dragging {
-            background: rgba(74,153,89,0.08);
-            border-color: #6c0;
+            background: rgba(255,255,255,0.08);
+            border-color: #ccc;
         }
         #rom-drop input { display: none; }
         #rom-drop .primary { font-size: 16px; margin-bottom: 4px; }
@@ -142,6 +154,117 @@
             opacity: 0.85;
         }
         #rom-status.error { color: #f88; opacity: 1; }
+        #rom-status.ok    { color: #6c0; opacity: 1; }
+        #rom-saves {
+            width: 100%;
+            max-width: 600px;
+            border-top: 1px solid #222;
+            padding-top: 16px;
+        }
+        #rom-saves .rom-saves-heading {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+        #rom-saves .rom-saves-help {
+            font-size: 12px;
+            opacity: 0.65;
+            margin-bottom: 10px;
+        }
+        #rom-saves .rom-saves-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 480px) {
+            #rom-saves .rom-saves-grid { grid-template-columns: 1fr; gap: 16px; }
+        }
+        #rom-saves .rom-saves-slot {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 12px;
+            border: 1px solid #222;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.02);
+        }
+        #rom-saves .rom-saves-slot-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ddd;
+        }
+        #rom-saves .rom-saves-slot-state {
+            font-size: 12px;
+            opacity: 0.7;
+            min-height: 1.4em;
+            word-break: break-all;
+        }
+        #rom-saves .rom-saves-slot.has-data .rom-saves-slot-state { opacity: 1; color: #6c0; }
+        #rom-saves .rom-saves-slot-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        #rom-saves .rom-saves-btn {
+            flex: 1 1 auto;
+            padding: 6px 10px;
+            background: #1a1a1a;
+            color: #ddd;
+            border: 1px solid #888;
+            border-radius: 6px;
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.1s, border-color 0.1s;
+        }
+        #rom-saves .rom-saves-btn:hover:not(:disabled) {
+            background: rgba(255,255,255,0.08);
+            border-color: #ccc;
+        }
+        #rom-saves .rom-saves-btn-secondary {
+            border-color: #555;
+            flex: 0 1 auto;
+        }
+        #rom-saves .rom-saves-btn-secondary:hover:not(:disabled) {
+            background: rgba(255,90,90,0.08);
+            border-color: #c66;
+        }
+        #rom-saves .rom-saves-btn:disabled { opacity: 0.4; cursor: default; }
+        #rom-saves .rom-saves-status {
+            min-height: 1.4em;
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 8px;
+        }
+        #rom-saves .rom-saves-status.error { color: #f88; opacity: 1; }
+        #rom-saves .rom-saves-status.ok    { color: #6c0; opacity: 1; }
+
+        #rom-start {
+            margin-top: 8px;
+            padding: 12px 24px;
+            background: #1a1a1a;
+            color: #ddd;
+            border: 1px solid #4a9;
+            border-radius: 6px;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            min-width: 200px;
+            transition: background 0.1s, border-color 0.1s, opacity 0.1s;
+        }
+        #rom-start:hover:not(:disabled) {
+            background: rgba(255,255,255,0.1);
+            border-color: #ccc;
+        }
+        #rom-start:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            border-color: #444;
+        }
 
         #settings-gear {
             display: none;
@@ -306,6 +429,33 @@
             <input id="rom-file" type="file" accept=".iso,.gcm,.ciso">
         </label>
         <div id="rom-status"></div>
+
+        <div id="rom-saves">
+            <div class="rom-saves-heading">Memory card slots (optional)</div>
+            <div class="rom-saves-help">Import an existing .gci save before booting. Skip if starting fresh.</div>
+            <div class="rom-saves-grid">
+                <div class="rom-saves-slot" data-slot="a">
+                    <div class="rom-saves-slot-label">Card A</div>
+                    <div class="rom-saves-slot-state">Empty</div>
+                    <div class="rom-saves-slot-actions">
+                        <button class="rom-saves-btn" type="button" id="rom-import-a">Import…</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-a" disabled>Remove</button>
+                    </div>
+                </div>
+                <div class="rom-saves-slot" data-slot="b">
+                    <div class="rom-saves-slot-label">Card B</div>
+                    <div class="rom-saves-slot-state">Empty</div>
+                    <div class="rom-saves-slot-actions">
+                        <button class="rom-saves-btn" type="button" id="rom-import-b">Import…</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-b" disabled>Remove</button>
+                    </div>
+                </div>
+            </div>
+            <div id="rom-saves-status" class="rom-saves-status"></div>
+            <input id="rom-saves-file" type="file" accept=".gci" style="display:none">
+        </div>
+
+        <button id="rom-start" type="button" disabled>Start</button>
     </div>
 
     <button id="settings-gear" type="button" aria-label="Settings" title="Settings">⚙</button>
@@ -543,9 +693,14 @@
         var fileInput  = document.getElementById('rom-file');
         var statusBox  = document.getElementById('rom-status');
 
-        function setRomStatus(msg, isError) {
+        function setRomStatus(msg, kind) {
             statusBox.textContent = msg || '';
-            statusBox.className = isError ? 'error' : '';
+            // kind: undefined/false = default (neutral), true or 'error' =
+            // red, 'ok' = green (matches the save-slot state-text color).
+            var cls = '';
+            if (kind === true || kind === 'error') cls = 'error';
+            else if (kind === 'ok') cls = 'ok';
+            statusBox.className = cls;
         }
 
         function showRomPicker() {
@@ -606,6 +761,20 @@
             });
         }
 
+        // ROM-imported state, gates the "Start playing" button. Set true
+        // once a valid ROM has been written + persisted to /orig.
+        var _romImported = false;
+        var startBtn = document.getElementById('rom-start');
+        function setStartEnabled(on) {
+            _romImported = !!on;
+            if (startBtn) startBtn.disabled = !_romImported;
+        }
+        function formatBytes(n) {
+            if (n >= 1024*1024*1024) return (n/1024/1024/1024).toFixed(2) + ' GB';
+            if (n >= 1024*1024)      return (n/1024/1024).toFixed(1) + ' MB';
+            if (n >= 1024)           return (n/1024).toFixed(1) + ' KB';
+            return n + ' B';
+        }
         function handleSelectedFile(file) {
             if (!file) return;
             setRomStatus('Reading file…');
@@ -616,16 +785,19 @@
                         'That file isn’t a recognized GameCube disc image. ' +
                         'Expected an ACGC .iso/.gcm/.ciso. Please try again.',
                         true);
+                    setStartEnabled(false);
                     return;
                 }
                 if (!isSupportedVersion(buf)) {
                     setRomStatus(describeUnsupported(buf), true);
+                    setStartEnabled(false);
                     return;
                 }
                 try {
                     FS.writeFile('/orig/user-rom.iso', new Uint8Array(buf));
                 } catch (e) {
                     setRomStatus('Write failed: ' + (e && e.message || e), true);
+                    setStartEnabled(false);
                     console.error('[rom] FS.writeFile failed', e);
                     return;
                 }
@@ -633,16 +805,29 @@
                 FS.syncfs(false, function(err) {
                     if (err) {
                         setRomStatus('Persist failed: ' + err, true);
+                        setStartEnabled(false);
                         console.error('[rom] FS.syncfs failed', err);
                         return;
                     }
-                    setRomStatus('Loading…');
-                    Module.__rom_uploaded = 1;
-                    hideRomPicker();
+                    setRomStatus('ROM ready: ' + (file.name || 'user-rom.iso') +
+                                 ' (' + formatBytes(buf.byteLength) + ')', 'ok');
+                    setStartEnabled(true);
                 });
             }).catch(function(err) {
                 setRomStatus('Read failed: ' + (err && err.message || err), true);
+                setStartEnabled(false);
                 console.error('[rom] FileReader failed', err);
+            });
+        }
+        // Start button: unblocks the wasm-side pc_web_prompt_for_rom poll
+        // loop and dismisses the picker. Only reachable once a valid ROM
+        // has been imported (button stays disabled otherwise).
+        if (startBtn) {
+            startBtn.addEventListener('click', function() {
+                if (!_romImported) return;
+                setRomStatus('Loading…');
+                Module.__rom_uploaded = 1;
+                hideRomPicker();
             });
         }
 
@@ -1019,6 +1204,115 @@
             });
         }
         window.importSave = importSave;
+
+        // ----- ROM picker: optional save-slot import -----
+        // Two slot blocks (Card A / Card B). Each has Import + Remove.
+        // Import reuses the same window.importSave path as the in-game
+        // settings menu (so header/filename validation is identical).
+        // Remove unlinks every .gci in that slot's directory and persists
+        // the deletion via FS.syncfs(false). State is refreshed on picker
+        // show so previously-persisted saves from earlier sessions get
+        // surfaced too.
+        (function wireRomPickerSaveImport() {
+            var input  = document.getElementById('rom-saves-file');
+            var status = document.getElementById('rom-saves-status');
+            if (!input || !status) return;
+
+            var SLOTS = {
+                a: { dir: '/save/card_a', el: document.querySelector('.rom-saves-slot[data-slot="a"]'),
+                     btnImport: document.getElementById('rom-import-a'),
+                     btnRemove: document.getElementById('rom-remove-a') },
+                b: { dir: '/save/card_b', el: document.querySelector('.rom-saves-slot[data-slot="b"]'),
+                     btnImport: document.getElementById('rom-import-b'),
+                     btnRemove: document.getElementById('rom-remove-b') }
+            };
+
+            function setStatus(text, kind) {
+                status.textContent = text || '';
+                status.className = 'rom-saves-status' + (kind ? ' ' + kind : '');
+            }
+            function listGcis(dir) {
+                try {
+                    return FS.readdir(dir).filter(function(n) {
+                        return /\.gci$/i.test(n) && n !== '.' && n !== '..';
+                    });
+                } catch (e) { return []; }
+            }
+            function refreshSlotUi(slot) {
+                var s = SLOTS[slot];
+                if (!s || !s.el) return;
+                if (typeof FS === 'undefined') return;
+                var files = listGcis(s.dir);
+                var stateEl = s.el.querySelector('.rom-saves-slot-state');
+                if (files.length > 0) {
+                    s.el.classList.add('has-data');
+                    stateEl.textContent = files.length === 1
+                        ? files[0]
+                        : files.length + ' files';
+                    if (s.btnRemove) s.btnRemove.disabled = false;
+                } else {
+                    s.el.classList.remove('has-data');
+                    stateEl.textContent = 'Empty';
+                    if (s.btnRemove) s.btnRemove.disabled = true;
+                }
+            }
+            function refreshAll() { refreshSlotUi('a'); refreshSlotUi('b'); }
+
+            function pick(slot) {
+                input.value = '';
+                input.dataset.slot = slot;
+                input.click();
+            }
+            function removeSlot(slot) {
+                var s = SLOTS[slot];
+                if (!s || typeof FS === 'undefined') return;
+                var files = listGcis(s.dir);
+                if (files.length === 0) return;
+                files.forEach(function(name) {
+                    try { FS.unlink(s.dir + '/' + name); }
+                    catch (e) { console.warn('[rom-saves] unlink failed:', s.dir + '/' + name, e && e.message); }
+                });
+                FS.syncfs(false, function(err) {
+                    if (err) {
+                        setStatus('Persist failed: ' + err, 'error');
+                        return;
+                    }
+                    setStatus('Removed Card ' + slot.toUpperCase() + ' save data.', 'ok');
+                    refreshSlotUi(slot);
+                });
+            }
+
+            SLOTS.a.btnImport.addEventListener('click', function() { pick('a'); });
+            SLOTS.b.btnImport.addEventListener('click', function() { pick('b'); });
+            SLOTS.a.btnRemove.addEventListener('click', function() { removeSlot('a'); });
+            SLOTS.b.btnRemove.addEventListener('click', function() { removeSlot('b'); });
+
+            input.addEventListener('change', function() {
+                var f = this.files && this.files[0];
+                if (!f) return;
+                var slot = this.dataset.slot;
+                setStatus('Importing to Card ' + slot.toUpperCase() + '…');
+                window.importSave(slot, f).then(function(ok) {
+                    if (ok) {
+                        setStatus('Imported to Card ' + slot.toUpperCase() +
+                                  '. Will load when the game boots.', 'ok');
+                    } else {
+                        setStatus('Import failed — see console for details.', 'error');
+                    }
+                    refreshSlotUi(slot);
+                });
+            });
+
+            // Refresh state every time the picker becomes visible so
+            // previously-persisted saves are reflected. Lightweight poll
+            // (only does FS.readdir on /save/card_*; cheap).
+            var _lastPickerVisible = false;
+            setInterval(function() {
+                var visible = pickerEl.classList.contains('visible');
+                if (visible && !_lastPickerVisible) refreshAll();
+                _lastPickerVisible = visible;
+            }, 200);
+        })();
 
         // ----- Settings menu -----
         var menuEl     = document.getElementById('settings-menu');
