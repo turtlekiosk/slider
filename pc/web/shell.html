@@ -161,7 +161,7 @@
             border-top: 1px solid #222;
             padding-top: 16px;
         }
-        #rom-saves .rom-saves-heading {
+        .rom-saves-heading {
             font-size: 13px;
             font-weight: 600;
             text-transform: uppercase;
@@ -169,20 +169,20 @@
             color: #aaa;
             margin-bottom: 4px;
         }
-        #rom-saves .rom-saves-help {
+        .rom-saves-help {
             font-size: 12px;
             opacity: 0.65;
             margin-bottom: 10px;
         }
-        #rom-saves .rom-saves-grid {
+        .rom-saves-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
         }
         @media (max-width: 480px) {
-            #rom-saves .rom-saves-grid { grid-template-columns: 1fr; gap: 16px; }
+            .rom-saves-grid { grid-template-columns: 1fr; gap: 16px; }
         }
-        #rom-saves .rom-saves-slot {
+        .rom-saves-slot {
             display: flex;
             flex-direction: column;
             gap: 6px;
@@ -191,24 +191,25 @@
             border-radius: 6px;
             background: rgba(255,255,255,0.02);
         }
-        #rom-saves .rom-saves-slot-label {
+        .rom-saves-slot-label {
             font-size: 13px;
             font-weight: 600;
             color: #ddd;
         }
-        #rom-saves .rom-saves-slot-state {
+        .rom-saves-slot-state {
             font-size: 12px;
             opacity: 0.7;
             min-height: 1.4em;
             word-break: break-all;
         }
-        #rom-saves .rom-saves-slot.has-data .rom-saves-slot-state { opacity: 1; color: #6c0; }
-        #rom-saves .rom-saves-slot-actions {
+        .rom-saves-slot.has-data .rom-saves-slot-state { opacity: 1; color: #6c0; }
+        .rom-saves-slot-actions {
             display: flex;
             gap: 6px;
             margin-top: 4px;
+            flex-wrap: wrap;
         }
-        #rom-saves .rom-saves-btn {
+        .rom-saves-btn {
             flex: 1 1 auto;
             padding: 6px 10px;
             background: #1a1a1a;
@@ -220,27 +221,27 @@
             cursor: pointer;
             transition: background 0.1s, border-color 0.1s;
         }
-        #rom-saves .rom-saves-btn:hover:not(:disabled) {
+        .rom-saves-btn:hover:not(:disabled) {
             background: rgba(255,255,255,0.08);
             border-color: #ccc;
         }
-        #rom-saves .rom-saves-btn-secondary {
+        .rom-saves-btn-secondary {
             border-color: #555;
             flex: 0 1 auto;
         }
-        #rom-saves .rom-saves-btn-secondary:hover:not(:disabled) {
+        .rom-saves-btn-secondary:hover:not(:disabled) {
             background: rgba(255,90,90,0.08);
             border-color: #c66;
         }
-        #rom-saves .rom-saves-btn:disabled { opacity: 0.4; cursor: default; }
-        #rom-saves .rom-saves-status {
+        .rom-saves-btn:disabled { opacity: 0.4; cursor: default; }
+        .rom-saves-status {
             min-height: 1.4em;
             font-size: 13px;
             opacity: 0.85;
             margin-top: 8px;
         }
-        #rom-saves .rom-saves-status.error { color: #f88; opacity: 1; }
-        #rom-saves .rom-saves-status.ok    { color: #6c0; opacity: 1; }
+        .rom-saves-status.error { color: #f88; opacity: 1; }
+        .rom-saves-status.ok    { color: #6c0; opacity: 1; }
 
         #rom-start {
             margin-top: 8px;
@@ -439,7 +440,7 @@
                     <div class="rom-saves-slot-state">Empty</div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="rom-import-a">Import…</button>
-                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-a" disabled>Remove</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-a" disabled>Delete</button>
                     </div>
                 </div>
                 <div class="rom-saves-slot" data-slot="b">
@@ -447,7 +448,7 @@
                     <div class="rom-saves-slot-state">Empty</div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="rom-import-b">Import…</button>
-                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-b" disabled>Remove</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-b" disabled>Delete</button>
                     </div>
                 </div>
             </div>
@@ -465,15 +466,27 @@
             <h2 id="settings-title">Settings</h2>
 
             <h3>Saves</h3>
-            <div class="row">
-                <button class="action" id="btn-export-a" type="button">Export Card A</button>
-                <button class="action" id="btn-export-b" type="button">Export Card B</button>
+            <div id="settings-saves" class="rom-saves-grid">
+                <div class="rom-saves-slot" data-slot="a">
+                    <div class="rom-saves-slot-label">Card A</div>
+                    <div class="rom-saves-slot-state">Empty</div>
+                    <div class="rom-saves-slot-actions">
+                        <button class="rom-saves-btn" type="button" id="settings-import-a">Import…</button>
+                        <button class="rom-saves-btn" type="button" id="settings-export-a">Export</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="settings-remove-a" disabled>Delete</button>
+                    </div>
+                </div>
+                <div class="rom-saves-slot" data-slot="b">
+                    <div class="rom-saves-slot-label">Card B</div>
+                    <div class="rom-saves-slot-state">Empty</div>
+                    <div class="rom-saves-slot-actions">
+                        <button class="rom-saves-btn" type="button" id="settings-import-b">Import…</button>
+                        <button class="rom-saves-btn" type="button" id="settings-export-b">Export</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="settings-remove-b" disabled>Delete</button>
+                    </div>
+                </div>
             </div>
-            <div class="row">
-                <button class="action" id="btn-import-a" type="button">Import to Card A…</button>
-                <button class="action" id="btn-import-b" type="button">Import to Card B…</button>
-            </div>
-            <div id="save-status" class="status"></div>
+            <div id="save-status" class="rom-saves-status"></div>
             <input id="import-file" type="file" accept=".gci" style="display:none">
 
             <h3>Audio</h3>
@@ -1138,6 +1151,87 @@
         }
         window.importSave = importSave;
 
+        // Persist a per-slot last-write timestamp in localStorage so it
+        // survives page reloads. FS.stat().mtime can't — IDBFS rehydrates
+        // MEMFS on load, which resets every file's mtime to "now".
+        // Called from C (pc_web_sync_save) on each successful save commit
+        // and from JS importSave on user-triggered imports.
+        function _stampKey(slot) { return 'save:card_' + slot + ':mtime'; }
+        function stampSave(slot) {
+            try { localStorage.setItem(_stampKey(slot), String(Date.now())); }
+            catch (e) { /* localStorage unavailable — ignore */ }
+        }
+        function loadStamp(slot) {
+            try {
+                var v = localStorage.getItem(_stampKey(slot));
+                var n = v ? parseInt(v, 10) : 0;
+                return isFinite(n) && n > 0 ? n : 0;
+            } catch (e) { return 0; }
+        }
+        function clearStamp(slot) {
+            try { localStorage.removeItem(_stampKey(slot)); } catch (e) {}
+        }
+        window._stampSave = stampSave;
+
+        // Slot summary helpers — shared by the ROM picker and the settings menu.
+        // The .gci filename is uninformative on its own (Card A always uses the
+        // same name, Card B varies by town but the user already knows what
+        // they imported). Show size and a relative timestamp instead.
+        function _formatBytes(n) {
+            if (n < 1024) return n + ' B';
+            if (n < 1024 * 1024) {
+                var kb = n / 1024;
+                return (kb >= 10 ? Math.round(kb) : kb.toFixed(1).replace(/\.0$/, '')) + ' KB';
+            }
+            var mb = n / (1024 * 1024);
+            return (mb >= 10 ? Math.round(mb) : mb.toFixed(1).replace(/\.0$/, '')) + ' MB';
+        }
+        function _formatRelativeTime(ts) {
+            if (!ts) return '';
+            var diff = Date.now() - ts;
+            if (diff < 0) diff = 0;
+            var sec = Math.floor(diff / 1000);
+            if (sec < 60)    return 'just now';
+            var min = Math.floor(sec / 60);
+            if (min < 60)    return min + ' min ago';
+            var hr  = Math.floor(min / 60);
+            if (hr  < 24)    return hr  + (hr  === 1 ? ' hr ago'  : ' hrs ago');
+            var day = Math.floor(hr / 24);
+            if (day < 7)     return day + (day === 1 ? ' day ago' : ' days ago');
+            try { return new Date(ts).toLocaleDateString(); }
+            catch (e) { return ''; }
+        }
+        function summarizeSlot(slot, dir, files, verb) {
+            if (!files || files.length === 0) return 'Empty';
+            var totalSize = 0;
+            for (var i = 0; i < files.length; i++) {
+                try { totalSize += (FS.stat(dir + '/' + files[i]).size | 0); }
+                catch (e) { /* ignore — best-effort summary */ }
+            }
+            // Prefer the localStorage stamp (set by importSave + the C save
+            // path on every successful write). Fall back to FS.stat().mtime
+            // for files written this session before any stamp exists, which
+            // is at least accurate within the current page load.
+            var ts = loadStamp(slot);
+            if (!ts) {
+                for (var j = 0; j < files.length; j++) {
+                    try {
+                        var st = FS.stat(dir + '/' + files[j]);
+                        var t = 0;
+                        if (st.mtime instanceof Date) t = st.mtime.getTime();
+                        else if (typeof st.mtime === 'number') t = st.mtime;
+                        if (t > ts) ts = t;
+                    } catch (e) {}
+                }
+            }
+            var parts = [];
+            if (files.length > 1) parts.push(files.length + ' files');
+            if (totalSize > 0)    parts.push(_formatBytes(totalSize));
+            var rel = _formatRelativeTime(ts);
+            if (rel)              parts.push((verb || 'imported') + ' ' + rel);
+            return parts.length ? parts.join(' · ') : 'Save data present';
+        }
+
         // ----- ROM picker: optional save-slot import -----
         // Two slot blocks (Card A / Card B). Each has Import + Remove.
         // Import reuses the same window.importSave path as the in-game
@@ -1147,15 +1241,16 @@
         // show so previously-persisted saves from earlier sessions get
         // surfaced too.
         (function wireRomPickerSaveImport() {
+            var root   = document.getElementById('rom-saves');
             var input  = document.getElementById('rom-saves-file');
             var status = document.getElementById('rom-saves-status');
-            if (!input || !status) return;
+            if (!root || !input || !status) return;
 
             var SLOTS = {
-                a: { dir: '/save/card_a', el: document.querySelector('.rom-saves-slot[data-slot="a"]'),
+                a: { dir: '/save/card_a', el: root.querySelector('.rom-saves-slot[data-slot="a"]'),
                      btnImport: document.getElementById('rom-import-a'),
                      btnRemove: document.getElementById('rom-remove-a') },
-                b: { dir: '/save/card_b', el: document.querySelector('.rom-saves-slot[data-slot="b"]'),
+                b: { dir: '/save/card_b', el: root.querySelector('.rom-saves-slot[data-slot="b"]'),
                      btnImport: document.getElementById('rom-import-b'),
                      btnRemove: document.getElementById('rom-remove-b') }
             };
@@ -1179,9 +1274,7 @@
                 var stateEl = s.el.querySelector('.rom-saves-slot-state');
                 if (files.length > 0) {
                     s.el.classList.add('has-data');
-                    stateEl.textContent = files.length === 1
-                        ? files[0]
-                        : files.length + ' files';
+                    stateEl.textContent = summarizeSlot(slot, s.dir, files);
                     if (s.btnRemove) s.btnRemove.disabled = false;
                 } else {
                     s.el.classList.remove('has-data');
@@ -1210,7 +1303,8 @@
                         setStatus('Persist failed: ' + err, 'error');
                         return;
                     }
-                    setStatus('Removed Card ' + slot.toUpperCase() + ' save data.', 'ok');
+                    clearStamp(slot);
+                    setStatus('Deleted Card ' + slot.toUpperCase() + ' save data.', 'ok');
                     refreshSlotUi(slot);
                 });
             }
@@ -1227,6 +1321,7 @@
                 setStatus('Importing to Card ' + slot.toUpperCase() + '…');
                 window.importSave(slot, f).then(function(ok) {
                     if (ok) {
+                        stampSave(slot);
                         setStatus('Imported to Card ' + slot.toUpperCase() +
                                   '. Will load when the game boots.', 'ok');
                     } else {
@@ -1256,8 +1351,50 @@
 
         function setSaveStatus(text, kind) {
             saveStatus.textContent = text || '';
-            saveStatus.className = 'status' + (kind ? ' ' + kind : '');
+            saveStatus.className = 'rom-saves-status' + (kind ? ' ' + kind : '');
         }
+
+        // Settings-menu memory card slots — same shape as the ROM picker's slot
+        // grid, but with an additional Export button per slot. Wiring is scoped
+        // to #settings-saves so the picker's slots aren't affected.
+        var SETTINGS_SLOTS = {
+            a: { dir: '/save/card_a',
+                 el: document.querySelector('#settings-saves .rom-saves-slot[data-slot="a"]'),
+                 btnImport: document.getElementById('settings-import-a'),
+                 btnExport: document.getElementById('settings-export-a'),
+                 btnRemove: document.getElementById('settings-remove-a') },
+            b: { dir: '/save/card_b',
+                 el: document.querySelector('#settings-saves .rom-saves-slot[data-slot="b"]'),
+                 btnImport: document.getElementById('settings-import-b'),
+                 btnExport: document.getElementById('settings-export-b'),
+                 btnRemove: document.getElementById('settings-remove-b') }
+        };
+        function settingsListGcis(dir) {
+            try {
+                if (typeof FS === 'undefined') return [];
+                return FS.readdir(dir).filter(function(n) {
+                    return /\.gci$/i.test(n) && n !== '.' && n !== '..';
+                });
+            } catch (e) { return []; }
+        }
+        function refreshSettingsSlot(slot) {
+            var s = SETTINGS_SLOTS[slot];
+            if (!s || !s.el) return;
+            var files = settingsListGcis(s.dir);
+            var stateEl = s.el.querySelector('.rom-saves-slot-state');
+            if (files.length > 0) {
+                s.el.classList.add('has-data');
+                stateEl.textContent = summarizeSlot(slot, s.dir, files, 'last saved');
+                if (s.btnRemove) s.btnRemove.disabled = false;
+                if (s.btnExport) s.btnExport.disabled = false;
+            } else {
+                s.el.classList.remove('has-data');
+                stateEl.textContent = 'Empty';
+                if (s.btnRemove) s.btnRemove.disabled = true;
+                if (s.btnExport) s.btnExport.disabled = true;
+            }
+        }
+        function refreshSettingsSlots() { refreshSettingsSlot('a'); refreshSettingsSlot('b'); }
 
         // Show the gear once the runtime is up AND the ROM picker is gone.
         // Polled because both flags can flip independently of any event we
@@ -1272,6 +1409,7 @@
             // (in case it was toggled in another tab via storage event etc.)
             muteEl.checked = !!_settings.muteAudio;
             setSaveStatus('');
+            refreshSettingsSlots();
             if (typeof menuEl.showModal === 'function') {
                 menuEl.showModal();
             } else {
@@ -1297,8 +1435,8 @@
             document.getElementById('canvas').focus();
         });
 
-        // Save export buttons.
-        function exportButton(slot, btn) {
+        // Settings-menu slot buttons.
+        function settingsExport(slot, btn) {
             btn.disabled = true;
             var prev = btn.textContent;
             try {
@@ -1313,35 +1451,55 @@
             }
             setTimeout(function() { btn.disabled = false; btn.textContent = prev; }, 400);
         }
-        document.getElementById('btn-export-a').addEventListener('click', function() {
-            exportButton('a', this);
-        });
-        document.getElementById('btn-export-b').addEventListener('click', function() {
-            exportButton('b', this);
-        });
-
-        // Save import: stash the target slot on the input element, share one
-        // file picker for both buttons.
-        function pickImportFile(slot) {
+        function settingsPickImport(slot) {
             importInputEl.value = '';                  // allow same-file re-pick
             importInputEl.dataset.slot = slot;
             importInputEl.click();
         }
-        document.getElementById('btn-import-a').addEventListener('click', function() {
-            pickImportFile('a');
-        });
-        document.getElementById('btn-import-b').addEventListener('click', function() {
-            pickImportFile('b');
-        });
+        function settingsRemove(slot) {
+            var s = SETTINGS_SLOTS[slot];
+            if (!s || typeof FS === 'undefined') return;
+            var files = settingsListGcis(s.dir);
+            if (files.length === 0) return;
+            var label  = 'Card ' + slot.toUpperCase();
+            var detail = summarizeSlot(slot, s.dir, files, 'last saved');
+            if (!confirm('Delete ' + label + ' save data (' + detail + ')?\n\nThis cannot be undone.')) {
+                return;
+            }
+            files.forEach(function(name) {
+                try { FS.unlink(s.dir + '/' + name); }
+                catch (e) { console.warn('[settings-saves] unlink failed:', s.dir + '/' + name, e && e.message); }
+            });
+            FS.syncfs(false, function(err) {
+                if (err) {
+                    setSaveStatus('Persist failed: ' + err, 'error');
+                    return;
+                }
+                clearStamp(slot);
+                setSaveStatus('Deleted Card ' + slot.toUpperCase() + ' save data.', 'ok');
+                refreshSettingsSlot(slot);
+            });
+        }
+        SETTINGS_SLOTS.a.btnImport.addEventListener('click', function() { settingsPickImport('a'); });
+        SETTINGS_SLOTS.b.btnImport.addEventListener('click', function() { settingsPickImport('b'); });
+        SETTINGS_SLOTS.a.btnExport.addEventListener('click', function() { settingsExport('a', this); });
+        SETTINGS_SLOTS.b.btnExport.addEventListener('click', function() { settingsExport('b', this); });
+        SETTINGS_SLOTS.a.btnRemove.addEventListener('click', function() { settingsRemove('a'); });
+        SETTINGS_SLOTS.b.btnRemove.addEventListener('click', function() { settingsRemove('b'); });
         importInputEl.addEventListener('change', function() {
             var f = this.files && this.files[0];
             if (!f) return;
             var slot = this.dataset.slot;
             setSaveStatus('Importing to Card ' + slot.toUpperCase() + '…');
             window.importSave(slot, f).then(function(ok) {
-                if (ok) setSaveStatus('Imported to Card ' + slot.toUpperCase() +
-                                      '. Reload to load the save in-game.', 'ok');
-                else    setSaveStatus('Import failed — see console for details.', 'error');
+                if (ok) {
+                    stampSave(slot);
+                    setSaveStatus('Imported to Card ' + slot.toUpperCase() +
+                                  '. Reload to load the save in-game.', 'ok');
+                } else {
+                    setSaveStatus('Import failed — see console for details.', 'error');
+                }
+                refreshSettingsSlot(slot);
             });
         });
 

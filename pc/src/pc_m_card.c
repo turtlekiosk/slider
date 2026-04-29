@@ -30,13 +30,21 @@
 #include "game.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-/* Flush IDBFS to IndexedDB so saves survive page reloads. Called after
- * successful atomic GCI writes. */
-static void pc_web_sync_save(void) {
-    EM_ASM({ if (typeof FS !== 'undefined' && FS.syncfs) FS.syncfs(false, function(){}); });
+/* Flush IDBFS to IndexedDB so saves survive page reloads, and stamp the
+ * write timestamp into localStorage so the slot UI can show "last saved
+ * X ago" accurately across reloads (FS.stat().mtime resets to page-load
+ * time when IDBFS rehydrates MEMFS, so it can't be used directly). */
+static void pc_web_sync_save(const char* gci_path) {
+    EM_ASM({
+        if (typeof FS !== 'undefined' && FS.syncfs) FS.syncfs(false, function(){});
+        var path = UTF8ToString($0);
+        var slot = path.indexOf('card_a') >= 0 ? 'a'
+                 : path.indexOf('card_b') >= 0 ? 'b' : null;
+        if (slot && typeof window._stampSave === 'function') window._stampSave(slot);
+    }, gci_path ? gci_path : "");
 }
 #else
-static void pc_web_sync_save(void) {}
+static void pc_web_sync_save(const char* gci_path) { (void)gci_path; }
 #endif
 
 #include <stdio.h>
@@ -433,7 +441,7 @@ static int pc_save_write_gci_to(const char* gci_path, const char* tmp_path) {
     }
 
     OSReport("[PC] GCI save: written successfully to %s (backups rotated)\n", gci_path);
-    pc_web_sync_save();
+    pc_web_sync_save(gci_path);
     return TRUE;
 }
 
