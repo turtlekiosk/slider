@@ -11,14 +11,20 @@ void aESS_actor_ct(ACTOR* actorx, GAME* game);
 void aESS_actor_dt(ACTOR* actorx, GAME* game);
 void aESS_actor_init(ACTOR* actorx, GAME* game);
 void aESS_actor_save(ACTOR* actorx, GAME* game);
-void aESS_schedule_proc(NPC_SPEECH_SONCHO* soncho, GAME_PLAY* play, int sche_idx);
+void aESS_schedule_proc(NPC_ACTOR* actorx, GAME_PLAY* play, int sche_idx);
 void aESS_actor_move(ACTOR* actorx, GAME* game);
 void aESS_actor_draw(ACTOR* actorx, GAME* game);
 int aESS_talk_init(ACTOR* actorx, GAME* game);
-void aESS_norm_talk_request(NPC_SPEECH_SONCHO* soncho, GAME_PLAY* play);
-int aESS_norm_talk_end_chk(NPC_SPEECH_SONCHO* soncho);
-void aESS_force_talk_request(NPC_SPEECH_SONCHO* soncho, GAME_PLAY* play);
-int aESS_force_talk_end_chk(NPC_SPEECH_SONCHO* soncho);
+void aESS_norm_talk_request(ACTOR* actorx, GAME* game);
+int aESS_norm_talk_end_chk(ACTOR* actorx, GAME* game);
+void aESS_force_talk_request(ACTOR* actorx, GAME* game);
+int aESS_force_talk_end_chk(ACTOR* actorx, GAME* game);
+
+#ifdef TARGET_PC
+static int aESS_ct_talk_end_chk_none(ACTOR* actorx, GAME* game) {
+    return 0;
+}
+#endif
 
 // clang-format off
 ACTOR_PROFILE Ev_Speech_Soncho_Profile = {
@@ -43,12 +49,16 @@ void aESS_actor_ct(ACTOR* actorx, GAME* game) {
         5,
         mActor_NONE_PROC1,
         &aESS_talk_init,
+#ifdef TARGET_PC
+        aESS_ct_talk_end_chk_none,
+#else
         (aNPC_TALK_END_CHECK_PROC)mActor_NONE_PROC1,
+#endif
         1,
     };
     NPC_SPEECH_SONCHO* soncho = (NPC_SPEECH_SONCHO*)actorx;
     if (CLIP(npc_clip)->birth_check_proc(actorx, game) == TRUE) {
-        soncho->npc_class.schedule.schedule_proc = (aNPC_SCHEDULE_PROC)aESS_schedule_proc;
+        soncho->npc_class.schedule.schedule_proc = aESS_schedule_proc;
         CLIP(npc_clip)->ct_proc(actorx, game, &ct_data);
         CLIP(npc_clip)->animation_init_proc(actorx, 5, 0);
     }

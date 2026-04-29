@@ -24,7 +24,7 @@ static void aES2_actor_save(ACTOR* actor, GAME* game);
 static void aES2_actor_move(ACTOR* actor, GAME* game);
 static void aES2_actor_draw(ACTOR* actor, GAME* game);
 static int aES2_talk_init(ACTOR* actorx, GAME* game);
-static int aES2_talk_end_chk(NPC_ACTOR* nactorx, GAME* game);
+static int aES2_talk_end_chk(ACTOR* actorx, GAME* game);
 
 // clang-format off
 ACTOR_PROFILE Ev_Soncho2_Profile = {
@@ -49,7 +49,7 @@ static void aES2_actor_ct(ACTOR* actorx, GAME* game) {
         aNPC_CT_SCHED_TYPE_SPECIAL,
         mActor_NONE_PROC1,
         &aES2_talk_init,
-        (aNPC_TALK_END_CHECK_PROC)&aES2_talk_end_chk,
+        &aES2_talk_end_chk,
         0,
     };
     NPC_SONCHO2* soncho = (NPC_SONCHO2*)actorx;

@@ -174,7 +174,8 @@ static void aNTT_setup_think_proc(NPC_TOTAKEKE_ACTOR *totakeke, GAME_PLAY *play,
     }
 }
 
-static void aNTT_think_proc(NPC_TOTAKEKE_ACTOR *totakeke, GAME_PLAY *play, int think_id) {
+static void aNTT_think_proc(NPC_ACTOR *actorx, GAME_PLAY *play, int think_id) {
+    NPC_TOTAKEKE_ACTOR *totakeke = (NPC_TOTAKEKE_ACTOR *)actorx;
     switch (think_id) {
     case 0x0:
         aNTT_think_init_proc(totakeke, play);
@@ -186,7 +187,7 @@ static void aNTT_think_proc(NPC_TOTAKEKE_ACTOR *totakeke, GAME_PLAY *play, int t
 }
 
 static void aNTT_schedule_init_proc(NPC_TOTAKEKE_ACTOR *totakeke, GAME_PLAY *play) {
-    totakeke->npc_class.think.think_proc = (aNPC_THINK_PROC)aNTT_think_proc;    
+    totakeke->npc_class.think.think_proc = aNTT_think_proc;
     CLIP(npc_clip)->think_proc((NPC_ACTOR *)totakeke, play, aNPC_THINK_SPECIAL, 0);
 }
 
@@ -196,7 +197,8 @@ static void aNTT_schedule_main_proc(NPC_TOTAKEKE_ACTOR *totakeke, GAME_PLAY *pla
     }
 }
 
-static void aNTT_schedule_proc(NPC_TOTAKEKE_ACTOR *totakeke, GAME_PLAY *play, int schedule_id) {
+static void aNTT_schedule_proc(NPC_ACTOR *actorx, GAME_PLAY *play, int schedule_id) {
+    NPC_TOTAKEKE_ACTOR *totakeke = (NPC_TOTAKEKE_ACTOR *)actorx;
     switch (schedule_id) {
     case 0:
         aNTT_schedule_init_proc(totakeke, play);

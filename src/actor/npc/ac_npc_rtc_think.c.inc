@@ -60,6 +60,11 @@ static void aNRTC_think_ipmenu(NPC_ACTOR* actor, GAME_PLAY* play) {
     }
 }
 
+#ifdef TARGET_PC
+static void aNRTC_think_none(NPC_ACTOR* actor, GAME_PLAY* play) {
+}
+#endif
+
 // clang-format off
 static aNPC_SUB_PROC aNRTC_proc_table[] = {
     &aNRTC_think_start,
@@ -67,7 +72,11 @@ static aNPC_SUB_PROC aNRTC_proc_table[] = {
     &aNRTC_think_door,
     &aNRTC_think_check,
     &aNRTC_think_ipmenu,
+#ifdef TARGET_PC
+    &aNRTC_think_none,
+#else
     (aNPC_SUB_PROC)mActor_NONE_PROC1,
+#endif
 };
 // clang-format on
 

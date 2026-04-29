@@ -185,6 +185,11 @@ static void aNRTC_break_data_2(NPC_RTC_ACTOR* rtc, GAME_PLAY* play) {
     }
 }
 
+#ifdef TARGET_PC
+static void aNRTC_talk_none(NPC_RTC_ACTOR* rtc, GAME_PLAY* play) {
+}
+#endif
+
 static void aNRTC_change_talk_proc(NPC_RTC_ACTOR* rtc, int idx) {
     // clang-format off
     static aNRTC_PROC process[] = {
@@ -198,7 +203,11 @@ static void aNRTC_change_talk_proc(NPC_RTC_ACTOR* rtc, int idx) {
         &aNRTC_delete,
         &aNRTC_format_chk,
         &aNRTC_format,
+#ifdef TARGET_PC
+        &aNRTC_talk_none,
+#else
         (aNRTC_PROC)&none_proc1,
+#endif
     };
     // clang-format on
 

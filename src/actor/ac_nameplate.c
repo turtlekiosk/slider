@@ -41,7 +41,8 @@ static void aNP_set_talk_info(ACTOR* actor) {
     mDemo_Set_talk_window_color(&color);
 }
 
-static void aNP_actor_move(ACTOR* actor, GAME_PLAY* play) {
+static void aNP_actor_move(ACTOR* actor, GAME* game) {
+    GAME_PLAY* play = (GAME_PLAY*)game;
     PLAYER_ACTOR* player;
     s16 player_angle;
     int angle;
@@ -59,9 +60,7 @@ static void aNP_actor_move(ACTOR* actor, GAME_PLAY* play) {
 }
 
 extern void aNP_actor_init(ACTOR* actor, GAME* game) {
-    GAME_PLAY* play = (GAME_PLAY*)game;
-
     mFI_SetFG_common(DUMMY_NAMEPLATE, actor->home.position, 0);
-    aNP_actor_move(actor, play);
-    actor->mv_proc = (mActor_proc)(aNP_actor_move);
+    aNP_actor_move(actor, game);
+    actor->mv_proc = aNP_actor_move;
 }

@@ -67,7 +67,9 @@ static void Ac_Sample_Actor_wait_demo_ct(ACTOR* actor) {
     mMsg_Set_mail_str(mMsg_Get_base_window_p(), 0, str_mail, 64);
 }
 
-static void Ac_Sample_Actor_main_wait(SAMPLE_ACTOR* actor, GAME_PLAY* play) {
+static void Ac_Sample_Actor_main_wait(ACTOR* actorx, GAME* game) {
+    SAMPLE_ACTOR* actor = (SAMPLE_ACTOR*)actorx;
+    GAME_PLAY* play = (GAME_PLAY*)game;
     Ac_Sample_Animation_Base(actor);
     Actor_world_to_eye((ACTOR*)actor, 48.0f);
     Ac_Sample_Excute_Corect(actor, play);
@@ -79,10 +81,11 @@ static void Ac_Sample_Actor_main_wait(SAMPLE_ACTOR* actor, GAME_PLAY* play) {
     }
 }
 
-static void Ac_Sample_Actor_main_talk(SAMPLE_ACTOR* actor, GAME_PLAY* play) {
+static void Ac_Sample_Actor_main_talk(ACTOR* actorx, GAME* game) {
+    SAMPLE_ACTOR* actor = (SAMPLE_ACTOR*)actorx;
     Ac_Sample_Animation_Base(actor);
     Actor_world_to_eye((ACTOR*)actor, 48.0f);
-    Ac_Sample_Excute_Corect(actor, play);
+    Ac_Sample_Excute_Corect(actor, (GAME_PLAY*)game);
 
     if (mDemo_Check(mDemo_TYPE_TALK, (ACTOR*)actor)) {
         s16 angle = add_calc_short_angle2(&actor->actor_class.shape_info.rotation.y, actor->actor_class.player_angle_y,
@@ -97,19 +100,18 @@ static void Ac_Sample_Actor_main_talk(SAMPLE_ACTOR* actor, GAME_PLAY* play) {
     }
 }
 
-typedef void (*Ac_Sample_Actor_PROC)(SAMPLE_ACTOR*, GAME_PLAY*);
+typedef void (*Ac_Sample_Actor_PROC)(ACTOR*, GAME*);
 
 static void Ac_Sample_Actor_main(ACTOR* actor, GAME* game) {
     static Ac_Sample_Actor_PROC proc[] = { &Ac_Sample_Actor_main_wait, &Ac_Sample_Actor_main_talk };
 
     SAMPLE_ACTOR* sample = (SAMPLE_ACTOR*)actor;
-    GAME_PLAY* play = (GAME_PLAY*)game;
 
     if (sample->main_action < 0 || sample->main_action >= 2 || proc[sample->main_action] == NULL) {
         return;
     }
 
-    (*proc[sample->main_action])(sample, play);
+    (*proc[sample->main_action])(actor, game);
 }
 
 extern cKF_Skeleton_R_c cKF_bs_r_hnw;

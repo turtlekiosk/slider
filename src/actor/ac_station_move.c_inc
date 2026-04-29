@@ -1,6 +1,4 @@
-typedef void (*aSTA_ACT_PROC)(STATION_ACTOR*, GAME_PLAY*);
-
-static void aSTA_wait(STATION_ACTOR* station, GAME_PLAY* play) {
+static void aSTA_wait(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
     // nothing
 }
 
@@ -13,7 +11,7 @@ static void aSTA_setup_action(STATION_ACTOR* station, int action) {
     };
     // clang-format on
 
-    static void* process[] = { &aSTA_wait };
+    static aSTR_MOVE_PROC process[] = { &aSTA_wait };
     int season = station->struct_class.season == mTM_SEASON_WINTER;
 
     cKF_SkeletonInfo_R_init(&station->struct_class.keyframe, station->struct_class.keyframe.skeleton,
@@ -27,7 +25,7 @@ static void aSTA_actor_move(ACTOR* actorx, GAME* game) {
     GAME_PLAY* play = (GAME_PLAY*)game;
     STATION_ACTOR* station = (STATION_ACTOR*)actorx;
 
-    (*(aSTA_ACT_PROC)station->struct_class.action_proc)(station, play);
+    (*station->struct_class.action_proc)(&station->struct_class, play);
 }
 
 static void aSTA_actor_init(ACTOR* actorx, GAME* game) {

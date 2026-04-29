@@ -270,15 +270,16 @@ static void aHWN_force_talk_request(ACTOR* actorx, GAME* game) {
     }
 }
 
-static void aHWN_set_norm_talk_info(HALLOWEEN_NPC_ACTOR* actorx) {
-    int looks = mNpc_GetLooks(actorx->npc_class.npc_info.event->npc_id);
+static void aHWN_set_norm_talk_info(ACTOR* actorx) {
+    HALLOWEEN_NPC_ACTOR* hwn_actor = (HALLOWEEN_NPC_ACTOR*)actorx;
+    int looks = mNpc_GetLooks(hwn_actor->npc_class.npc_info.event->npc_id);
 
     mDemo_Set_msg_num(MSG_2479 + looks);
-    aHWN_change_talk_proc(actorx, aHWN_TALK_END_WAIT);
+    aHWN_change_talk_proc(hwn_actor, aHWN_TALK_END_WAIT);
 }
 
 static void aHWN_norm_talk_request(ACTOR* actorx, GAME* game) {
-    mDemo_Request(mDemo_TYPE_TALK, actorx, (mDemo_REQUEST_PROC)aHWN_set_norm_talk_info);
+    mDemo_Request(mDemo_TYPE_TALK, actorx, aHWN_set_norm_talk_info);
 }
 
 static int aHWN_talk_init(ACTOR* actorx, GAME* game) {

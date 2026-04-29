@@ -52,7 +52,7 @@ static void aHWN_pl_demo_code_end_wait_talk_proc(HALLOWEEN_NPC_ACTOR* actorx, GA
 static void aHWN_change_talk_proc(HALLOWEEN_NPC_ACTOR* actorx, int talk_proc_idx);
 static void aHWN_set_force_talk_info(ACTOR* actorx);
 static void aHWN_force_talk_request(ACTOR* actorx, GAME* game);
-static void aHWN_set_norm_talk_info(HALLOWEEN_NPC_ACTOR* actorx);
+static void aHWN_set_norm_talk_info(ACTOR* actorx);
 static void aHWN_norm_talk_request(ACTOR* actorx, GAME* game);
 static int aHWN_talk_init(ACTOR* actorx, GAME* game);
 static BOOL aHWN_talk_end_chk(ACTOR* actorx, GAME* game);

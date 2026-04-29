@@ -128,7 +128,22 @@ static int aES2_talk_init(ACTOR* actorx, GAME* game) {
     return TRUE;
 }
 
-static int aES2_talk_end_chk(NPC_ACTOR* nactorx, GAME* game) {
+#ifdef TARGET_PC
+static void aES2_talk_none(NPC_SONCHO2* soncho, GAME* game) {
+}
+#endif
+
+static int aES2_talk_end_chk(ACTOR* actorx, GAME* game) {
+#ifdef TARGET_PC
+    static aEV_SONCHO2_TALK_PROC proc[6] = {
+        aES2_talk_before_give,
+        aES2_talk_give,
+        aES2_talk_none,
+        aES2_talk_none,
+        aES2_talk_none,
+        aES2_talk_none,
+    };
+#else
     static aEV_SONCHO2_TALK_PROC proc[6] = {
         aES2_talk_before_give,
         aES2_talk_give,
@@ -137,8 +152,10 @@ static int aES2_talk_end_chk(NPC_ACTOR* nactorx, GAME* game) {
         (aEV_SONCHO2_TALK_PROC)mActor_NONE_PROC1,
         (aEV_SONCHO2_TALK_PROC)mActor_NONE_PROC1,
     };
+#endif
 
-    NPC_SONCHO2* soncho = (NPC_SONCHO2*)nactorx;
+    NPC_SONCHO2* soncho = (NPC_SONCHO2*)actorx;
+    NPC_ACTOR* nactorx = (NPC_ACTOR*)actorx;
     GAME_PLAY* play = (GAME_PLAY*)game;
     int res = FALSE;
     proc[soncho->talk](soncho, game);

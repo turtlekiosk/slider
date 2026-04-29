@@ -37,7 +37,8 @@ static void aCOU_set_bgOffset(ACTOR* actorx, int idx) {
     }
 }
 
-static void aCOU_wait(COUNT_ACTOR* actor) {
+static void aCOU_wait(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
+    COUNT_ACTOR* actor = (COUNT_ACTOR*)actorx;
     int action = aCOU_ACT_HAPPY_NEW_YEAR;
 
     if (CLIP(countdown_clip)->anime_play_flag) {
@@ -51,13 +52,16 @@ static void aCOU_wait(COUNT_ACTOR* actor) {
     }
 }
 
-static void aCOU_move(COUNT_ACTOR* actor) {
+static void aCOU_move(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
+    COUNT_ACTOR* actor = (COUNT_ACTOR*)actorx;
+
     if (actor->structure_class.keyframe_saved_keyframe == 61) {
         aCOU_setup_action(actor, aCOU_ACT_HAPPY_NEW_YEAR);
     }
 }
 
-static void aCOU_happy_new_year(COUNT_ACTOR* actor) {
+static void aCOU_happy_new_year(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
+    COUNT_ACTOR* actor = (COUNT_ACTOR*)actorx;
     int action = actor->structure_class.action;
 
     actor->structure_class.action = action >= 59 ? 0 : action + 1;
@@ -66,9 +70,9 @@ static void aCOU_happy_new_year(COUNT_ACTOR* actor) {
 static void aCOU_setup_action(COUNT_ACTOR* actor, int action) {
     static aSTR_MOVE_PROC process[] = {
         // clang-format off
-        (aSTR_MOVE_PROC)aCOU_wait,
-        (aSTR_MOVE_PROC)aCOU_move,
-        (aSTR_MOVE_PROC)aCOU_happy_new_year,
+        aCOU_wait,
+        aCOU_move,
+        aCOU_happy_new_year,
         // clang-format on
     };
 

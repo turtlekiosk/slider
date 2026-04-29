@@ -370,7 +370,7 @@ static void aPMAN_exit(NPC_POST_MAN* actor, GAME_PLAY* play) {
     }
 }
 
-static void aPMAN_clear_xz_spd(NPC_POST_MAN* actor) {
+static void aPMAN_clear_xz_spd(NPC_POST_MAN* actor, GAME_PLAY* play) {
     actor->npc_class.actor_class.speed = 0.0f;
     actor->npc_class.movement.speed.max_speed = 0.0f;
     actor->npc_class.movement.speed.acceleration = 0.0f;
@@ -419,7 +419,7 @@ static void aPMAN_walk_init(NPC_POST_MAN* actor, GAME_PLAY* play) {
 }
 
 static void aPMAN_delivery_init(NPC_POST_MAN* actor, GAME_PLAY* play) {
-    aPMAN_clear_xz_spd(actor);
+    aPMAN_clear_xz_spd(actor, play);
     mPO_delivery_one_address(actor->delivery_idx);
     aPMAN_order_open_mailbox(actor, play);
     if (actor->delivery_idx < 3) {
@@ -438,7 +438,7 @@ static void aPMAN_talk_end_wait_init(NPC_POST_MAN* actor, GAME_PLAY* play) {
 
 static void aPMAN_fly_up_init(NPC_POST_MAN* actor, GAME_PLAY* play) {
     mEnv_regist_nature(&play->kankyo, aPMAN_eff_wings, actor);
-    aPMAN_clear_xz_spd(actor);
+    aPMAN_clear_xz_spd(actor, play);
 }
 
 static void aPMAN_exit_init(NPC_POST_MAN* actor, GAME_PLAY* play) {
@@ -455,11 +455,11 @@ static void aPMAN_init_proc(NPC_POST_MAN* actor, GAME_PLAY* play, u8 action) {
         aPMAN_hover_init,
         aPMAN_landing_init,
         aPMAN_kyoro_init,
-        (aPMAN_PROC)aPMAN_clear_xz_spd,
+        aPMAN_clear_xz_spd,
         aPMAN_walk_init,
-        (aPMAN_PROC)aPMAN_clear_xz_spd,
+        aPMAN_clear_xz_spd,
         aPMAN_delivery_init,
-        (aPMAN_PROC)aPMAN_clear_xz_spd,
+        aPMAN_clear_xz_spd,
         aPMAN_talk_end_wait_init,
         aPMAN_fly_up_init,
         aPMAN_exit_init,

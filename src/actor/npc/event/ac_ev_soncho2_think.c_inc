@@ -192,8 +192,16 @@ static u8 dt_tbl[15][5] = {
     { 6, 2, 1, aES2_TALK_a, aES2_THINK_c },
     { 7, 6, 1, aES2_TALK_TUG_O_WAR, aES2_THINK_TUG_O_WAR },
 };
+#ifdef TARGET_PC
+static void aES2_think_none(NPC_SONCHO2* soncho, GAME_PLAY* play) {
+}
+#endif
 static aEV_SONCHO2_PROC proc_table[8] = {
+#ifdef TARGET_PC
+    aES2_think_none,
+#else
     (aEV_SONCHO2_PROC)mActor_NONE_PROC1,
+#endif
     aES2_wait,
     aES2_look_runner,
     aES2_bskt_birth,
@@ -203,7 +211,11 @@ static aEV_SONCHO2_PROC proc_table[8] = {
     aES2_tug_of_war,
 };
 static aEV_SONCHO2_PROC init_table[7] = {
+#ifdef TARGET_PC
+    aES2_think_none,
+#else
     (aEV_SONCHO2_PROC)mActor_NONE_PROC1,
+#endif
     aES2_normal_wait_init,
     aES2_force_wait_init,
     aES2_wander_init,

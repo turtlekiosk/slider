@@ -146,7 +146,8 @@ static void aSHR_Present_move_walk(aSHR_Present_c* present) {
     }
 }
 
-static void aSHR_wait(SHRINE_ACTOR* shrine, GAME_PLAY* play) {
+static void aSHR_wait(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
+    SHRINE_ACTOR* shrine = (SHRINE_ACTOR*)actorx;
     if (mDemo_Check(mDemo_TYPE_TALK, (ACTOR*)shrine) == TRUE) {
         mDemo_Set_ListenAble();
         aSHR_setup_action(shrine, play, aSHR_ACTION_TALK);
@@ -155,7 +156,8 @@ static void aSHR_wait(SHRINE_ACTOR* shrine, GAME_PLAY* play) {
     }
 }
 
-static void aSHR_talk(SHRINE_ACTOR* shrine, GAME_PLAY* play) {
+static void aSHR_talk(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
+    SHRINE_ACTOR* shrine = (SHRINE_ACTOR*)actorx;
     static u8 choume_str[FG_BLOCK_Z_NUM + 1] = { 'Q', 'A', 'B', 'C', 'D', 'E', 'F' };
     mMsg_Window_c* msg_p = mMsg_Get_base_window_p();
     int msg_no = 0x1128;
@@ -242,7 +244,8 @@ static void aSHR_talk(SHRINE_ACTOR* shrine, GAME_PLAY* play) {
     }
 }
 
-static void aSHR_talk_gomen(SHRINE_ACTOR* shrine, GAME_PLAY* play) {
+static void aSHR_talk_gomen(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
+    SHRINE_ACTOR* shrine = (SHRINE_ACTOR*)actorx;
     mMsg_Window_c* msg_p = mMsg_Get_base_window_p();
     Submenu* submenu = &play->submenu;
     int msg_no = -1;
@@ -310,7 +313,8 @@ static void aSHR_make_hem_init(SHRINE_ACTOR* shrine) {
     mPlib_Set_able_force_speak_label((ACTOR*)shrine);
 }
 
-static void aSHR_make_hem(SHRINE_ACTOR* shrine, GAME_PLAY* play) {
+static void aSHR_make_hem(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
+    SHRINE_ACTOR* shrine = (SHRINE_ACTOR*)actorx;
     if (shrine->structure_class.actor_class.parent_actor == NULL) {
         if (mMsg_Check_MainDisappear(mMsg_Get_base_window_p()) && Common_Get(clip).npc_clip != NULL &&
             Common_Get(clip).npc_clip->setupActor_proc != NULL) {
@@ -343,26 +347,26 @@ static void aSHR_make_hem(SHRINE_ACTOR* shrine, GAME_PLAY* play) {
     }
 }
 
-static void aSHR_talk_end(SHRINE_ACTOR* shrine, GAME_PLAY* play) {
+static void aSHR_talk_end(STRUCTURE_ACTOR* actorx, GAME_PLAY* play) {
+    SHRINE_ACTOR* shrine = (SHRINE_ACTOR*)actorx;
     if (mDemo_Check(mDemo_TYPE_TALK, (ACTOR*)shrine) == FALSE) {
         aSHR_setup_action(shrine, play, aSHR_ACTION_WAIT);
     }
 }
 
-typedef void (*aSHR_PROC)(SHRINE_ACTOR*, GAME_PLAY*);
 typedef void (*aSHR_INIT_PROC)(SHRINE_ACTOR*);
 
 static void aSHR_setup_action(SHRINE_ACTOR* shrine, GAME_PLAY* play, int action) {
     static aSHR_INIT_PROC init_proc[aSHR_ACTION_NUM] = { NULL, NULL, NULL, &aSHR_make_hem_init, NULL };
 
-    static aSHR_PROC process[aSHR_ACTION_NUM] = { &aSHR_wait, &aSHR_talk, &aSHR_talk_gomen, &aSHR_make_hem,
-                                                  &aSHR_talk_end };
+    static aSTR_MOVE_PROC process[aSHR_ACTION_NUM] = { &aSHR_wait, &aSHR_talk, &aSHR_talk_gomen, &aSHR_make_hem,
+                                                       &aSHR_talk_end };
 
     if (init_proc[action] != NULL) {
         (*init_proc[action])(shrine);
     }
 
-    shrine->structure_class.action_proc = (aSTR_MOVE_PROC)process[action];
+    shrine->structure_class.action_proc = process[action];
     shrine->structure_class.action = action;
 }
 
@@ -370,7 +374,7 @@ static void aSHR_actor_move(ACTOR* actorx, GAME* game) {
     GAME_PLAY* play = (GAME_PLAY*)game;
     SHRINE_ACTOR* shrine = (SHRINE_ACTOR*)actorx;
 
-    (*(aSHR_PROC)shrine->structure_class.action_proc)(shrine, play);
+    (*shrine->structure_class.action_proc)(&shrine->structure_class, play);
     aSHR_Present_move(&aSHR_present, shrine, play);
     sAdo_OngenPos((u32)actorx, 0x5A, &actorx->world.position);
 }
