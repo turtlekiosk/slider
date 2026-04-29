@@ -45,20 +45,48 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
+// Cache-first with a true fallback path. The previous version only fell
+// back to cache on fetch *rejection* (offline / DNS fail). When the host
+// returns a 5xx or 404 (deploy in progress, GitHub Pages hiccup, CF
+// interstitial), fetch *resolves* with that error and the response would
+// be passed straight through to the browser. Now we treat any non-OK
+// response as cache-eligible for navigation, and always fall back to a
+// cached index for navigation when network gives us anything bad.
 self.addEventListener('fetch', (event) => {
     const req = event.request;
     if (req.method !== 'GET') return;
+
+    const tryCache = (matchOpts) =>
+        caches.match(req, matchOpts || { ignoreSearch: true });
+
+    const navFallback = () =>
+        caches.match('./AnimalCrossing.html', { ignoreSearch: true })
+            .then((cached) => cached || caches.match('./', { ignoreSearch: true }));
+
     event.respondWith(
-        caches.match(req).then((cached) => {
+        tryCache().then((cached) => {
             if (cached) return cached;
             return fetch(req)
                 .then((res) => {
-                    if (!res || res.status !== 200 || res.type !== 'basic') return res;
-                    const copy = res.clone();
-                    caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
+                    if (res && res.ok && res.type === 'basic') {
+                        const copy = res.clone();
+                        caches.open(CACHE_VERSION).then((cache) => cache.put(req, copy));
+                        return res;
+                    }
+                    // Network responded with an error status. For
+                    // navigation requests, prefer cached HTML over the
+                    // host's error page so the PWA stays usable.
+                    if (req.mode === 'navigate') {
+                        return navFallback().then((fb) => fb || res);
+                    }
                     return res;
                 })
-                .catch(() => caches.match('./AnimalCrossing.html'));
+                .catch(() => {
+                    // True network failure (offline, DNS, TCP). Same
+                    // navigation fallback path.
+                    if (req.mode === 'navigate') return navFallback();
+                    return Response.error();
+                });
         })
     );
 });
