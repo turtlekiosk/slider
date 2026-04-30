@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a1a">
+    <!-- iOS PWA: "Add to Home Screen" launches fullscreen without browser chrome.
+         The Fullscreen API doesn't work on arbitrary elements in iOS Safari, so
+         this is the only way to hide the URL/status bars on iPhone. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ACGC">
+    <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -38,6 +45,16 @@
             justify-content: center;
             height: 100%;
             width: 100%;
+        }
+        /* When the portrait touch overlay is active, bias the canvas toward
+           the top of the viewport so the bottom-anchored controls have
+           breathing room without fully detaching from the game image.
+           padding-bottom: 50dvh shifts the flex-centered child from the
+           50% line to the 25% line; in landscape (Layout B) controls sit
+           on the sides so we keep normal centering. */
+        body.tc-bias-top #container {
+            padding-bottom: 50dvh;
+            box-sizing: border-box;
         }
         #canvas {
             display: block;
@@ -103,11 +120,17 @@
             z-index: 10;
             padding: 32px 24px;
             box-sizing: border-box;
-            overflow: auto;
+            overflow-x: hidden;
+            overflow-y: auto;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
             gap: 20px;
+        }
+        @media (max-width: 480px) {
+            #rom-picker { padding: 20px 14px; gap: 14px; }
+            #rom-instructions { padding-left: 16px; font-size: 13px; }
+            #rom-picker h1 { font-size: 18px; }
         }
         #rom-picker.visible { display: flex; }
         #rom-picker h1 {
@@ -122,8 +145,22 @@
             font-size: 14px;
             opacity: 0.85;
             padding-left: 20px;
+            box-sizing: border-box;
         }
         #rom-instructions li { margin: 6px 0; }
+        #rom-instructions a {
+            color: #ddd;
+            text-decoration: underline;
+            text-decoration-color: rgba(255,255,255,0.35);
+            text-underline-offset: 2px;
+            transition: color 0.1s, text-decoration-color 0.1s;
+        }
+        #rom-instructions a:hover,
+        #rom-instructions a:focus-visible {
+            color: #fff;
+            text-decoration-color: #ccc;
+        }
+        #rom-instructions a:visited { color: #ddd; }
         #rom-drop {
             display: flex;
             flex-direction: column;
@@ -148,13 +185,16 @@
         #rom-drop input { display: none; }
         #rom-drop .primary { font-size: 16px; margin-bottom: 4px; }
         #rom-drop .secondary { font-size: 12px; opacity: 0.65; }
-        #rom-status {
+        #rom-status,
+        #rom-runtime-status {
             min-height: 1.4em;
             font-size: 13px;
             opacity: 0.85;
         }
-        #rom-status.error { color: #f88; opacity: 1; }
-        #rom-status.ok    { color: #6c0; opacity: 1; }
+        #rom-status.error,
+        #rom-runtime-status.error { color: #f88; opacity: 1; }
+        #rom-status.ok,
+        #rom-runtime-status.ok    { color: #6c0; opacity: 1; }
         #rom-saves {
             width: 100%;
             max-width: 600px;
@@ -245,6 +285,7 @@
 
         #rom-start {
             margin-top: 8px;
+            margin-bottom: 24px;
             padding: 12px 24px;
             background: #1a1a1a;
             color: #ddd;
@@ -469,20 +510,59 @@
             touch-action: none;
         }
         /* nipplejs renders absolutely-positioned joystick visuals into the
-           zone; ensure they sit above the canvas but below the buttons. */
+           zone; ensure they sit above the canvas but below the buttons.
+           Pure white was too harsh against the game image — soften to a
+           dim translucent white that visually matches the other controls. */
         #tc-stick-zone .nipple { z-index: 5; }
+        #tc-stick-zone .nipple .back  { opacity: 0.55 !important; }
+        #tc-stick-zone .nipple .front { opacity: 0.75 !important; }
 
-        /* ===== Layout A — portrait / default ===== */
+        /* Hint shown in the stick zone while idle so users know it's
+           interactive. Fades out when nipplejs is active (managed by the
+           script via .stick-active on the parent overlay). Inherits the
+           same opacity variables as the other controls. */
+        #tc-stick-hint {
+            position: absolute;
+            pointer-events: none;
+            width: 110px;
+            height: 110px;
+            transition: opacity 0.15s ease;
+            opacity: 1;
+        }
+        #touch-controls.stick-active #tc-stick-hint { opacity: 0; }
+        #tc-stick-hint .hint-bg {
+            fill: rgba(255, 255, 255, var(--tc-bg-alpha));
+            stroke: rgba(255, 255, 255, var(--tc-stroke-alpha));
+            stroke-width: 2;
+        }
+        #tc-stick-hint .hint-knob {
+            fill: rgba(255, 255, 255, calc(var(--tc-bg-alpha) + 0.15));
+        }
+        /* Hint position. In portrait, vertically center the hint against
+           the right-column button cluster (B at bottom ~38, Start at top
+           ~272 → midpoint ~155 from bottom; minus the 55px hint half-
+           height gives bottom: 100). In landscape, mid-left edge. */
+        #touch-controls.layout-a #tc-stick-hint { left: 30px;  bottom: 100px; }
+        #touch-controls.layout-b #tc-stick-hint { left: 40px;  top: 50%; transform: translateY(-50%); }
+
+        /* ===== Layout A — portrait / default =====
+           D-pad is hidden in portrait — its uses (letter writing, pattern
+           editor, item arrangement, NES emulator) all benefit from a wider
+           screen anyway. Players who need it rotate to Layout B.
+           Start is stacked above Y in the right cluster so it's reachable
+           by the right thumb instead of needing a stretch to the top. */
         #touch-controls.layout-a #tc-stick-zone { left: 0; bottom: 0; width: 50%; height: 60%; }
-        #touch-controls.layout-a #tc-dpad  { left: 16px;  bottom: 28px;  width: 110px; height: 110px; }
+        #touch-controls.layout-a #tc-dpad  { display: none; }
         #touch-controls.layout-a #tc-a     { right: 28px; bottom: 70px;  width: 86px;  height: 86px;  }
         #touch-controls.layout-a #tc-b     { right: 124px;bottom: 38px;  width: 70px;  height: 70px;  }
         #touch-controls.layout-a #tc-y     { right: 70px; bottom: 158px; width: 64px;  height: 64px;  }
-        #touch-controls.layout-a #tc-start { right: 16px; top: 16px;     width: 64px;  height: 32px;  }
+        #touch-controls.layout-a #tc-start { right: 50px; bottom: 240px; width: 64px;  height: 32px;  }
 
-        /* ===== Layout B — landscape / split ===== */
+        /* ===== Layout B — landscape / split =====
+           D-pad hidden here too — its uses are rare and dedicated thumb
+           real estate is better given to the stick. */
         #touch-controls.layout-b #tc-stick-zone { left: 0;   top: 0; width: 40%; height: 100%; }
-        #touch-controls.layout-b #tc-dpad  { left: 24px;  bottom: 24px; width: 110px; height: 110px; }
+        #touch-controls.layout-b #tc-dpad  { display: none; }
         #touch-controls.layout-b #tc-a     { right: 36px;  bottom: 90px; width: 86px;  height: 86px;  }
         #touch-controls.layout-b #tc-b     { right: 132px; bottom: 50px; width: 70px;  height: 70px;  }
         #touch-controls.layout-b #tc-y     { right: 78px;  bottom: 178px;width: 64px;  height: 64px;  }
@@ -493,7 +573,7 @@
     <div id="container">
         <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
     </div>
-    <div id="status">loading…</div>
+    <div id="status" style="display: none;"></div>
     <div id="progress"></div>
     <!-- @PC_WEB_BUILD_TAG@ is stamped in at build time by configure_file()
          in pc/CMakeLists.txt. If you open this file directly without
@@ -506,7 +586,16 @@
          pc/src/pc_pad.c under __EMSCRIPTEN__). nipplejs renders the
          floating analog stick into #tc-stick-zone. -->
     <div id="touch-controls" aria-hidden="true">
-        <div id="tc-stick-zone"></div>
+        <div id="tc-stick-zone">
+            <!-- At-rest hint: well + knob shape so users know this area is
+                 the stick. Fades while nipplejs is actively rendering. -->
+            <div id="tc-stick-hint" aria-hidden="true">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="46" class="hint-bg" />
+                    <circle cx="50" cy="50" r="20" class="hint-knob" />
+                </svg>
+            </div>
+        </div>
         <div id="tc-dpad" class="tc-button" data-tc-dpad="1" aria-label="D-pad">
             <svg viewBox="0 0 100 100">
                 <path class="tc-bg" d="M36 4 H64 V36 H96 V64 H64 V96 H36 V64 H4 V36 H36 Z" />
@@ -529,8 +618,8 @@
     <div id="rom-picker" aria-hidden="true">
         <h1>Slider – A Web Port of GC Animal Crossing</h1>
         <ol id="rom-instructions">
-            <li>Although this is a port and not an emulator, no assets are distributed with here. A disc image file of AC is still necessary to play the game for this reason.</li>
-            <li>Thank you to ACreTeam and flyngmt for their work on the decomp and PC port of ACGC, on which this project is built on top of.</li>
+            <li>Although this is a port and not an emulator, no assets are distributed here. A disc image file of AC is still necessary to play the game for this reason.</li>
+            <li>Thank you to <a href="https://github.com/ACreTeam/ac-decomp">ACreTeam</a> and <a href="https://github.com/flyngmt/ACGC-PC-Port">flyngmt</a> for their work on the decomp and PC port of ACGC, on which this project is built on top of.</li>
             <li>This software is provided as-is, without warranty of any kind. There's no guarantee it won't corrupt your save data at some point, so export your save data as often as necessary.</li>
         </ol>
         <label id="rom-drop" for="rom-file">
@@ -538,6 +627,7 @@
             <div class="secondary">.iso · .gcm · .ciso — stays on your device</div>
             <input id="rom-file" type="file" accept=".iso,.gcm,.ciso">
         </label>
+        <div id="rom-runtime-status"></div>
         <div id="rom-status"></div>
 
         <div id="rom-saves">
@@ -546,18 +636,20 @@
             <div class="rom-saves-grid">
                 <div class="rom-saves-slot" data-slot="a">
                     <div class="rom-saves-slot-label">Card A</div>
-                    <div class="rom-saves-slot-state">Empty</div>
+                    <div class="rom-saves-slot-state">Checking…</div>
                     <div class="rom-saves-slot-actions">
-                        <button class="rom-saves-btn" type="button" id="rom-import-a">Import…</button>
-                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-a" disabled>Delete</button>
+                        <button class="rom-saves-btn" type="button" id="rom-import-a" style="display:none">Import…</button>
+                        <button class="rom-saves-btn" type="button" id="rom-export-a" style="display:none">Export</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-a" style="display:none">Delete</button>
                     </div>
                 </div>
                 <div class="rom-saves-slot" data-slot="b">
                     <div class="rom-saves-slot-label">Card B</div>
-                    <div class="rom-saves-slot-state">Empty</div>
+                    <div class="rom-saves-slot-state">Checking…</div>
                     <div class="rom-saves-slot-actions">
-                        <button class="rom-saves-btn" type="button" id="rom-import-b">Import…</button>
-                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-b" disabled>Delete</button>
+                        <button class="rom-saves-btn" type="button" id="rom-import-b" style="display:none">Import…</button>
+                        <button class="rom-saves-btn" type="button" id="rom-export-b" style="display:none">Export</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="rom-remove-b" style="display:none">Delete</button>
                     </div>
                 </div>
             </div>
@@ -578,20 +670,20 @@
             <div id="settings-saves" class="rom-saves-grid">
                 <div class="rom-saves-slot" data-slot="a">
                     <div class="rom-saves-slot-label">Card A</div>
-                    <div class="rom-saves-slot-state">Empty</div>
+                    <div class="rom-saves-slot-state">Checking…</div>
                     <div class="rom-saves-slot-actions">
-                        <button class="rom-saves-btn" type="button" id="settings-import-a">Import…</button>
-                        <button class="rom-saves-btn" type="button" id="settings-export-a">Export</button>
-                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="settings-remove-a" disabled>Delete</button>
+                        <button class="rom-saves-btn" type="button" id="settings-import-a" style="display:none">Import…</button>
+                        <button class="rom-saves-btn" type="button" id="settings-export-a" style="display:none">Export</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="settings-remove-a" style="display:none">Delete</button>
                     </div>
                 </div>
                 <div class="rom-saves-slot" data-slot="b">
                     <div class="rom-saves-slot-label">Card B</div>
-                    <div class="rom-saves-slot-state">Empty</div>
+                    <div class="rom-saves-slot-state">Checking…</div>
                     <div class="rom-saves-slot-actions">
-                        <button class="rom-saves-btn" type="button" id="settings-import-b">Import…</button>
-                        <button class="rom-saves-btn" type="button" id="settings-export-b">Export</button>
-                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="settings-remove-b" disabled>Delete</button>
+                        <button class="rom-saves-btn" type="button" id="settings-import-b" style="display:none">Import…</button>
+                        <button class="rom-saves-btn" type="button" id="settings-export-b" style="display:none">Export</button>
+                        <button class="rom-saves-btn rom-saves-btn-secondary" type="button" id="settings-remove-b" style="display:none">Delete</button>
                     </div>
                 </div>
             </div>
@@ -713,14 +805,7 @@
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', resizeCanvasToViewport);
         }
-        window.addEventListener('load', function() {
-            // URL-bar / soft-keyboard chrome on Android Chrome can keep
-            // shifting innerHeight for a moment after `load`. Sample a
-            // few more times to settle on the stable size.
-            setTimeout(resizeCanvasToViewport, 50);
-            setTimeout(resizeCanvasToViewport, 250);
-            setTimeout(resizeCanvasToViewport, 800);
-        });
+        window.addEventListener('load', resizeCanvasToViewport);
 
         var Module = {
             canvas: (function() {
@@ -764,32 +849,135 @@
         // a disc image in the IDBFS-backed /orig directory. The file is
         // validated (GameCube magic word at offset 0x1C), written to
         // /orig/user-rom.iso, and persisted via FS.syncfs(false).
-        var pickerEl   = document.getElementById('rom-picker');
-        var dropEl     = document.getElementById('rom-drop');
-        var fileInput  = document.getElementById('rom-file');
-        var statusBox  = document.getElementById('rom-status');
+        var pickerEl       = document.getElementById('rom-picker');
+        var dropEl         = document.getElementById('rom-drop');
+        var fileInput      = document.getElementById('rom-file');
+        var statusBox      = document.getElementById('rom-status');
+        var runtimeStatusBox = document.getElementById('rom-runtime-status');
 
+        function _statusKindClass(kind) {
+            if (kind === true || kind === 'error') return 'error';
+            if (kind === 'ok') return 'ok';
+            return '';
+        }
+        function setRuntimeStatus(msg, kind) {
+            if (!runtimeStatusBox) return;
+            runtimeStatusBox.textContent = msg || '';
+            runtimeStatusBox.className = _statusKindClass(kind);
+        }
         function setRomStatus(msg, kind) {
             statusBox.textContent = msg || '';
-            // kind: undefined/false = default (neutral), true or 'error' =
-            // red, 'ok' = green (matches the save-slot state-text color).
-            var cls = '';
-            if (kind === true || kind === 'error') cls = 'error';
-            else if (kind === 'ok') cls = 'ok';
-            statusBox.className = cls;
+            statusBox.className = _statusKindClass(kind);
         }
 
         function showRomPicker() {
             pickerEl.classList.add('visible');
             pickerEl.setAttribute('aria-hidden', 'false');
-            setRomStatus('');
+            refreshRomStatus();
+            if (typeof window._onPickerShow === 'function') window._onPickerShow();
+            updateGearVisibility();
         }
         function hideRomPicker() {
             pickerEl.classList.remove('visible');
             pickerEl.setAttribute('aria-hidden', 'true');
+            updateGearVisibility();
+        }
+        function updateGearVisibility() {
+            // Lookup at call time — this function is invoked from
+            // showRomPicker (which can run before the settings-menu vars
+            // are initialized further down).
+            var g = document.getElementById('settings-gear');
+            if (!g) return;
+            var ready = _runtimeReady && !pickerEl.classList.contains('visible');
+            g.style.display = ready ? 'block' : 'none';
+        }
+        /* Inspect the IDBFS-mounted /orig directory. If a previously-
+         * imported user-rom.iso exists, mark the import state as ready
+         * and surface the file's name/size so the user knows what they
+         * have before clicking Start. Safe to call before FS exists
+         * (no-ops). Re-runs whenever the picker is shown so a freshly-
+         * imported ROM appears without needing a reload. */
+        function refreshRomStatus() {
+            // Runtime line — independent of any ROM state.
+            if (typeof FS === 'undefined') {
+                setRuntimeStatus('Loading runtime…');
+            } else {
+                setRuntimeStatus('Runtime ready.', 'ok');
+            }
+            // ROM line. Module.__rom_ready is set by pc_web_mount_rom() once
+            // IDBFS is mounted on /orig and FS.syncfs(true) has populated
+            // MEMFS. If it hasn't flipped yet, FS.stat would falsely report
+            // "no ROM" — so leave a "Checking…" placeholder unless the early
+            // IDB check has already populated something. The poll re-runs
+            // once the flag flips.
+            if (typeof FS === 'undefined' || !Module || !Module.__rom_ready) {
+                if (!statusBox.textContent) setRomStatus('Checking for ROM…');
+                return;
+            }
+            var path = '/orig/user-rom.iso';
+            try {
+                var st = FS.stat(path);
+                /* ROM already imported and persisted — hide the drop zone
+                 * so the picker is just a "click to play" surface. */
+                setRomDropVisible(false);
+                setRomStatus('ROM ready (' +
+                             formatBytes(st.size | 0) + ')', 'ok');
+                setStartEnabled(true);
+            } catch (e) {
+                setRomDropVisible(true);
+                setRomStatus('No ROM imported. Drop one above to begin.');
+                setStartEnabled(false);
+            }
+        }
+        function setRomDropVisible(on) {
+            if (dropEl) dropEl.style.display = on ? '' : 'none';
         }
         // Expose to wasm via Module global lookup
         window.showRomPicker = showRomPicker;
+        // Show the picker eagerly. Status is "Loading runtime…" until FS
+        // is available; flips to ROM/card state once it is.
+        showRomPicker();
+
+        // Early-detect a previously-imported ROM by reading IDBFS's
+        // IndexedDB store directly, before the wasm runtime is ready.
+        // Lets the picker say "ROM ready" the moment the page paints
+        // instead of waiting for Module.onRuntimeInitialized to fire.
+        // The runtime-init path also calls refreshRomStatus() later as
+        // a tie-breaker if anything mismatches.
+        (function checkPersistedRomEarly() {
+            if (typeof indexedDB === 'undefined') return;
+            var dbName = 'EM_FS_' + window.location.pathname;
+            var req;
+            try { req = indexedDB.open(dbName); }
+            catch (e) { return; }
+            req.onerror = function() { /* ignore */ };
+            req.onsuccess = function() {
+                var db = req.result;
+                try {
+                    if (!db.objectStoreNames.contains('FILE_DATA')) {
+                        db.close();
+                        return;
+                    }
+                    var tx    = db.transaction(['FILE_DATA'], 'readonly');
+                    var get   = tx.objectStore('FILE_DATA').get('/orig/user-rom.iso');
+                    get.onsuccess = function() {
+                        var entry = get.result;
+                        // Only override if the picker is still in its
+                        // pre-runtime "Loading runtime…" state — don't
+                        // clobber a status the runtime path has set.
+                        if (entry && entry.contents && typeof FS === 'undefined') {
+                            var size = entry.contents.byteLength || entry.contents.length || 0;
+                            setRomDropVisible(false);
+                            setRomStatus('ROM ready (' +
+                                         formatBytes(size) + ')', 'ok');
+                            setStartEnabled(true);
+                        }
+                        db.close();
+                    };
+                    get.onerror = function() { db.close(); };
+                } catch (e) { try { db.close(); } catch (_) {} }
+            };
+        })();
 
         // GC disc magic word lives at offset 0x1C, big-endian 0xC2339F3D.
         function isValidGCImage(buf) {
@@ -904,7 +1092,35 @@
                 setRomStatus('Loading…');
                 Module.__rom_uploaded = 1;
                 hideRomPicker();
+                requestPageFullscreen();
             });
+        }
+        // Fullscreen API path — works on Android (Chrome/Firefox/Samsung) when
+        // called from a user gesture. Silently no-ops on iOS Safari, where
+        // arbitrary-element fullscreen isn't supported; iOS users get fullscreen
+        // via "Add to Home Screen" (driven by the apple-mobile-web-app-capable
+        // meta tag and the manifest's display:fullscreen).
+        function isMobileLike() {
+            try {
+                // Touch-primary devices: phones and most tablets. Excludes
+                // desktops/laptops with a mouse, where forcing fullscreen
+                // would just hide the user's browser chrome unprompted.
+                return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+            } catch (e) { return false; }
+        }
+        function requestPageFullscreen() {
+            if (!isMobileLike()) return;
+            try {
+                var el = document.documentElement;
+                var req = el.requestFullscreen
+                       || el.webkitRequestFullscreen
+                       || el.mozRequestFullScreen
+                       || el.msRequestFullscreen;
+                if (req) {
+                    var p = req.call(el);
+                    if (p && typeof p.catch === 'function') p.catch(function() {});
+                }
+            } catch (e) { /* ignore */ }
         }
 
         fileInput.addEventListener('change', function(ev) {
@@ -974,6 +1190,30 @@
                 _origOnRuntimeInitialized();
             }
             _runtimeReady = true;
+            updateGearVisibility();
+            /* IDBFS for /orig and /save mount asynchronously inside main()'s
+             * pc_web_mount_*() helpers. Each calls window._onRomReady /
+             * window._onSaveReady from inside the FS.syncfs callback once
+             * the directory is hydrated, so the UI updates exactly when the
+             * data is queryable — no polling needed. If main() runs before
+             * the runtime-init handler installed these callbacks (race), the
+             * tail-check below covers the late-bind case. */
+            if (Module.__rom_ready)  { try { refreshRomStatus(); } catch (e) {} }
+            if (Module.__save_ready) {
+                try {
+                    var rs = document.getElementById('rom-saves');
+                    if (rs && rs._refresh) rs._refresh();
+                } catch (e) {}
+            }
+        };
+        window._onRomReady = function() {
+            try { refreshRomStatus(); } catch (e) {}
+        };
+        window._onSaveReady = function() {
+            try {
+                var rs = document.getElementById('rom-saves');
+                if (rs && rs._refresh) rs._refresh();
+            } catch (e) {}
         };
         window.addEventListener('beforeunload', function(e) {
             if (!_runtimeReady) return;
@@ -1062,15 +1302,46 @@
                 return false;
             }
         }
-        // Poll for the SDL audio node to appear (SDL doesn't create it
-        // until first playback). Bail on first hit.
-        var _audioWireInterval = setInterval(function() {
-            if (_wireAudioGainNow()) clearInterval(_audioWireInterval);
-        }, 250);
+        // SDL2 only creates its audio node lazily — usually after a user
+        // gesture (browser autoplay policy) and the wasm side calling
+        // SDL_OpenAudio. Try to wire on every user-initiated event until
+        // it succeeds, then unhook. No polling — only fires on real input.
+        function _tryAudioWireOnGesture() {
+            if (_wireAudioGainNow()) {
+                window.removeEventListener('pointerdown', _tryAudioWireOnGesture, true);
+                window.removeEventListener('keydown',     _tryAudioWireOnGesture, true);
+                window.removeEventListener('touchstart',  _tryAudioWireOnGesture, true);
+            }
+        }
+        window.addEventListener('pointerdown', _tryAudioWireOnGesture, true);
+        window.addEventListener('keydown',     _tryAudioWireOnGesture, true);
+        window.addEventListener('touchstart',  _tryAudioWireOnGesture, true);
         function setAudioMuted(muted) {
             _settings.muteAudio = !!muted;
             saveSettings({ muteAudio: _settings.muteAudio });
             if (_audioChain.gain) _audioChain.gain.gain.value = muted ? 0 : 1;
+        }
+        // Synchronously cut the audio graph from the destination so SDL's
+        // ScriptProcessorNode can't repeat its last buffer (or click on
+        // underrun) while the main thread is blocked by a modal dialog.
+        // The GainNode disconnect lives on the audio thread, so it takes
+        // effect even though JS is paused. Falls back to disconnecting the
+        // raw SDL node if the gain stage hasn't been wired up yet.
+        function disconnectAudio() {
+            if (_audioChain.gain) {
+                try { _audioChain.gain.disconnect(); _gainDisconnected = true; } catch (e) {}
+            } else {
+                var node = getAudioOutputNode();
+                if (node) { try { node.disconnect(); } catch (e) {} }
+            }
+        }
+        // Wrap a synchronous, main-thread-blocking call (e.g. window.confirm)
+        // with audio disconnected for its duration. Used for in-page modal
+        // dialogs that resume normal flow when the user closes them.
+        function withAudioSilenced(fn) {
+            disconnectAudio();
+            try { return fn(); }
+            finally { reconnectAudio(); }
         }
         // Track whether we've disconnected the gain on beforeunload, so
         // focus can put it back if the user cancels the close dialog.
@@ -1084,16 +1355,10 @@
             resumeAudio();
         }
         window.addEventListener('beforeunload', function() {
-            // Synchronous: disconnect the gain stage so no more samples
-            // reach the destination before the close-confirm modal
-            // freezes the wasm thread. Also covers the case where the
-            // gain hasn't been wired yet — fall back to the raw SDL node.
-            if (_audioChain.gain) {
-                try { _audioChain.gain.disconnect(); _gainDisconnected = true; } catch (e) {}
-            } else {
-                var node = getAudioOutputNode();
-                if (node) { try { node.disconnect(); } catch (e) {} }
-            }
+            // Synchronously cut audio so the close-confirm modal doesn't
+            // freeze the wasm thread mid-buffer and produce a buzz. If the
+            // user cancels the close, the focus listener restores the graph.
+            disconnectAudio();
             suspendAudio();
         });
         // If the user cancels the close dialog, the page regains focus —
@@ -1379,9 +1644,11 @@
             var SLOTS = {
                 a: { dir: '/save/card_a', el: root.querySelector('.rom-saves-slot[data-slot="a"]'),
                      btnImport: document.getElementById('rom-import-a'),
+                     btnExport: document.getElementById('rom-export-a'),
                      btnRemove: document.getElementById('rom-remove-a') },
                 b: { dir: '/save/card_b', el: root.querySelector('.rom-saves-slot[data-slot="b"]'),
                      btnImport: document.getElementById('rom-import-b'),
+                     btnExport: document.getElementById('rom-export-b'),
                      btnRemove: document.getElementById('rom-remove-b') }
             };
 
@@ -1400,19 +1667,36 @@
                 var s = SLOTS[slot];
                 if (!s || !s.el) return;
                 if (typeof FS === 'undefined') return;
+                // Don't refresh until IDBFS for /save has finished mounting.
+                // FS.readdir would otherwise return empty (the directory
+                // exists but hasn't been hydrated yet), making us flash
+                // "Empty" before "Checking…" had a chance to be replaced
+                // by the real state. The runtime-init poll re-calls this
+                // once __save_ready flips.
+                if (!Module || !Module.__save_ready) return;
                 var files = listGcis(s.dir);
                 var stateEl = s.el.querySelector('.rom-saves-slot-state');
+                // Reveal action buttons now that the check has resolved.
+                // Import is always available; Delete shows but is disabled
+                // when empty; Export only appears when the slot has data.
+                if (s.btnImport) s.btnImport.style.display = '';
+                if (s.btnRemove) s.btnRemove.style.display = '';
                 if (files.length > 0) {
                     s.el.classList.add('has-data');
                     stateEl.textContent = summarizeSlot(slot, s.dir, files);
                     if (s.btnRemove) s.btnRemove.disabled = false;
+                    if (s.btnExport) s.btnExport.style.display = '';
                 } else {
                     s.el.classList.remove('has-data');
                     stateEl.textContent = 'Empty';
                     if (s.btnRemove) s.btnRemove.disabled = true;
+                    if (s.btnExport) s.btnExport.style.display = 'none';
                 }
             }
             function refreshAll() { refreshSlotUi('a'); refreshSlotUi('b'); }
+            /* Expose for the picker's onRuntimeInitialized hook so the
+             * card slots re-read their state once IDBFS is mounted. */
+            root._refresh = refreshAll;
 
             function pick(slot) {
                 input.value = '';
@@ -1424,6 +1708,12 @@
                 if (!s || typeof FS === 'undefined') return;
                 var files = listGcis(s.dir);
                 if (files.length === 0) return;
+                var label  = 'Card ' + slot.toUpperCase();
+                var detail = summarizeSlot(slot, s.dir, files, 'last saved');
+                var msg = 'Delete ' + label + ' save data (' + detail + ')?\n\nThis cannot be undone.';
+                if (!withAudioSilenced(function() { return confirm(msg); })) {
+                    return;
+                }
                 files.forEach(function(name) {
                     try { FS.unlink(s.dir + '/' + name); }
                     catch (e) { console.warn('[rom-saves] unlink failed:', s.dir + '/' + name, e && e.message); }
@@ -1439,8 +1729,24 @@
                 });
             }
 
+            function exportSlot(slot, btn) {
+                try {
+                    var n = window.exportSave(slot);
+                    if (n > 0) {
+                        setStatus('Exported ' + n + ' file' + (n === 1 ? '' : 's') +
+                                  ' from Card ' + slot.toUpperCase() + '.', 'ok');
+                    } else {
+                        setStatus('No save found in slot ' + slot.toUpperCase() + '.', 'error');
+                    }
+                } catch (e) {
+                    setStatus('Export failed: ' + (e && e.message || e), 'error');
+                }
+            }
+
             SLOTS.a.btnImport.addEventListener('click', function() { pick('a'); });
             SLOTS.b.btnImport.addEventListener('click', function() { pick('b'); });
+            SLOTS.a.btnExport.addEventListener('click', function() { exportSlot('a', this); });
+            SLOTS.b.btnExport.addEventListener('click', function() { exportSlot('b', this); });
             SLOTS.a.btnRemove.addEventListener('click', function() { removeSlot('a'); });
             SLOTS.b.btnRemove.addEventListener('click', function() { removeSlot('b'); });
 
@@ -1461,15 +1767,10 @@
                 });
             });
 
-            // Refresh state every time the picker becomes visible so
-            // previously-persisted saves are reflected. Lightweight poll
-            // (only does FS.readdir on /save/card_*; cheap).
-            var _lastPickerVisible = false;
-            setInterval(function() {
-                var visible = pickerEl.classList.contains('visible');
-                if (visible && !_lastPickerVisible) refreshAll();
-                _lastPickerVisible = visible;
-            }, 200);
+            /* Re-read slot state every time the picker is shown so
+             * previously-persisted saves are reflected. Hooked into
+             * showRomPicker/hideRomPicker via window._onPickerShow. */
+            window._onPickerShow = function() { refreshAll(); };
         })();
 
         // ----- Settings menu -----
@@ -1512,27 +1813,29 @@
             if (!s || !s.el) return;
             var files = settingsListGcis(s.dir);
             var stateEl = s.el.querySelector('.rom-saves-slot-state');
+            // Reveal action buttons now that the check has resolved.
+            // Import is always available; Delete shows but is disabled
+            // when empty; Export only appears when the slot has data.
+            if (s.btnImport) s.btnImport.style.display = '';
+            if (s.btnRemove) s.btnRemove.style.display = '';
             if (files.length > 0) {
                 s.el.classList.add('has-data');
                 stateEl.textContent = summarizeSlot(slot, s.dir, files, 'last saved');
                 if (s.btnRemove) s.btnRemove.disabled = false;
-                if (s.btnExport) s.btnExport.disabled = false;
+                if (s.btnExport) s.btnExport.style.display = '';
             } else {
                 s.el.classList.remove('has-data');
                 stateEl.textContent = 'Empty';
                 if (s.btnRemove) s.btnRemove.disabled = true;
-                if (s.btnExport) s.btnExport.disabled = true;
+                if (s.btnExport) s.btnExport.style.display = 'none';
             }
         }
         function refreshSettingsSlots() { refreshSettingsSlot('a'); refreshSettingsSlot('b'); }
 
-        // Show the gear once the runtime is up AND the ROM picker is gone.
-        // Polled because both flags can flip independently of any event we
-        // already hook (no point adding bespoke events for this).
-        setInterval(function() {
-            var ready = _runtimeReady && !pickerEl.classList.contains('visible');
-            gearEl.style.display = ready ? 'block' : 'none';
-        }, 200);
+        // Gear visibility is event-driven now: showRomPicker / hideRomPicker
+        // call updateGearVisibility, and the runtime-init handler calls it
+        // once when _runtimeReady flips. No polling needed.
+        updateGearVisibility();
 
         function openMenu() {
             // Sync the mute checkbox with current setting on every open
@@ -1567,8 +1870,6 @@
 
         // Settings-menu slot buttons.
         function settingsExport(slot, btn) {
-            btn.disabled = true;
-            var prev = btn.textContent;
             try {
                 var n = window.exportSave(slot);
                 if (n > 0) {
@@ -1579,7 +1880,6 @@
             } catch (e) {
                 setSaveStatus('Export failed: ' + (e && e.message || e), 'error');
             }
-            setTimeout(function() { btn.disabled = false; btn.textContent = prev; }, 400);
         }
         function settingsPickImport(slot) {
             importInputEl.value = '';                  // allow same-file re-pick
@@ -1593,7 +1893,8 @@
             if (files.length === 0) return;
             var label  = 'Card ' + slot.toUpperCase();
             var detail = summarizeSlot(slot, s.dir, files, 'last saved');
-            if (!confirm('Delete ' + label + ' save data (' + detail + ')?\n\nThis cannot be undone.')) {
+            var msg = 'Delete ' + label + ' save data (' + detail + ')?\n\nThis cannot be undone.';
+            if (!withAudioSilenced(function() { return confirm(msg); })) {
                 return;
             }
             files.forEach(function(name) {
@@ -1673,7 +1974,7 @@
          nipplejs/blob/master/dist/nipplejs.min.js). Loaded lazily; the
          touch-controls script below tolerates its absence (stick zone
          simply does nothing). -->
-    <script src="nipplejs.min.js" defer></script>
+    <script src="nipplejs.min.js" defer onload="window._nippleLoaded && window._nippleLoaded()"></script>
 
     <!-- Touch gamepad overlay handlers. Bridges to the wasm via
          Module._pc_input_touch_button / _pc_input_touch_stick (declared
@@ -1738,11 +2039,11 @@
         var canvasEl = document.getElementById('canvas');
         if (canvasEl) {
             canvasEl.addEventListener('blur', function() {
-                setTimeout(function() {
+                queueMicrotask(function() {
                     if (document.activeElement !== canvasEl) {
                         try { canvasEl.focus({ preventScroll: true }); } catch (e) {}
                     }
-                }, 0);
+                });
             });
         }
         // Also prevent the default focus-shift on the *touch* element so
@@ -1782,6 +2083,7 @@
                 root.setAttribute('aria-hidden', 'true');
                 destroyNipple();
             }
+            applyCanvasBias();
         }
         function applyLayout() {
             var l = pickLayout();
@@ -1790,12 +2092,25 @@
             /* nipplejs anchors to the zone; rebuild on layout change so the
              * overlay's coordinates match the new zone position. */
             if (root.classList.contains('visible')) ensureNipple(true);
+            applyCanvasBias();
+        }
+        /* Bias the canvas higher in the viewport when controls occupy the
+         * bottom (Layout A only). Landscape (Layout B) controls sit on the
+         * sides, so the canvas can stay centered. */
+        function applyCanvasBias() {
+            var bias = root.classList.contains('visible') &&
+                       root.classList.contains('layout-a');
+            document.body.classList.toggle('tc-bias-top', bias);
         }
         function applyOpacity() {
-            var bg     = (settings.opacity / 100).toFixed(3);
-            var press  = Math.min(1, settings.opacity / 100 + 0.27).toFixed(3);
-            var stroke = Math.min(1, settings.opacity / 100 + 0.22).toFixed(3);
-            var label  = Math.min(1, settings.opacity / 100 + 0.74).toFixed(3);
+            var sliderAlpha = settings.opacity / 100;
+            var bg     = sliderAlpha.toFixed(3);
+            var press  = Math.min(1, sliderAlpha + 0.27).toFixed(3);
+            var stroke = Math.min(1, sliderAlpha + 0.22).toFixed(3);
+            // Label tracks the slider directly so dragging it visibly fades
+            // the button text alongside the background. Keep a small floor
+            // so the labels don't disappear entirely at the low end.
+            var label  = Math.max(0.15, Math.min(1, sliderAlpha + 0.10)).toFixed(3);
             root.style.setProperty('--tc-bg-alpha',         bg);
             root.style.setProperty('--tc-bg-pressed-alpha', press);
             root.style.setProperty('--tc-stroke-alpha',     stroke);
@@ -1815,12 +2130,13 @@
             nipple = nipplejs.create({
                 zone:       stickZone,
                 mode:       'dynamic',  /* floating: spawn at touch position */
-                color:      'white',
-                size:       120,
+                color:      '#d0d0d0',  /* soft off-white, easier on the eye than pure white */
+                size:       160,        /* bigger than the 120 default */
                 fadeTime:   100,
                 threshold:  0.05,
                 restJoystick: true
             });
+            nipple.on('start', function() { root.classList.add('stick-active'); });
             nipple.on('move', function(_evt, data) {
                 if (!data || !data.vector) return;
                 /* nipplejs vector: x [-1..1] right, y [-1..1] up. GC stick
@@ -1830,7 +2146,10 @@
                     Math.round(data.vector.y * 127)
                 );
             });
-            nipple.on('end', function() { callStick(0, 0); });
+            nipple.on('end', function() {
+                root.classList.remove('stick-active');
+                callStick(0, 0);
+            });
         }
         function destroyNipple() {
             if (!nipple) return; /* nothing to tear down — and avoid a wasm
@@ -1840,14 +2159,16 @@
             nipple = null;
             callStick(0, 0);
         }
-        /* If nipplejs is still loading when applyVisibility runs, retry. */
-        var nippleWaitTimer = setInterval(function() {
-            if (typeof nipplejs !== 'undefined') {
-                clearInterval(nippleWaitTimer);
-                if (root.classList.contains('visible')) ensureNipple();
-            }
-        }, 100);
-        setTimeout(function() { clearInterval(nippleWaitTimer); }, 5000);
+        /* nipplejs is loaded via <script ... onload="window._nippleLoaded()">.
+         * If it lands after applyVisibility ran, the onload handler retries
+         * ensureNipple here. If it landed first, _nippleLoaded is wired up
+         * but harmless — applyVisibility already saw nipplejs as defined. */
+        window._nippleLoaded = function() {
+            if (root.classList.contains('visible')) ensureNipple();
+        };
+        if (typeof nipplejs !== 'undefined' && root.classList.contains('visible')) {
+            ensureNipple();
+        }
 
         // ---- Simple buttons (A, B, Y, Start) ---------------------------
         function bindButton(el) {
