@@ -13,6 +13,7 @@ const CORE_ASSETS = [
     './icon-192.png',
     './icon-512.png',
     './icon-maskable-512.png',
+    './nipplejs.min.js',
 ];
 
 self.addEventListener('install', (event) => {

@@ -248,7 +248,7 @@
             padding: 12px 24px;
             background: #1a1a1a;
             color: #ddd;
-            border: 1px solid #4a9;
+            border: 1px solid #ddd;
             border-radius: 6px;
             font: inherit;
             font-size: 15px;
@@ -404,6 +404,89 @@
             background: #2a2a2a;
             border-color: #666;
         }
+
+        /* ----- Touch gamepad overlay (mobile) ---------------------------
+           Hidden by default; the script below adds .visible when the user's
+           setting (auto / on / off) and device capability agree. Container
+           has pointer-events:none so empty space passes through to the
+           canvas; only individual controls opt into pointer-events:auto.
+           touch-action:none on the controls prevents the browser from
+           hijacking touches for scroll/zoom.
+           Opacity is driven by CSS variables so the settings slider can
+           change it at runtime without re-rendering. */
+        #touch-controls {
+            --tc-bg-alpha:         0.18;
+            --tc-bg-pressed-alpha: 0.45;
+            --tc-stroke-alpha:     0.40;
+            --tc-label-alpha:      0.92;
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+            display: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        #touch-controls.visible { display: block; }
+        #touch-controls .tc-button {
+            position: absolute;
+            pointer-events: auto;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #touch-controls .tc-button svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+            overflow: visible;
+        }
+        #touch-controls .tc-bg {
+            fill: rgba(255, 255, 255, var(--tc-bg-alpha));
+            stroke: rgba(255, 255, 255, var(--tc-stroke-alpha));
+            stroke-width: 2;
+            transition: fill 0.05s;
+        }
+        #touch-controls .pressed .tc-bg {
+            fill: rgba(255, 255, 255, var(--tc-bg-pressed-alpha));
+        }
+        #touch-controls .tc-label {
+            fill: rgba(255, 255, 255, var(--tc-label-alpha));
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            font-weight: 600;
+            text-anchor: middle;
+            dominant-baseline: central;
+            paint-order: stroke;
+            stroke: rgba(0, 0, 0, 0.4);
+            stroke-width: 1;
+        }
+        /* Stick zone: invisible touch area where nipplejs spawns the joystick.
+           Layout-A (default) covers bottom-left half; Layout-B (landscape)
+           covers most of the left edge. */
+        #tc-stick-zone {
+            position: absolute;
+            pointer-events: auto;
+            touch-action: none;
+        }
+        /* nipplejs renders absolutely-positioned joystick visuals into the
+           zone; ensure they sit above the canvas but below the buttons. */
+        #tc-stick-zone .nipple { z-index: 5; }
+
+        /* ===== Layout A — portrait / default ===== */
+        #touch-controls.layout-a #tc-stick-zone { left: 0; bottom: 0; width: 50%; height: 60%; }
+        #touch-controls.layout-a #tc-dpad  { left: 16px;  bottom: 28px;  width: 110px; height: 110px; }
+        #touch-controls.layout-a #tc-a     { right: 28px; bottom: 70px;  width: 86px;  height: 86px;  }
+        #touch-controls.layout-a #tc-b     { right: 124px;bottom: 38px;  width: 70px;  height: 70px;  }
+        #touch-controls.layout-a #tc-y     { right: 70px; bottom: 158px; width: 64px;  height: 64px;  }
+        #touch-controls.layout-a #tc-start { right: 16px; top: 16px;     width: 64px;  height: 32px;  }
+
+        /* ===== Layout B — landscape / split ===== */
+        #touch-controls.layout-b #tc-stick-zone { left: 0;   top: 0; width: 40%; height: 100%; }
+        #touch-controls.layout-b #tc-dpad  { left: 24px;  bottom: 24px; width: 110px; height: 110px; }
+        #touch-controls.layout-b #tc-a     { right: 36px;  bottom: 90px; width: 86px;  height: 86px;  }
+        #touch-controls.layout-b #tc-b     { right: 132px; bottom: 50px; width: 70px;  height: 70px;  }
+        #touch-controls.layout-b #tc-y     { right: 78px;  bottom: 178px;width: 64px;  height: 64px;  }
+        #touch-controls.layout-b #tc-start { right: 24px;  top: 24px;    width: 64px;  height: 32px;  }
     </style>
 </head>
 <body>
@@ -416,6 +499,32 @@
          in pc/CMakeLists.txt. If you open this file directly without
          building, you'll see the literal "@PC_WEB_BUILD_TAG@" text. -->
     <div id="build-tag" title="Build identifier">@PC_WEB_BUILD_TAG@</div>
+
+    <!-- Touch gamepad overlay. Visibility/layout/opacity driven by the
+         settings dialog (Touch Controls section). Bridges to the wasm via
+         Module._pc_input_touch_button / _pc_input_touch_stick (defined in
+         pc/src/pc_pad.c under __EMSCRIPTEN__). nipplejs renders the
+         floating analog stick into #tc-stick-zone. -->
+    <div id="touch-controls" aria-hidden="true">
+        <div id="tc-stick-zone"></div>
+        <div id="tc-dpad" class="tc-button" data-tc-dpad="1" aria-label="D-pad">
+            <svg viewBox="0 0 100 100">
+                <path class="tc-bg" d="M36 4 H64 V36 H96 V64 H64 V96 H36 V64 H4 V36 H36 Z" />
+            </svg>
+        </div>
+        <div id="tc-a"     class="tc-button" data-tc-button="0x0100" aria-label="A">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" font-size="48" class="tc-label">A</text></svg>
+        </div>
+        <div id="tc-b"     class="tc-button" data-tc-button="0x0200" aria-label="B">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" font-size="44" class="tc-label">B</text></svg>
+        </div>
+        <div id="tc-y"     class="tc-button" data-tc-button="0x0800" aria-label="Y">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" font-size="40" class="tc-label">Y</text></svg>
+        </div>
+        <div id="tc-start" class="tc-button" data-tc-button="0x1000" aria-label="Start">
+            <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" font-size="22" class="tc-label">START</text></svg>
+        </div>
+    </div>
 
     <div id="rom-picker" aria-hidden="true">
         <h1>Slider – A Web Port of GC Animal Crossing</h1>
@@ -495,6 +604,29 @@
                 <span>Mute audio</span>
             </label>
 
+            <h3>Touch Controls</h3>
+            <div class="row">
+                <label for="tc-enabled-select">Enabled</label>
+                <select id="tc-enabled-select">
+                    <option value="auto">Auto (touch devices)</option>
+                    <option value="on">Always on</option>
+                    <option value="off">Off</option>
+                </select>
+            </div>
+            <div class="row">
+                <label for="tc-layout-select">Layout</label>
+                <select id="tc-layout-select">
+                    <option value="auto">Auto (orientation)</option>
+                    <option value="a">A — bottom controls (portrait)</option>
+                    <option value="b">B — split left/right (landscape)</option>
+                </select>
+            </div>
+            <div class="row">
+                <label for="tc-opacity-range">Opacity</label>
+                <input id="tc-opacity-range" type="range" min="10" max="80" step="5" />
+                <span id="tc-opacity-value" style="opacity:0.7; font-variant-numeric: tabular-nums; min-width: 3em; text-align: right;"></span>
+            </div>
+
             <h3>Controls</h3>
             <table class="controls">
                 <thead>
@@ -559,8 +691,6 @@
             if (c.width !== w || c.height !== h) {
                 c.width  = w;
                 c.height = h;
-                console.log('[canvas] buffer', w, 'x', h,
-                            'viewport', vp.w, 'x', vp.h);
             }
         }
         resizeCanvasToViewport();
@@ -1537,6 +1667,319 @@
             tbody.innerHTML = html;
         })();
     </script>
+
+    <!-- nipplejs powers the floating analog stick. Vendored at pc/web/
+         nipplejs.min.js (download from https://github.com/yoannmoinet/
+         nipplejs/blob/master/dist/nipplejs.min.js). Loaded lazily; the
+         touch-controls script below tolerates its absence (stick zone
+         simply does nothing). -->
+    <script src="nipplejs.min.js" defer></script>
+
+    <!-- Touch gamepad overlay handlers. Bridges to the wasm via
+         Module._pc_input_touch_button / _pc_input_touch_stick (declared
+         in pc/src/pc_pad.c under __EMSCRIPTEN__). Visibility, layout, and
+         opacity are user-configurable via the settings dialog and persist
+         in localStorage. -->
+    <script type="text/javascript">
+    (function() {
+        // GameCube button bitmasks (match dolphin/pad.h)
+        var GC = {
+            LEFT: 0x0001, RIGHT: 0x0002, DOWN: 0x0004, UP: 0x0008,
+            Z: 0x0010, R: 0x0020, L: 0x0040,
+            A: 0x0100, B: 0x0200, X: 0x0400, Y: 0x0800,
+            START: 0x1000
+        };
+
+        var root = document.getElementById('touch-controls');
+        if (!root) return;
+
+        // ---- Settings model + persistence -------------------------------
+        var SETTINGS_KEY = 'acgc.touch.v1';
+        var DEFAULTS = { enabled: 'auto', layout: 'auto', opacity: 25 };
+        function loadSettings() {
+            try {
+                var raw = localStorage.getItem(SETTINGS_KEY);
+                if (!raw) return Object.assign({}, DEFAULTS);
+                var parsed = JSON.parse(raw);
+                return Object.assign({}, DEFAULTS, parsed);
+            } catch (e) { return Object.assign({}, DEFAULTS); }
+        }
+        function saveSettings(s) {
+            try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
+            catch (e) {}
+        }
+        var settings = loadSettings();
+
+        var hasTouch = ('maxTouchPoints' in navigator)
+            ? navigator.maxTouchPoints > 0
+            : ('ontouchstart' in window);
+
+        // ---- Bridges into the wasm. The exports are *defined* on Module
+        // immediately (as stub references) but throw if called before
+        // the wasm module finishes initializing. Module.calledRun flips
+        // to true once the runtime is up; gate every call on it.
+        function wasmReady() {
+            return !!(window.Module && window.Module.calledRun);
+        }
+        function callButton(mask, pressed) {
+            if (!wasmReady()) return;
+            var fn = Module._pc_input_touch_button;
+            if (fn) fn(mask, pressed ? 1 : 0);
+        }
+        function callStick(x, y) {
+            if (!wasmReady()) return;
+            var fn = Module._pc_input_touch_stick;
+            if (fn) fn(x | 0, y | 0);
+        }
+
+        // Defensive: if the canvas ever loses focus (despite our mousedown
+        // preventDefault on each control), refocus async so SDL2 doesn't
+        // pause event processing.
+        var canvasEl = document.getElementById('canvas');
+        if (canvasEl) {
+            canvasEl.addEventListener('blur', function() {
+                setTimeout(function() {
+                    if (document.activeElement !== canvasEl) {
+                        try { canvasEl.focus({ preventScroll: true }); } catch (e) {}
+                    }
+                }, 0);
+            });
+        }
+        // Also prevent the default focus-shift on the *touch* element so
+        // the canvas keeps focus to begin with. mousedown is the event
+        // that browsers consult for focus changes; intercepting it here
+        // (in addition to pointerdown's preventDefault, which is meant to
+        // do the same but isn't honored consistently on iOS Safari) is
+        // the more reliable way to keep focus on the canvas.
+        function preventFocusShift(el) {
+            el.addEventListener('mousedown', function(ev) { ev.preventDefault(); });
+            el.addEventListener('touchstart', function(ev) {
+                /* Don't preventDefault here on the zone — would block scroll
+                 * gestures elsewhere. preventDefault is only safe within
+                 * controls themselves, where pointerdown already does it. */
+            }, { passive: true });
+        }
+
+        // ---- Visibility + layout + opacity application -----------------
+        function shouldShow() {
+            if (settings.enabled === 'on')  return true;
+            if (settings.enabled === 'off') return false;
+            return hasTouch; /* auto */
+        }
+        function pickLayout() {
+            if (settings.layout === 'a' || settings.layout === 'b') return settings.layout;
+            /* auto: use viewport aspect — landscape gets B, portrait gets A */
+            return (window.innerWidth >= window.innerHeight) ? 'b' : 'a';
+        }
+        function applyVisibility() {
+            if (shouldShow()) {
+                root.classList.add('visible');
+                root.setAttribute('aria-hidden', 'false');
+                /* When the stick zone first becomes interactable, init nipple */
+                ensureNipple();
+            } else {
+                root.classList.remove('visible');
+                root.setAttribute('aria-hidden', 'true');
+                destroyNipple();
+            }
+        }
+        function applyLayout() {
+            var l = pickLayout();
+            root.classList.toggle('layout-a', l === 'a');
+            root.classList.toggle('layout-b', l === 'b');
+            /* nipplejs anchors to the zone; rebuild on layout change so the
+             * overlay's coordinates match the new zone position. */
+            if (root.classList.contains('visible')) ensureNipple(true);
+        }
+        function applyOpacity() {
+            var bg     = (settings.opacity / 100).toFixed(3);
+            var press  = Math.min(1, settings.opacity / 100 + 0.27).toFixed(3);
+            var stroke = Math.min(1, settings.opacity / 100 + 0.22).toFixed(3);
+            var label  = Math.min(1, settings.opacity / 100 + 0.74).toFixed(3);
+            root.style.setProperty('--tc-bg-alpha',         bg);
+            root.style.setProperty('--tc-bg-pressed-alpha', press);
+            root.style.setProperty('--tc-stroke-alpha',     stroke);
+            root.style.setProperty('--tc-label-alpha',      label);
+        }
+        function applyAll() { applyVisibility(); applyLayout(); applyOpacity(); }
+
+        // ---- nipplejs analog stick -------------------------------------
+        var nipple = null;
+        function ensureNipple(forceRebuild) {
+            var stickZone = document.getElementById('tc-stick-zone');
+            if (!stickZone) return;
+            if (typeof nipplejs === 'undefined') return; /* lib not loaded */
+            if (nipple && !forceRebuild) return;
+            destroyNipple();
+            preventFocusShift(stickZone);
+            nipple = nipplejs.create({
+                zone:       stickZone,
+                mode:       'dynamic',  /* floating: spawn at touch position */
+                color:      'white',
+                size:       120,
+                fadeTime:   100,
+                threshold:  0.05,
+                restJoystick: true
+            });
+            nipple.on('move', function(_evt, data) {
+                if (!data || !data.vector) return;
+                /* nipplejs vector: x [-1..1] right, y [-1..1] up. GC stick
+                 * matches sign convention (+y = up), so we just scale. */
+                callStick(
+                    Math.round(data.vector.x * 127),
+                    Math.round(data.vector.y * 127)
+                );
+            });
+            nipple.on('end', function() { callStick(0, 0); });
+        }
+        function destroyNipple() {
+            if (!nipple) return; /* nothing to tear down — and avoid a wasm
+                                    call before init when called from early
+                                    applyLayout() during page load. */
+            try { nipple.destroy(); } catch (e) {}
+            nipple = null;
+            callStick(0, 0);
+        }
+        /* If nipplejs is still loading when applyVisibility runs, retry. */
+        var nippleWaitTimer = setInterval(function() {
+            if (typeof nipplejs !== 'undefined') {
+                clearInterval(nippleWaitTimer);
+                if (root.classList.contains('visible')) ensureNipple();
+            }
+        }, 100);
+        setTimeout(function() { clearInterval(nippleWaitTimer); }, 5000);
+
+        // ---- Simple buttons (A, B, Y, Start) ---------------------------
+        function bindButton(el) {
+            var mask = parseInt(el.getAttribute('data-tc-button'), 16);
+            var activeId = null;
+            preventFocusShift(el);
+            el.addEventListener('pointerdown', function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                if (activeId !== null) return;
+                activeId = ev.pointerId;
+                try { el.setPointerCapture(ev.pointerId); } catch (e) {}
+                el.classList.add('pressed');
+                callButton(mask, 1);
+            });
+            var release = function(ev) {
+                if (activeId === null || ev.pointerId !== activeId) return;
+                ev.preventDefault();
+                ev.stopPropagation();
+                el.classList.remove('pressed');
+                callButton(mask, 0);
+                activeId = null;
+            };
+            el.addEventListener('pointerup', release);
+            el.addEventListener('pointercancel', release);
+            el.addEventListener('lostpointercapture', release);
+        }
+        var simpleButtons = root.querySelectorAll('[data-tc-button]');
+        for (var i = 0; i < simpleButtons.length; i++) bindButton(simpleButtons[i]);
+
+        // ---- D-pad (4 directions, position-based, two simultaneous OK)
+        var dpad = document.getElementById('tc-dpad');
+        if (dpad) {
+            var dpadActiveId = null;
+            var dpadCurrent = 0;
+            function dpadCompute(ev) {
+                var rect = dpad.getBoundingClientRect();
+                var dx = ev.clientX - (rect.left + rect.width  / 2);
+                var dy = ev.clientY - (rect.top  + rect.height / 2);
+                var thresh = rect.width * 0.12;
+                var mask = 0;
+                if (dx < -thresh) mask |= GC.LEFT;
+                else if (dx > thresh) mask |= GC.RIGHT;
+                if (dy < -thresh) mask |= GC.UP;
+                else if (dy > thresh) mask |= GC.DOWN;
+                return mask;
+            }
+            function dpadUpdate(ev) {
+                var newMask = dpadCompute(ev);
+                if (newMask === dpadCurrent) return;
+                var released = dpadCurrent & ~newMask;
+                var pressed  = newMask    & ~dpadCurrent;
+                if (released) callButton(released, 0);
+                if (pressed)  callButton(pressed,  1);
+                dpadCurrent = newMask;
+            }
+            preventFocusShift(dpad);
+            dpad.addEventListener('pointerdown', function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                if (dpadActiveId !== null) return;
+                dpadActiveId = ev.pointerId;
+                try { dpad.setPointerCapture(ev.pointerId); } catch (e) {}
+                dpad.classList.add('pressed');
+                dpadUpdate(ev);
+            });
+            dpad.addEventListener('pointermove', function(ev) {
+                if (ev.pointerId !== dpadActiveId) return;
+                ev.preventDefault();
+                ev.stopPropagation();
+                dpadUpdate(ev);
+            });
+            var dpadRelease = function(ev) {
+                if (dpadActiveId === null || ev.pointerId !== dpadActiveId) return;
+                ev.preventDefault();
+                ev.stopPropagation();
+                dpad.classList.remove('pressed');
+                if (dpadCurrent) {
+                    callButton(dpadCurrent, 0);
+                    dpadCurrent = 0;
+                }
+                dpadActiveId = null;
+            };
+            dpad.addEventListener('pointerup', dpadRelease);
+            dpad.addEventListener('pointercancel', dpadRelease);
+            dpad.addEventListener('lostpointercapture', dpadRelease);
+        }
+
+        // ---- Settings dialog wiring ------------------------------------
+        var enabledSel = document.getElementById('tc-enabled-select');
+        var layoutSel  = document.getElementById('tc-layout-select');
+        var opacityRng = document.getElementById('tc-opacity-range');
+        var opacityVal = document.getElementById('tc-opacity-value');
+        if (enabledSel && layoutSel && opacityRng && opacityVal) {
+            enabledSel.value = settings.enabled;
+            layoutSel.value  = settings.layout;
+            opacityRng.value = settings.opacity;
+            opacityVal.textContent = settings.opacity + '%';
+
+            enabledSel.addEventListener('change', function() {
+                settings.enabled = enabledSel.value;
+                saveSettings(settings); applyVisibility();
+            });
+            layoutSel.addEventListener('change', function() {
+                settings.layout = layoutSel.value;
+                saveSettings(settings); applyLayout();
+            });
+            opacityRng.addEventListener('input', function() {
+                settings.opacity = parseInt(opacityRng.value, 10);
+                opacityVal.textContent = settings.opacity + '%';
+                applyOpacity(); /* live */
+            });
+            opacityRng.addEventListener('change', function() { saveSettings(settings); });
+        }
+
+        // ---- Auto layout responds to orientation/resize ----------------
+        window.addEventListener('resize', function() {
+            if (settings.layout === 'auto') applyLayout();
+        });
+        window.addEventListener('orientationchange', function() {
+            if (settings.layout === 'auto') {
+                /* layout responds to inner{Width,Height}, which lag the
+                 * orientationchange event by a frame on most browsers. */
+                requestAnimationFrame(applyLayout);
+                setTimeout(applyLayout, 200);
+            }
+        });
+
+        applyAll();
+    })();
+    </script>
+
     {{{ SCRIPT }}}
 </body>
 </html>

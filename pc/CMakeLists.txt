@@ -417,10 +417,11 @@ add_compile_options($<$<COMPILE_LANGUAGE:C>:-Dnullptr=NULL>)
 # Per-source warning settings
 # =============================================================================
 # Decomp code: suppress all warnings (fires heavily on decompiled code)
-set(DECOMP_WARN_FLAGS "-w;-fpermissive")
+set(DECOMP_WARN_FLAGS "-fpermissive;-Wno-everything;-Wreturn-type;-Wreturn-mismatch;-Wcast-function-type-strict")
 if(ANDROID OR EMSCRIPTEN)
     # Clang (NDK + Emscripten) promotes some warnings to errors even with -w; suppress them.
     list(APPEND DECOMP_WARN_FLAGS "-Wno-error=return-type" "-Wno-error=return-mismatch"
+                                   "-Wno-error=cast-function-type-strict"
                                    "-Wno-error=format-security"
                                    "-Wno-error=implicit-function-declaration"
                                    "-Wno-register" "-Wno-c++11-narrowing")
@@ -593,6 +594,17 @@ elseif(EMSCRIPTEN)
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${_icon}" "${CMAKE_BINARY_DIR}/web/")
     endforeach()
+    # Copy nipplejs (vendored library for the touch analog stick). The copy
+    # runs every build (not gated on configure-time existence), so dropping
+    # the file in or updating its bytes is picked up without re-running
+    # CMake. If the file is missing the build fails with a clear error.
+    add_custom_command(TARGET ac_pc POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/web/nipplejs.min.js"
+            "${CMAKE_BINARY_DIR}/web/nipplejs.min.js"
+        BYPRODUCTS "${CMAKE_BINARY_DIR}/web/nipplejs.min.js"
+        COMMENT "Copying nipplejs.min.js (touch analog stick)"
+    )
 else()
     # Desktop: standalone executable
     add_executable(ac_pc

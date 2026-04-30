@@ -4,6 +4,10 @@
 #include "pc_keybindings.h"
 #include <dolphin/pad.h>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 /* analog stick constants */
 #define STICK_MAGNITUDE     80
 #define AXIS_DEADZONE       4000
@@ -11,6 +15,32 @@
 #define RUMBLE_DURATION_MS  200
 
 static SDL_GameController* g_controller = NULL;
+
+#ifdef __EMSCRIPTEN__
+/* Touch-overlay input state, written from shell.html's gamepad UI via the
+ * exported bridge functions below. Merged into PADRead alongside keyboard
+ * and SDL gamepad sources, so a paired Bluetooth controller and the on-
+ * screen pad can coexist. */
+static u16 g_touch_buttons = 0;
+static s8  g_touch_stick_x = 0;
+static s8  g_touch_stick_y = 0;
+
+EMSCRIPTEN_KEEPALIVE
+void pc_input_touch_button(int gc_button_mask, int pressed) {
+    if (pressed) g_touch_buttons |= (u16)gc_button_mask;
+    else         g_touch_buttons &= (u16)~gc_button_mask;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void pc_input_touch_stick(int x, int y) {
+    if (x >  127) x =  127;
+    if (x < -128) x = -128;
+    if (y >  127) y =  127;
+    if (y < -128) y = -128;
+    g_touch_stick_x = (s8)x;
+    g_touch_stick_y = (s8)y;
+}
+#endif
 
 BOOL PADInit(void) {
     for (int i = 0; i < SDL_NumJoysticks(); i++) {
@@ -136,6 +166,16 @@ u32 PADRead(PADStatus* status) {
         status[0].triggerLeft = lt;
         status[0].triggerRight = rt;
     }
+
+#ifdef __EMSCRIPTEN__
+    /* Touch overlay merges in last so the on-screen pad can drive any
+     * input the keyboard/gamepad sources didn't already set. Stick is
+     * additive: only override the merged stick if the touch UI is
+     * actively reporting a non-neutral value. */
+    buttons |= g_touch_buttons;
+    if (g_touch_stick_x != 0) stickX = g_touch_stick_x;
+    if (g_touch_stick_y != 0) stickY = g_touch_stick_y;
+#endif
 
     status[0].button = buttons;
     status[0].stickX = stickX;
