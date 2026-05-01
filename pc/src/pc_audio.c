@@ -74,7 +74,16 @@ void pc_audio_start_producer_thread(void) {
  * after a stutter rather than dragging behind it. Bounded so a stuck
  * sequencer can't burn unbounded time here. */
 void pc_audio_pump_if_needed(void) {
-    int safety = 16;
+    /* Cap to 2 catch-up iterations per VI tick. The previous cap of 16
+     * let one frame burn ~50–65 ms running the JaiSeq sequencer + mixer
+     * + SDL_ResampleAudio in a tight loop when the audio buffer dipped
+     * below threshold (e.g., right after a press triggers a new sound).
+     * That blew the 16.67 ms frame budget by 3–4×, producing the
+     * "stutter on press" observed on Snapdragon 8 Gen 3 phones. With
+     * safety=2 the buffer catches up across multiple frames instead of
+     * in a single tick; the AUDIO_PRODUCE_THRESHOLD headroom still
+     * absorbs the dip without underrunning the audio device. */
+    int safety = 2;
     while (safety-- > 0 && pc_audio_get_buffer_fill() < AUDIO_PRODUCE_THRESHOLD) {
         pc_audio_process_frame();
     }

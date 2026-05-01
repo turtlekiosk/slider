@@ -2,6 +2,28 @@
 #include "pc_platform.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+/* Yield to the browser via Asyncify until the next requestAnimationFrame
+ * fires. Replaces emscripten_sleep(N) here because Chromium on Snapdragon
+ * 8 Gen 3 phones throttles setTimeout aggressively when the page looks
+ * idle between presses — a 4 ms sleep would actually take 100–200 ms,
+ * producing a visible stutter on each press. RAF is bound to the
+ * compositor and always fires each display frame, so a wasm tick can't
+ * overrun the frame budget waiting for a delayed timer. */
+/* Yield to whichever fires first: the next requestAnimationFrame OR a
+ * setTimeout backstop. Chromium on Snapdragon 8 Gen 3 + adaptive AMOLED
+ * throttles BOTH timing primitives independently when the page looks
+ * idle — RAF gets aligned to a low panel refresh, and setTimeout aligns
+ * to compositor frames. Racing them ensures whichever one is currently
+ * firing fastest wakes the wasm. The 17 ms backstop matches the 60 fps
+ * frame budget; if RAF would have delivered sooner, RAF still wins. */
+EM_ASYNC_JS(void, pc_yield_raf, (), {
+    await new Promise(function(resolve) {
+        var done = false;
+        var fire = function() { if (!done) { done = true; resolve(); } };
+        requestAnimationFrame(fire);
+        setTimeout(fire, 17);
+    });
+});
 #endif
 
 #define VI_TVMODE_NTSC_INT    0
@@ -66,25 +88,23 @@ void VIWaitForRetrace(void) {
      * Audio is also pumped here since there's no producer thread. */
     extern void pc_audio_pump_if_needed(void);
     pc_audio_pump_if_needed();
-    if (!g_pc_no_framelimit) {
-        int remain_ms = 0;
-        if (frame_start_time) {
+    /* Yield to RAF as the browser-paced wakeup. Replaces emscripten_sleep
+     * because Chromium on Snapdragon 8 Gen 3 was throttling setTimeout to
+     * 100–200 ms between user inputs, producing a stutter on every press.
+     * RAF fires reliably each compositor frame regardless of throttling.
+     *
+     * At 60 Hz that's a single RAF per frame; at 120 Hz we yield twice
+     * (~8.3 ms each) to preserve the game's 60 fps logical clock. The
+     * elapsed-time check makes this self-correcting on any refresh rate. */
+    if (!g_pc_no_framelimit && frame_start_time) {
+        for (int i = 0; i < 4; i++) {
+            pc_yield_raf();
             Uint64 now = SDL_GetPerformanceCounter();
             Uint64 elapsed_us = (now - frame_start_time) * 1000000 / perf_freq;
-            if (elapsed_us < 16667) {
-                remain_ms = (int)((16667 - elapsed_us) / 1000);
-                if (remain_ms < 1) remain_ms = 1;
-            }
+            if (elapsed_us >= 16000) break;
         }
-        /* Floor: yield at least 4 ms so iOS Safari has breathing room
-         * for raster/compositing. Doesn't extend tab lifetime on devices
-         * hitting iOS Safari's deterministic energy watchdog (~50 s on
-         * iPhone SE 3 regardless of yield amount), but reduces sustained
-         * CPU on capable devices and helps with thermals broadly. */
-        if (remain_ms < 4) remain_ms = 4;
-        emscripten_sleep(remain_ms);
     } else {
-        emscripten_sleep(4); /* minimum yield so the browser can repaint */
+        pc_yield_raf(); /* at least one yield so the browser can paint */
     }
 #else
     if (!g_pc_no_framelimit) {

@@ -14,8 +14,41 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
+    <!-- Fragment Mono for the on-screen touch button labels. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono&display=swap">
     <title>ACGC</title>
     <style>
+        /* Compositor activity keepalive. Chromium on Snapdragon 8 Gen 3 +
+         * adaptive AMOLED phones (Z Flip 6, S24 family) classifies a wasm
+         * canvas-only page as "idle" between user inputs and applies
+         * intensive timer throttling — RAF and setTimeout get delayed
+         * by 50–200 ms, producing visible stutters on every press as the
+         * wasm waits longer than expected for its yield to return.
+         *
+         * A 1×1, fully transparent, GPU-composited transform animation
+         * is enough to keep the compositor's "page is animating" flag
+         * set, which keeps the panel at full refresh and timer dispatch
+         * tight. The animation runs entirely on the compositor thread
+         * (no main-thread cost) and is invisible to the user.
+         *
+         * Devices that didn't have the throttle problem pay only the
+         * negligible cost of one extra composited layer. */
+        @keyframes _refresh-keepalive {
+            0%, 100% { opacity: 0.001; }
+            50%      { opacity: 0.002; }
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 1px; height: 1px;
+            pointer-events: none;
+            background: #fff;
+            animation: _refresh-keepalive 1s linear infinite;
+            will-change: opacity;
+        }
         html, body {
             margin: 0;
             padding: 0;
@@ -83,7 +116,7 @@
             position: fixed;
             right: 8px;
             bottom: 8px;
-            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            font-family: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
             font-size: 11px;
             opacity: 0.45;
             pointer-events: none;
@@ -162,7 +195,10 @@
         }
         #rom-instructions a:visited { color: #ddd; }
         #rom-drop {
-            display: flex;
+            /* Hidden until refreshRomStatus has resolved the ROM check;
+             * otherwise the drop zone briefly appears before we know
+             * whether a previously-imported ROM is available. */
+            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -190,11 +226,23 @@
             min-height: 1.4em;
             font-size: 13px;
             opacity: 0.85;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 8px;
+            width: 100%;
+            max-width: 600px;
         }
         #rom-status.error,
         #rom-runtime-status.error { color: #f88; opacity: 1; }
         #rom-status.ok,
         #rom-runtime-status.ok    { color: #6c0; opacity: 1; }
+        #rom-status .status-spinner,
+        #rom-runtime-status .status-spinner {
+            flex: 0 0 auto;
+            width: 14px;
+            height: 14px;
+        }
         #rom-saves {
             width: 100%;
             max-width: 600px;
@@ -241,6 +289,14 @@
             opacity: 0.7;
             min-height: 1.4em;
             word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .rom-saves-slot-state .status-spinner {
+            flex: 0 0 auto;
+            width: 14px;
+            height: 14px;
         }
         .rom-saves-slot.has-data .rom-saves-slot-state { opacity: 1; color: #6c0; }
         .rom-saves-slot-actions {
@@ -308,11 +364,32 @@
             border-color: #444;
         }
 
-        #settings-gear {
+        #loading-overlay {
             display: none;
             position: fixed;
-            top: 8px;
-            right: 8px;
+            inset: 0;
+            z-index: 8;          /* below #rom-picker (10), above the canvas */
+            background: #000;
+            color: #ddd;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+            pointer-events: none;
+        }
+        #loading-overlay.visible { display: flex; }
+        #loading-overlay svg {
+            opacity: 0.85;
+        }
+        #settings-gear,
+        #fullscreen-toggle {
+            display: none;
+            position: fixed;
+            /* Add safe-area inset so the buttons clear iOS notch / Android
+             * cutout / status bar / gesture areas when the viewport is set
+             * to viewport-fit=cover. env() returns 0 on devices/browsers
+             * without insets, so the offsets degrade to plain 8 / 48 px. */
+            top: calc(8px + env(safe-area-inset-top));
             z-index: 5;
             width: 32px;
             height: 32px;
@@ -326,8 +403,16 @@
             cursor: pointer;
             opacity: 0.6;
             transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+            align-items: center;
+            justify-content: center;
         }
-        #settings-gear:hover {
+        #settings-gear     { right: calc(8px  + env(safe-area-inset-right)); }
+        #fullscreen-toggle { right: calc(48px + env(safe-area-inset-right)); font-size: 16px; }
+        #fullscreen-toggle .fs-icon-collapse { display: none; }
+        #fullscreen-toggle.is-fullscreen .fs-icon-expand   { display: none; }
+        #fullscreen-toggle.is-fullscreen .fs-icon-collapse { display: inline; }
+        #settings-gear:hover,
+        #fullscreen-toggle:hover {
             opacity: 1;
             background: rgba(0,0,0,0.7);
             border-color: rgba(255,255,255,0.35);
@@ -340,15 +425,24 @@
             padding: 0;
             max-width: 560px;
             width: 90vw;
+            max-height: 90vh;
             font-family: inherit;
+        }
+        /* Override the browser's default `dialog[open] { display: block }`
+         * so the menu uses flex column layout — keeps .menu-footer pinned
+         * to the bottom of the dialog while .menu-body scrolls. */
+        #settings-menu[open] {
+            display: flex;
+            flex-direction: column;
         }
         #settings-menu::backdrop {
             background: rgba(0,0,0,0.6);
         }
         #settings-menu .menu-body {
             padding: 20px 24px;
-            max-height: 80vh;
             overflow-y: auto;
+            flex: 1 1 auto;
+            min-height: 0;          /* lets the body actually shrink so .menu-footer stays visible */
         }
         #settings-menu h2 {
             margin: 0 0 16px;
@@ -430,6 +524,8 @@
             justify-content: flex-end;
             padding: 12px 24px;
             border-top: 1px solid #222;
+            flex: 0 0 auto;          /* pinned: never shrinks/scrolls with .menu-body */
+            background: #111;        /* opaque so scrolled body content doesn't bleed through */
         }
         #settings-menu .menu-footer button {
             padding: 6px 14px;
@@ -491,9 +587,13 @@
         #touch-controls .pressed .tc-bg {
             fill: rgba(255, 255, 255, var(--tc-bg-pressed-alpha));
         }
+        /* Fixed CSS-pixel size so labels don't scale with the SVG container —
+         * without this, font-size on the inline <text> attribute would
+         * scale with the viewBox / button-size ratio. */
         #touch-controls .tc-label {
+            font-size: 24px;
             fill: rgba(255, 255, 255, var(--tc-label-alpha));
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            font-family: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
             font-weight: 600;
             text-anchor: middle;
             dominant-baseline: central;
@@ -501,6 +601,7 @@
             stroke: rgba(0, 0, 0, 0.4);
             stroke-width: 1;
         }
+        #touch-controls #tc-start .tc-label { font-size: 14px; }
         /* Stick zone: invisible touch area where nipplejs spawns the joystick.
            Layout-A (default) covers bottom-left half; Layout-B (landscape)
            covers most of the left edge. */
@@ -542,8 +643,8 @@
            the right-column button cluster (B at bottom ~38, Start at top
            ~272 → midpoint ~155 from bottom; minus the 55px hint half-
            height gives bottom: 100). In landscape, mid-left edge. */
-        #touch-controls.layout-a #tc-stick-hint { left: 30px;  bottom: 100px; }
-        #touch-controls.layout-b #tc-stick-hint { left: 40px;  top: 50%; transform: translateY(-50%); }
+        #touch-controls.layout-a #tc-stick-hint { left: 30px;  bottom: 80px; }
+        #touch-controls.layout-b #tc-stick-hint { left: 40px;  bottom: 80px; }
 
         /* ===== Layout A — portrait / default =====
            D-pad is hidden in portrait — its uses (letter writing, pattern
@@ -553,9 +654,9 @@
            by the right thumb instead of needing a stretch to the top. */
         #touch-controls.layout-a #tc-stick-zone { left: 0; bottom: 0; width: 50%; height: 60%; }
         #touch-controls.layout-a #tc-dpad  { display: none; }
-        #touch-controls.layout-a #tc-a     { right: 28px; bottom: 70px;  width: 86px;  height: 86px;  }
-        #touch-controls.layout-a #tc-b     { right: 124px;bottom: 38px;  width: 70px;  height: 70px;  }
-        #touch-controls.layout-a #tc-y     { right: 70px; bottom: 158px; width: 64px;  height: 64px;  }
+        #touch-controls.layout-a #tc-a     { right: 28px; bottom: 90px;  width: 86px;  height: 86px;  }
+        #touch-controls.layout-a #tc-b     { right: 110px;bottom: 38px;  width: 70px;  height: 70px;  }
+        #touch-controls.layout-a #tc-y     { right: 90px; bottom: 158px; width: 64px;  height: 64px;  }
         #touch-controls.layout-a #tc-start { right: 50px; bottom: 240px; width: 64px;  height: 32px;  }
 
         /* ===== Layout B — landscape / split =====
@@ -563,9 +664,9 @@
            real estate is better given to the stick. */
         #touch-controls.layout-b #tc-stick-zone { left: 0;   top: 0; width: 40%; height: 100%; }
         #touch-controls.layout-b #tc-dpad  { display: none; }
-        #touch-controls.layout-b #tc-a     { right: 36px;  bottom: 90px; width: 86px;  height: 86px;  }
-        #touch-controls.layout-b #tc-b     { right: 132px; bottom: 50px; width: 70px;  height: 70px;  }
-        #touch-controls.layout-b #tc-y     { right: 78px;  bottom: 178px;width: 64px;  height: 64px;  }
+        #touch-controls.layout-b #tc-a     { right: 36px;  bottom: 110px; width: 86px;  height: 86px;  }
+        #touch-controls.layout-b #tc-b     { right: 118px; bottom: 50px;  width: 70px;  height: 70px;  }
+        #touch-controls.layout-b #tc-y     { right: 98px;  bottom: 178px; width: 64px;  height: 64px;  }
         #touch-controls.layout-b #tc-start { right: 24px;  top: 24px;    width: 64px;  height: 32px;  }
     </style>
 </head>
@@ -575,6 +676,9 @@
     </div>
     <div id="status" style="display: none;"></div>
     <div id="progress"></div>
+    <div id="loading-overlay" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="0" fill="currentColor"><animate id="SVG0cdVlcnN" fill="freeze" attributeName="r" begin="0;SVGftllRbIv.begin+0.6s" calcMode="spline" dur="1.2s" keySplines=".52,.6,.25,.99" values="0;11"/><animate fill="freeze" attributeName="opacity" begin="0;SVGftllRbIv.begin+0.6s" calcMode="spline" dur="1.2s" keySplines=".52,.6,.25,.99" values="1;0"/></circle><circle cx="12" cy="12" r="0" fill="currentColor"><animate id="SVGftllRbIv" fill="freeze" attributeName="r" begin="SVG0cdVlcnN.begin+0.6s" calcMode="spline" dur="1.2s" keySplines=".52,.6,.25,.99" values="0;11"/><animate fill="freeze" attributeName="opacity" begin="SVG0cdVlcnN.begin+0.6s" calcMode="spline" dur="1.2s" keySplines=".52,.6,.25,.99" values="1;0"/></circle></svg>
+    </div>
     <!-- @PC_WEB_BUILD_TAG@ is stamped in at build time by configure_file()
          in pc/CMakeLists.txt. If you open this file directly without
          building, you'll see the literal "@PC_WEB_BUILD_TAG@" text. -->
@@ -602,16 +706,16 @@
             </svg>
         </div>
         <div id="tc-a"     class="tc-button" data-tc-button="0x0100" aria-label="A">
-            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" font-size="48" class="tc-label">A</text></svg>
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" class="tc-label">A</text></svg>
         </div>
         <div id="tc-b"     class="tc-button" data-tc-button="0x0200" aria-label="B">
-            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" font-size="44" class="tc-label">B</text></svg>
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" class="tc-label">B</text></svg>
         </div>
         <div id="tc-y"     class="tc-button" data-tc-button="0x0800" aria-label="Y">
-            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" font-size="40" class="tc-label">Y</text></svg>
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" class="tc-label">Y</text></svg>
         </div>
         <div id="tc-start" class="tc-button" data-tc-button="0x1000" aria-label="Start">
-            <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" font-size="22" class="tc-label">START</text></svg>
+            <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">START</text></svg>
         </div>
     </div>
 
@@ -636,7 +740,7 @@
             <div class="rom-saves-grid">
                 <div class="rom-saves-slot" data-slot="a">
                     <div class="rom-saves-slot-label">Card A</div>
-                    <div class="rom-saves-slot-state">Checking…</div>
+                    <div class="rom-saves-slot-state checking"><svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="14" x="1"  y="4" fill="currentColor"><animate id="SVGslot9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGslota89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4"><animate fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3"><animate id="SVGslota89dAd4w" fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/></rect></svg><span>Checking…</span></div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="rom-import-a" style="display:none">Import…</button>
                         <button class="rom-saves-btn" type="button" id="rom-export-a" style="display:none">Export</button>
@@ -645,7 +749,7 @@
                 </div>
                 <div class="rom-saves-slot" data-slot="b">
                     <div class="rom-saves-slot-label">Card B</div>
-                    <div class="rom-saves-slot-state">Checking…</div>
+                    <div class="rom-saves-slot-state checking"><svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="14" x="1"  y="4" fill="currentColor"><animate id="SVGslot9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGslota89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4"><animate fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3"><animate id="SVGslota89dAd4w" fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/></rect></svg><span>Checking…</span></div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="rom-import-b" style="display:none">Import…</button>
                         <button class="rom-saves-btn" type="button" id="rom-export-b" style="display:none">Export</button>
@@ -660,7 +764,8 @@
         <button id="rom-start" type="button" disabled>Start</button>
     </div>
 
-    <button id="settings-gear" type="button" aria-label="Settings" title="Settings">⚙</button>
+    <button id="fullscreen-toggle" type="button" aria-label="Toggle fullscreen" title="Fullscreen"><svg class="fs-icon-expand" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 15l6 6M15 9l6-6m0 13v5h-5m5-13V3h-5M3 16v5h5m-5 0l6-6M3 8V3h5m1 6L3 3"/></svg><svg class="fs-icon-collapse" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 15l6 6m-6-6v4.8m0-4.8h4.8M9 19.8V15m0 0H4.2M9 15l-6 6M15 4.2V9m0 0h4.8M15 9l6-6M9 4.2V9m0 0H4.2M9 9L3 3"/></svg></button>
+    <button id="settings-gear" type="button" aria-label="Settings" title="Settings"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0a2.34 2.34 0 0 0 3.319 1.915a2.34 2.34 0 0 1 2.33 4.033a2.34 2.34 0 0 0 0 3.831a2.34 2.34 0 0 1-2.33 4.033a2.34 2.34 0 0 0-3.319 1.915a2.34 2.34 0 0 1-4.659 0a2.34 2.34 0 0 0-3.32-1.915a2.34 2.34 0 0 1-2.33-4.033a2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></g></svg></button>
 
     <dialog id="settings-menu" aria-labelledby="settings-title">
         <div class="menu-body">
@@ -670,7 +775,7 @@
             <div id="settings-saves" class="rom-saves-grid">
                 <div class="rom-saves-slot" data-slot="a">
                     <div class="rom-saves-slot-label">Card A</div>
-                    <div class="rom-saves-slot-state">Checking…</div>
+                    <div class="rom-saves-slot-state checking"><svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="14" x="1"  y="4" fill="currentColor"><animate id="SVGslot9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGslota89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4"><animate fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3"><animate id="SVGslota89dAd4w" fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/></rect></svg><span>Checking…</span></div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="settings-import-a" style="display:none">Import…</button>
                         <button class="rom-saves-btn" type="button" id="settings-export-a" style="display:none">Export</button>
@@ -679,7 +784,7 @@
                 </div>
                 <div class="rom-saves-slot" data-slot="b">
                     <div class="rom-saves-slot-label">Card B</div>
-                    <div class="rom-saves-slot-state">Checking…</div>
+                    <div class="rom-saves-slot-state checking"><svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="14" x="1"  y="4" fill="currentColor"><animate id="SVGslot9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGslota89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4"><animate fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3"><animate id="SVGslota89dAd4w" fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/></rect></svg><span>Checking…</span></div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="settings-import-b" style="display:none">Import…</button>
                         <button class="rom-saves-btn" type="button" id="settings-export-b" style="display:none">Export</button>
@@ -735,6 +840,15 @@
     <script type="text/javascript">
         var statusEl = document.getElementById('status');
         var progressEl = document.getElementById('progress');
+
+        /* JS-side RAF keepalive. Chromium's intensive timer throttling
+         * applies to RAF callbacks scheduled by JS as a separate axis
+         * from CSS animations driving the compositor. A continuously
+         * self-rescheduling RAF chain keeps the callback queue non-empty
+         * so the throttler stays disengaged for our wasm-yield RAFs. */
+        (function _rafKeepalive() {
+            requestAnimationFrame(_rafKeepalive);
+        })();
 
         // Match the drawing buffer to the largest 4:3 box that fits in
         // the viewport, capped at MAX_CANVAS_DIM per axis. The CSS rule
@@ -857,18 +971,37 @@
 
         function _statusKindClass(kind) {
             if (kind === true || kind === 'error') return 'error';
-            if (kind === 'ok') return 'ok';
+            if (kind === 'ok')      return 'ok';
+            if (kind === 'loading') return 'loading';
             return '';
         }
-        function setRuntimeStatus(msg, kind) {
-            if (!runtimeStatusBox) return;
-            runtimeStatusBox.textContent = msg || '';
-            runtimeStatusBox.className = _statusKindClass(kind);
+        // SMIL three-bar pulse spinner; animates on the compositor so the
+        // bars keep moving even when the wasm main thread is busy.
+        var _STATUS_SPINNER_SVG =
+            '<svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">' +
+              '<rect width="6" height="14" x="1"  y="4" fill="currentColor">' +
+                '<animate id="SVG9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGa89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/>' +
+              '</rect>' +
+              '<rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4">' +
+                '<animate fill="freeze" attributeName="opacity" begin="SVG9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/>' +
+              '</rect>' +
+              '<rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3">' +
+                '<animate id="SVGa89dAd4w" fill="freeze" attributeName="opacity" begin="SVG9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/>' +
+              '</rect>' +
+            '</svg>';
+        function _renderStatus(el, msg, kind) {
+            if (!el) return;
+            el.className = _statusKindClass(kind);
+            if (kind === 'loading') {
+                // innerHTML is OK here — both source strings are static.
+                el.innerHTML = _STATUS_SPINNER_SVG +
+                               '<span class="status-text">' + (msg || '') + '</span>';
+            } else {
+                el.textContent = msg || '';
+            }
         }
-        function setRomStatus(msg, kind) {
-            statusBox.textContent = msg || '';
-            statusBox.className = _statusKindClass(kind);
-        }
+        function setRuntimeStatus(msg, kind) { _renderStatus(runtimeStatusBox, msg, kind); }
+        function setRomStatus(msg, kind)     { _renderStatus(statusBox,        msg, kind); }
 
         function showRomPicker() {
             pickerEl.classList.add('visible');
@@ -886,11 +1019,61 @@
             // Lookup at call time — this function is invoked from
             // showRomPicker (which can run before the settings-menu vars
             // are initialized further down).
-            var g = document.getElementById('settings-gear');
-            if (!g) return;
+            var gearBtn       = document.getElementById('settings-gear');
+            var fullscreenBtn = document.getElementById('fullscreen-toggle');
             var ready = _runtimeReady && !pickerEl.classList.contains('visible');
-            g.style.display = ready ? 'block' : 'none';
+            if (gearBtn)       gearBtn.style.display       = ready ? 'flex' : 'none';
+            if (fullscreenBtn) fullscreenBtn.style.display = (ready && _fullscreenAvailable()) ? 'flex' : 'none';
         }
+        function _fullscreenAvailable() {
+            var el = document.documentElement;
+            return !!(el.requestFullscreen
+                   || el.webkitRequestFullscreen
+                   || el.mozRequestFullScreen
+                   || el.msRequestFullscreen);
+        }
+        function _isFullscreenActive() {
+            return !!(document.fullscreenElement
+                   || document.webkitFullscreenElement
+                   || document.mozFullScreenElement
+                   || document.msFullscreenElement);
+        }
+        function toggleFullscreen() {
+            if (_isFullscreenActive()) {
+                var exit = document.exitFullscreen
+                        || document.webkitExitFullscreen
+                        || document.mozCancelFullScreen
+                        || document.msExitFullscreen;
+                try {
+                    var p = exit && exit.call(document);
+                    if (p && typeof p.catch === 'function') p.catch(function() {});
+                } catch (e) {}
+            } else {
+                var el  = document.documentElement;
+                var req = el.requestFullscreen
+                       || el.webkitRequestFullscreen
+                       || el.mozRequestFullScreen
+                       || el.msRequestFullscreen;
+                try {
+                    var p = req && req.call(el);
+                    if (p && typeof p.catch === 'function') p.catch(function() {});
+                } catch (e) {}
+            }
+        }
+        document.getElementById('fullscreen-toggle').addEventListener('click', toggleFullscreen);
+        // Reflect the live state in the icon (and aria-label) so the user
+        // can tell whether the next click will enter or exit fullscreen.
+        function _syncFullscreenIcon() {
+            var fullscreenBtn = document.getElementById('fullscreen-toggle');
+            if (!fullscreenBtn) return;
+            var active = _isFullscreenActive();
+            fullscreenBtn.classList.toggle('is-fullscreen', active);
+            fullscreenBtn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
+            fullscreenBtn.title = active ? 'Exit fullscreen' : 'Fullscreen';
+        }
+        ['fullscreenchange','webkitfullscreenchange','mozfullscreenchange','MSFullscreenChange']
+            .forEach(function(ev) { document.addEventListener(ev, _syncFullscreenIcon); });
+        _syncFullscreenIcon();
         /* Inspect the IDBFS-mounted /orig directory. If a previously-
          * imported user-rom.iso exists, mark the import state as ready
          * and surface the file's name/size so the user knows what they
@@ -900,7 +1083,7 @@
         function refreshRomStatus() {
             // Runtime line — independent of any ROM state.
             if (typeof FS === 'undefined') {
-                setRuntimeStatus('Loading runtime…');
+                setRuntimeStatus('Loading runtime…', 'loading');
             } else {
                 setRuntimeStatus('Runtime ready.', 'ok');
             }
@@ -911,7 +1094,7 @@
             // IDB check has already populated something. The poll re-runs
             // once the flag flips.
             if (typeof FS === 'undefined' || !Module || !Module.__rom_ready) {
-                if (!statusBox.textContent) setRomStatus('Checking for ROM…');
+                if (!statusBox.textContent) setRomStatus('Checking for ROM…', 'loading');
                 return;
             }
             var path = '/orig/user-rom.iso';
@@ -930,7 +1113,7 @@
             }
         }
         function setRomDropVisible(on) {
-            if (dropEl) dropEl.style.display = on ? '' : 'none';
+            if (dropEl) dropEl.style.display = on ? 'flex' : 'none';
         }
         // Expose to wasm via Module global lookup
         window.showRomPicker = showRomPicker;
@@ -1092,8 +1275,34 @@
                 setRomStatus('Loading…');
                 Module.__rom_uploaded = 1;
                 hideRomPicker();
+                showLoadingOverlay();
                 requestPageFullscreen();
+                requestScreenWakeLock();
             });
+        }
+        // Bridges the gap between the picker fading out and the wasm
+        // producing its first rendered frame. Shown on Start; hidden once
+        // the page has had a few RAFs in a row at frame-rate cadence,
+        // which is the cheapest signal that the wasm yielded back to the
+        // browser long enough to draw something. Falls back to a hard
+        // timeout so a stuck boot doesn't leave the spinner up forever.
+        function showLoadingOverlay() {
+            var overlay = document.getElementById('loading-overlay');
+            if (!overlay) return;
+            overlay.classList.add('visible');
+            var startTs = performance.now();
+            var lastTs  = startTs;
+            var smooth  = 0;
+            (function tick(ts) {
+                if (ts - lastTs < 33) smooth++;
+                else                  smooth = 0;
+                lastTs = ts;
+                if (smooth >= 5 || ts - startTs > 8000) {
+                    overlay.classList.remove('visible');
+                    return;
+                }
+                requestAnimationFrame(tick);
+            })(startTs);
         }
         // Fullscreen API path — works on Android (Chrome/Firefox/Samsung) when
         // called from a user gesture. Silently no-ops on iOS Safari, where
@@ -1108,6 +1317,25 @@
                 return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
             } catch (e) { return false; }
         }
+        // Hold a screen wake lock while the game is running so adaptive-
+        // refresh AMOLEDs (notably the Z Flip 6 / S24 series) don't drop
+        // to 1 Hz when nothing is changing on screen — touching a button
+        // would otherwise add 50–100 ms of refresh-ramp latency and stutter
+        // the wasm main loop. Browsers release the lock automatically when
+        // the page is hidden; we re-request it when it becomes visible
+        // again so the lock survives tab-switching.
+        var _wakeLock = null;
+        function requestScreenWakeLock() {
+            if (!navigator.wakeLock || _wakeLock) return;
+            navigator.wakeLock.request('screen').then(function(lock) {
+                _wakeLock = lock;
+                lock.addEventListener('release', function() { _wakeLock = null; });
+            }).catch(function() { /* user denied / unsupported — non-fatal */ });
+        }
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') requestScreenWakeLock();
+        });
+
         function requestPageFullscreen() {
             if (!isMobileLike()) return;
             try {
@@ -2174,12 +2402,23 @@
         function bindButton(el) {
             var mask = parseInt(el.getAttribute('data-tc-button'), 16);
             var activeId = null;
+            var pressedAt = 0;
+            var pendingRelease = 0;
+            // Hold the press bit for at least ~50 ms (3 frames at 60 Hz)
+            // so the wasm input poll definitely sees it. Modern Chromium
+            // (notably 2024+ builds on Snapdragon 8 Gen 3 / Z Flip 6) can
+            // coalesce a quick tap's pointerdown + pointerup into the
+            // same JS task tick — the press bit gets set then cleared
+            // before the wasm wakes up, and the tap is silently dropped.
+            var MIN_HOLD_MS = 50;
             preventFocusShift(el);
             el.addEventListener('pointerdown', function(ev) {
                 ev.preventDefault();
                 ev.stopPropagation();
                 if (activeId !== null) return;
+                if (pendingRelease) { clearTimeout(pendingRelease); pendingRelease = 0; }
                 activeId = ev.pointerId;
+                pressedAt = performance.now();
                 try { el.setPointerCapture(ev.pointerId); } catch (e) {}
                 el.classList.add('pressed');
                 callButton(mask, 1);
@@ -2188,9 +2427,18 @@
                 if (activeId === null || ev.pointerId !== activeId) return;
                 ev.preventDefault();
                 ev.stopPropagation();
-                el.classList.remove('pressed');
-                callButton(mask, 0);
                 activeId = null;
+                var elapsed = performance.now() - pressedAt;
+                var doRelease = function() {
+                    el.classList.remove('pressed');
+                    callButton(mask, 0);
+                    pendingRelease = 0;
+                };
+                if (elapsed < MIN_HOLD_MS) {
+                    pendingRelease = setTimeout(doRelease, MIN_HOLD_MS - elapsed);
+                } else {
+                    doRelease();
+                }
             };
             el.addEventListener('pointerup', release);
             el.addEventListener('pointercancel', release);

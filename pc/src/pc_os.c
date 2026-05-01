@@ -3,6 +3,20 @@
 
 #include <time.h>
 
+#ifdef __EMSCRIPTEN__
+/* Suppress decomp/jaudio printf debug logging in the wasm build. The
+ * --wrap=printf linker flag (set in pc/CMakeLists.txt) routes every
+ * printf call to __wrap_printf instead — a no-op here. Avoids the
+ * wasm→JS bridge crossing that would otherwise fire several times per
+ * sound-effect voice setup and stutter the wasm main loop on press.
+ * Native and Android builds aren't wrapped, so they keep getting the
+ * normal printf output for debugging. */
+int __wrap_printf(const char* fmt, ...) {
+    (void)fmt;
+    return 0;
+}
+#endif
+
 /* --- Memory arena --- */
 static u8* arena_memory = NULL;
 static u8* arena_lo = NULL;

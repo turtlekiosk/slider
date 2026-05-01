@@ -517,6 +517,14 @@ elseif(EMSCRIPTEN)
         -sEXIT_RUNTIME=0
         -sFORCE_FILESYSTEM=1
         -lidbfs.js
+        # Suppress decomp/jaudio printf debug logging in the wasm build.
+        # Each printf does a wasm→JS bridge crossing into the runtime's
+        # console.log import — easily 100–500 µs per call. jaudio in
+        # particular emits several debug prints during sound-effect
+        # voice setup, which fires on every button press and produces a
+        # ~25 ms hitch. The shim in pc_os.c provides __wrap_printf so
+        # the calls become no-ops without touching src/static/.
+        -Wl,--wrap=printf
         # Use Android's GLES 300-flavored shaders — WebGL2 is GLES 3.0, not desktop GL.
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_BINARY_DIR}/web/shell.html"
