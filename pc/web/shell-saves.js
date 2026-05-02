@@ -347,6 +347,19 @@ function summarizeSlot(slot, dir, files, verb) {
     root._refresh = refreshAll;
 
     function pick(slot) {
+        var s = SLOTS[slot];
+        if (s && typeof FS !== 'undefined') {
+            var existing = listGcis(s.dir);
+            if (existing.length > 0) {
+                var label  = 'Card ' + slot.toUpperCase();
+                var detail = summarizeSlot(slot, s.dir, existing, 'last saved');
+                var msg = label + ' already has save data (' + detail + ').\n\n' +
+                          'Importing will overwrite it. Continue?';
+                if (!withAudioSilenced(function() { return confirm(msg); })) {
+                    return;
+                }
+            }
+        }
         input.value = '';
         input.dataset.slot = slot;
         input.click();

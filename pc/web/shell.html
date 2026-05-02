@@ -1127,6 +1127,19 @@
             }
         }
         function settingsPickImport(slot) {
+            var s = SETTINGS_SLOTS[slot];
+            if (s && typeof FS !== 'undefined') {
+                var existing = settingsListGcis(s.dir);
+                if (existing.length > 0) {
+                    var label  = 'Card ' + slot.toUpperCase();
+                    var detail = summarizeSlot(slot, s.dir, existing, 'last saved');
+                    var msg = label + ' already has save data (' + detail + ').\n\n' +
+                              'Importing will overwrite it. Continue?';
+                    if (!withAudioSilenced(function() { return confirm(msg); })) {
+                        return;
+                    }
+                }
+            }
             importInputEl.value = '';                  // allow same-file re-pick
             importInputEl.dataset.slot = slot;
             importInputEl.click();
