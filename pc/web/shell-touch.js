@@ -18,7 +18,7 @@
 
     // ---- Settings model + persistence -------------------------------
     var SETTINGS_KEY = 'acgc.touch.v1';
-    var DEFAULTS = { enabled: 'auto', layout: 'auto', opacity: 25, style: 'simplified' };
+    var DEFAULTS = { enabled: 'auto', opacity: 25, style: 'simplified' };
     function loadSettings() {
         try {
             var raw = localStorage.getItem(SETTINGS_KEY);
@@ -95,8 +95,10 @@
         return hasTouch; /* auto */
     }
     function pickLayout() {
-        if (settings.layout === 'a' || settings.layout === 'b') return settings.layout;
-        /* auto: use viewport aspect — landscape gets B, portrait gets A */
+        /* Driven entirely by viewport aspect — landscape → B (controls
+         * flank the canvas), portrait → A (controls below the canvas).
+         * The user-facing override was removed; the auto choice was
+         * what everyone used in practice. */
         return (window.innerWidth >= window.innerHeight) ? 'b' : 'a';
     }
     function applyVisibility() {
@@ -218,7 +220,7 @@
         cstick = nipplejs.create({
             zone: zone,
             mode: 'dynamic',
-            color: '#d0d0d0',
+            color: '#e6dc7a', /* soft yellow — matches GameCube C-stick */
             size: 140,
             fadeTime: 100,
             threshold: 0.05,
@@ -368,13 +370,11 @@
 
     // ---- Settings dialog wiring ------------------------------------
     var enabledSel = document.getElementById('tc-enabled-select');
-    var layoutSel  = document.getElementById('tc-layout-select');
     var styleSel   = document.getElementById('tc-style-select');
     var opacityRng = document.getElementById('tc-opacity-range');
     var opacityVal = document.getElementById('tc-opacity-value');
-    if (enabledSel && layoutSel && styleSel && opacityRng && opacityVal) {
+    if (enabledSel && styleSel && opacityRng && opacityVal) {
         enabledSel.value = settings.enabled;
-        layoutSel.value  = settings.layout;
         styleSel.value   = settings.style;
         opacityRng.value = settings.opacity;
         opacityVal.textContent = settings.opacity + '%';
@@ -382,10 +382,6 @@
         enabledSel.addEventListener('change', function() {
             settings.enabled = enabledSel.value;
             saveSettings(settings); applyVisibility();
-        });
-        layoutSel.addEventListener('change', function() {
-            settings.layout = layoutSel.value;
-            saveSettings(settings); applyLayout();
         });
         styleSel.addEventListener('change', function() {
             settings.style = styleSel.value;
@@ -399,17 +395,13 @@
         opacityRng.addEventListener('change', function() { saveSettings(settings); });
     }
 
-    // ---- Auto layout responds to orientation/resize ----------------
-    window.addEventListener('resize', function() {
-        if (settings.layout === 'auto') applyLayout();
-    });
+    // ---- Layout follows orientation/resize -------------------------
+    window.addEventListener('resize', applyLayout);
     window.addEventListener('orientationchange', function() {
-        if (settings.layout === 'auto') {
-            /* layout responds to inner{Width,Height}, which lag the
-             * orientationchange event by a frame on most browsers. */
-            requestAnimationFrame(applyLayout);
-            setTimeout(applyLayout, 200);
-        }
+        /* layout responds to inner{Width,Height}, which lag the
+         * orientationchange event by a frame on most browsers. */
+        requestAnimationFrame(applyLayout);
+        setTimeout(applyLayout, 200);
     });
 
     applyAll();

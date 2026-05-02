@@ -532,6 +532,14 @@ elseif(EMSCRIPTEN)
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_BINARY_DIR}/web/shell.html"
     )
+    # Make ac_pc re-link whenever shell.html changes — emcc bakes the
+    # shell into AnimalCrossing.html during link, but CMake doesn't
+    # track --shell-file as a dependency on its own. Without this,
+    # editing shell.html alone (no .c changes) wouldn't trigger a
+    # relink, so the served HTML stayed stale across builds.
+    set_property(TARGET ac_pc APPEND PROPERTY
+        LINK_DEPENDS "${CMAKE_BINARY_DIR}/web/shell.html"
+    )
     # Copy PWA assets (manifest + icons) next to the wasm output. The service
     # worker registration in shell.html expects them at the same origin path
     # as AnimalCrossing.html. (sw.js itself is configure_file'd below so the

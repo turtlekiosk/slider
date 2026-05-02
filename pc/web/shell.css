@@ -635,6 +635,16 @@ body.tc-bias-top #container {
 #touch-controls .pressed .tc-bg {
     fill: rgba(255, 255, 255, var(--tc-bg-pressed-alpha));
 }
+/* Per-button tints — pale GameCube-faceplate colors at the same alpha
+   variables as the default white. Higher specificity (#touch-controls
+   prefix) overrides the .pressed rule above so the tint persists when
+   pressed. */
+#touch-controls #tc-a .tc-bg          { fill: rgba(120, 230, 130, var(--tc-bg-alpha)); }
+#touch-controls #tc-a.pressed .tc-bg  { fill: rgba(120, 230, 130, var(--tc-bg-pressed-alpha)); }
+#touch-controls #tc-b .tc-bg          { fill: rgba(230, 110, 110, var(--tc-bg-alpha)); }
+#touch-controls #tc-b.pressed .tc-bg  { fill: rgba(230, 110, 110, var(--tc-bg-pressed-alpha)); }
+#touch-controls #tc-z .tc-bg          { fill: rgba(180, 130, 230, var(--tc-bg-alpha)); }
+#touch-controls #tc-z.pressed .tc-bg  { fill: rgba(180, 130, 230, var(--tc-bg-pressed-alpha)); }
 /* Fixed CSS-pixel size so labels don't scale with the SVG container —
  * without this, font-size on the inline <text> attribute would
  * scale with the viewBox / button-size ratio. */
@@ -688,6 +698,15 @@ body.tc-bias-top #container {
     pointer-events: none;
     width: 110px;
     height: 110px;
+    /* Hint is a child of #tc-stick-zone — these percentages are
+       relative to the zone, so the hint auto-tracks whichever
+       layout/style the zone is in. Default is bottom-anchored at
+       the zone's horizontal center (low in the zone, near where the
+       thumb rests on a phone held in portrait). style-full overrides
+       to vertical center because its zone is much smaller. */
+    left: 50%;
+    bottom: 60px;
+    transform: translateX(-50%);
     transition: opacity 0.15s ease;
     opacity: 1;
 }
@@ -700,12 +719,16 @@ body.tc-bias-top #container {
 #tc-stick-hint .hint-knob {
     fill: rgba(255, 255, 255, calc(var(--tc-bg-alpha) + 0.15));
 }
-/* Hint position. In portrait, vertically center the hint against
-   the right-column button cluster (B at bottom ~38, Start at top
-   ~272 → midpoint ~155 from bottom; minus the 55px hint half-
-   height gives bottom: 100). In landscape, mid-left edge. */
-#touch-controls.layout-a #tc-stick-hint { left: 30px;  bottom: 80px; }
-#touch-controls.layout-b #tc-stick-hint { left: 40px;  bottom: 80px; }
+/* In simplified mode, align the stick hint vertically with the A face
+   button so the two thumb-rest anchors match.
+     Layout A: A button at bottom 90 + half-height 43 = center bottom 133
+               → hint bottom = 133 − 55 (half hint height) = 78
+     Layout B: A button at bottom 110 + 43 = center bottom 153
+               → hint bottom = 153 − 55 = 98
+   style-full overrides these (further down) to vertical-center the
+   hint inside the small full-mode stick zone. */
+#touch-controls.layout-a #tc-stick-hint { bottom: 78px; }
+#touch-controls.layout-b #tc-stick-hint { bottom: 98px; }
 
 /* ===== Layout A — portrait / default =====
    D-pad is hidden in portrait — its uses (letter writing, pattern
@@ -759,10 +782,31 @@ body.tc-bias-top #container {
 #touch-controls.style-simplified #tc-dpad-right,
 #touch-controls.style-simplified #tc-cstick-zone { display: none; }
 
-/* In style-full the D-pad cross is replaced by four discrete arrow
-   buttons so each direction has a clean target zone (the cross-shaped
-   single button required position math inside the SVG to detect the
-   pressed quadrant). */
+/* In style-full the stick zones are much smaller (~200px), so the
+   simplified-mode "60px from zone bottom" rule would put the hint
+   near the bottom edge. Center vertically in the small zone instead. */
+#touch-controls.style-full #tc-stick-hint,
+#touch-controls.style-full #tc-cstick-hint {
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+}
+/* Horizontally align the main stick hint with the D-pad cluster's
+   center (the cluster sits directly below the stick zone, so this
+   keeps the thumb path consistent — user touches the same x-column
+   for both). D-pad center: cluster left + half cluster width.
+     Layout A: 40 + 60 = 100
+     Layout B: 14 + 60 = 74
+   The transform from the rule above (translate(-50%, -50%)) re-anchors
+   the hint's center on the new `left` value. */
+#touch-controls.layout-a.style-full #tc-stick-hint { left: 100px; }
+#touch-controls.layout-b.style-full #tc-stick-hint { left: 74px; }
+
+/* In style-full the D-pad cross is replaced by the 3×3 arrow grid
+   (#tc-dpad-cluster); reveal the cluster wrappers and shoulder row
+   buttons. Sizes for grid items come from the cluster's grid-template
+   below; sizes for shoulder buttons come from the layout-specific
+   rules below. */
 #touch-controls.style-full #tc-dpad { display: none; }
 #touch-controls.style-full #tc-x,
 #touch-controls.style-full #tc-z,
@@ -771,25 +815,8 @@ body.tc-bias-top #container {
 #touch-controls.style-full #tc-dpad-up,
 #touch-controls.style-full #tc-dpad-down,
 #touch-controls.style-full #tc-dpad-left,
-#touch-controls.style-full #tc-dpad-right { display: flex; }
+#touch-controls.style-full #tc-dpad-right { display: block; }
 #touch-controls.style-full #tc-cstick-zone { display: block; }
-/* Fallback sizes for the new full-mode buttons. Without these, an
-   absolutely-positioned div with no width/height contains an SVG with
-   no width/height attributes; Chromium falls back to the 300×150 HTML
-   inline-replaced-element default and the button renders at desktop-
-   monitor scale. The layout-a/-b position rules below override these.
-   No left/top fallback — those would fight the right/bottom anchors
-   in the layout rules; we rely on applyLayout() always setting one
-   layout class. */
-#touch-controls.style-full #tc-dpad-up,
-#touch-controls.style-full #tc-dpad-down,
-#touch-controls.style-full #tc-dpad-left,
-#touch-controls.style-full #tc-dpad-right { width: 50px; height: 50px; }
-#touch-controls.style-full #tc-x { width: 50px; height: 50px; }
-#touch-controls.style-full #tc-l,
-#touch-controls.style-full #tc-r { width: 52px; height: 28px; }
-#touch-controls.style-full #tc-z { width: 44px; height: 28px; }
-#touch-controls.style-full #tc-cstick-zone { width: 45%; height: 200px; }
 
 /* C-stick zone — twin of #tc-stick-zone but anchored on the opposite
    side. nipplejs renders into it as a second floating analog stick. */
@@ -797,7 +824,6 @@ body.tc-bias-top #container {
     position: absolute;
     pointer-events: auto;
     touch-action: none;
-    overflow: hidden;
     user-select: none;
     -webkit-user-select: none;
 }
@@ -806,59 +832,192 @@ body.tc-bias-top #container {
     width: 110px;
     height: 110px;
     pointer-events: none;
+    /* Mirror of #tc-stick-hint. */
+    left: 50%;
+    bottom: 60px;
+    transform: translateX(-50%);
     transition: opacity 0.15s ease;
     opacity: 1;
 }
 #touch-controls.cstick-active #tc-cstick-hint { opacity: 0; }
+/* Yellow tint on the active C-stick nipplejs visuals. nipplejs sets
+   the back/front backgrounds via inline style from the JS `color`
+   option (see ensureCstickNipple in shell-touch.js); these CSS rules
+   override that with a translucent yellow so the dragging joystick
+   reads as the C-stick at a glance, matching the at-rest hint tint. */
+#tc-cstick-zone .nipple .back  { background: rgba(230, 220, 130, 0.55) !important; opacity: 1 !important; }
+#tc-cstick-zone .nipple .front { background: rgba(230, 220, 130, 0.85) !important; opacity: 1 !important; }
 #tc-cstick-hint .hint-bg {
-    fill: rgba(255, 255, 255, var(--tc-bg-alpha));
-    stroke: rgba(255, 255, 255, var(--tc-stroke-alpha));
+    fill: rgba(230, 220, 130, var(--tc-bg-alpha));
+    stroke: rgba(230, 220, 130, var(--tc-stroke-alpha));
     stroke-width: 2;
 }
 #tc-cstick-hint .hint-knob {
-    fill: rgba(255, 255, 255, calc(var(--tc-bg-alpha) + 0.15));
+    fill: rgba(230, 220, 130, calc(var(--tc-bg-alpha) + 0.15));
+}
+/* Override .tc-label inside the C-stick hint:
+     - The hint SVG renders into a 110×110 box (vs the face buttons' ~56),
+       so the 24-unit font-size scales up to ~26 CSS px — much larger
+       than the ~13 px on B. Drop to 12 to roughly match B's letter.
+     - Drop the dark stroke that .tc-label adds for outline contrast —
+       at this scale the stroke reads as a halo around the C, not a
+       letter accent. */
+#tc-cstick-hint .tc-label {
+    font-size: 12px;
+    stroke: none;
+}
+/* "C" label centered on the active nipplejs thumb (the .front element
+   nipplejs injects when the user touches the C-stick zone). The hint
+   gets its own "C" via SVG <text>; this rule covers the dragging
+   joystick visual. nipplejs's .front is positioned absolutely and
+   moves with the touch, so the pseudo-element rides along. */
+#tc-cstick-zone .nipple .front {
+    position: relative; /* needed for ::after positioning context */
+}
+#tc-cstick-zone .nipple .front::after {
+    content: 'C';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    pointer-events: none;
 }
 
-/* ----- Layout A (portrait) — full set -----
-   D-pad is built from four 50×50 arrow buttons in a cross. Face cluster
-   uses A=70, B=56, Y/X=50 so the four buttons fit in a tighter diamond
-   (was 86/70/64/64 — too crowded against the C-stick zone). The
-   shoulder/Z/Start row sits at bottom 380, just above the cluster's
-   top edge (Y/up-arrow tops out near bottom 360). */
-#touch-controls.layout-a.style-full #tc-stick-zone   { left: 0;     bottom: 190px; width: 45%;  height: 200px; }
-#touch-controls.layout-a.style-full #tc-cstick-zone  { right: 0;    bottom: 0;     width: 45%;  height: 200px; }
-#touch-controls.layout-a.style-full #tc-dpad-up      { left: 60px;  bottom: 130px; width: 50px;  height: 50px; }
-#touch-controls.layout-a.style-full #tc-dpad-down    { left: 60px;  bottom: 30px;  width: 50px;  height: 50px; }
-#touch-controls.layout-a.style-full #tc-dpad-left    { left: 10px;  bottom: 80px;  width: 50px;  height: 50px; }
-#touch-controls.layout-a.style-full #tc-dpad-right   { left: 110px; bottom: 80px;  width: 50px;  height: 50px; }
-#touch-controls.layout-a.style-full #tc-a            { right: 26px; bottom: 250px; width: 70px;  height: 70px;  }
-#touch-controls.layout-a.style-full #tc-b            { right: 96px; bottom: 220px; width: 56px;  height: 56px;  }
-#touch-controls.layout-a.style-full #tc-y            { right: 96px; bottom: 286px; width: 50px;  height: 50px;  }
-#touch-controls.layout-a.style-full #tc-x            { right: 30px; bottom: 326px; width: 50px;  height: 50px;  }
-#touch-controls.layout-a.style-full #tc-l            { left: 14px;  bottom: 380px; top: auto; width: 52px; height: 28px; }
-#touch-controls.layout-a.style-full #tc-r            { right: 14px; bottom: 380px; top: auto; width: 52px; height: 28px; }
-#touch-controls.layout-a.style-full #tc-z            { right: 76px; bottom: 380px; top: auto; width: 44px; height: 28px; }
-#touch-controls.layout-a.style-full #tc-start        { left: 50%;   bottom: 380px; top: auto; transform: translateX(-50%); width: 56px; height: 28px; right: auto; }
-#touch-controls.layout-a.style-full #tc-stick-hint   { left: 30px;  bottom: 130px; }
-#touch-controls.layout-a.style-full #tc-cstick-hint  { right: 30px; bottom: 50px;  }
+/* ===== Cluster/row wrappers =====
+   The D-pad arrows, face buttons, and shoulder row are wrapped in
+   container divs in shell.html. Outside style-full those wrappers
+   are `display: contents` (boxes vanish from the layout tree, so
+   the children behave as direct siblings of #touch-controls and the
+   simplified-mode absolute-position rules above keep working). In
+   style-full the wrappers become grid/flex containers and the
+   children get placed by grid-area / flex-distribution instead. */
+#tc-dpad-cluster,
+#tc-face-cluster,
+#tc-shoulder-row { display: contents; }
 
-/* ----- Layout B (landscape) — full set -----
-   Same shrinkage logic: D-pad arrows 44×44, face cluster A=76, B=60,
-   Y/X=50, shoulder/Z buttons 52×28 / 44×28 / 56×28. R/Z drop to
-   bottom 240 (above X's top edge near bottom 230). */
+/* In style-full, individual buttons inside a cluster are flow items
+   (not absolute) — clear the .tc-button position so the grid/flex
+   parent owns the layout. */
+#touch-controls.style-full #tc-dpad-cluster > .tc-button,
+#touch-controls.style-full #tc-face-cluster > .tc-button {
+    position: static;
+}
+/* D-pad arrows are uniform; fill their grid cells exactly. */
+#touch-controls.style-full #tc-dpad-cluster > .tc-button {
+    width: 100%;
+    height: 100%;
+}
+/* Face buttons are intentionally non-uniform (A is the dominant button,
+   B/Y/X smaller). Sizes are set per-button below; cells are sized to
+   match in the layout-a/-b grid-template rules. align/justify-self
+   handle the cases where a button's intrinsic size is smaller than
+   its cell (e.g. X in the X-row cell that's sized to A's row). */
+#touch-controls.style-full #tc-face-cluster > .tc-button {
+    align-self: center;
+    justify-self: center;
+}
+
+/* ----- D-pad cluster (style-full, both layouts) -----
+   3×3 grid; arrows fill the cardinal cells. Cell size differs per
+   layout (50px portrait, 44px landscape) — total cluster size scales
+   with cell size, so anchoring on left/bottom alone moves the whole
+   cross. */
+#touch-controls.style-full #tc-dpad-cluster {
+    display: grid;
+    position: absolute;
+    pointer-events: none;
+}
+#touch-controls.style-full #tc-dpad-cluster > .tc-button { pointer-events: auto; }
+#touch-controls.style-full #tc-dpad-cluster #tc-dpad-up    { grid-column: 2; grid-row: 1; }
+#touch-controls.style-full #tc-dpad-cluster #tc-dpad-left  { grid-column: 1; grid-row: 2; }
+#touch-controls.style-full #tc-dpad-cluster #tc-dpad-right { grid-column: 3; grid-row: 2; }
+#touch-controls.style-full #tc-dpad-cluster #tc-dpad-down  { grid-column: 2; grid-row: 3; }
+
+/* ----- Face cluster (style-full, both layouts) -----
+   4-row × 2-col stair-step matching the original asymmetric layout:
+   X top-right, Y mid-upper-left, A mid-lower-right (the dominant
+   button), B bottom-left. Each button gets its own row so they
+   stagger diagonally instead of pairing into the same row. The
+   per-layout rules below set the row/column sizes (and therefore
+   each button's cell size); per-button width/height makes A larger
+   than the others. */
+#touch-controls.style-full #tc-face-cluster {
+    display: grid;
+    position: absolute;
+    pointer-events: none;
+    grid-template-areas:
+        ".  X"
+        "Y  ."
+        ".  A"
+        "B  .";
+}
+#touch-controls.style-full #tc-face-cluster > .tc-button { pointer-events: auto; }
+#touch-controls.style-full #tc-face-cluster #tc-x { grid-area: X; }
+#touch-controls.style-full #tc-face-cluster #tc-y { grid-area: Y; }
+#touch-controls.style-full #tc-face-cluster #tc-a { grid-area: A; }
+#touch-controls.style-full #tc-face-cluster #tc-b { grid-area: B; }
+
+/* ----- Layout A (portrait) — full set =====
+   D-pad cluster lower-left, stick zone above; face cluster upper-
+   right, c-stick lower-right (mirror). Shoulder row is a flex bar
+   pinned just above the cluster region so L/Start/Z/R distribute
+   evenly across the screen width. */
+#touch-controls.layout-a.style-full #tc-stick-zone     { left: 0;     bottom: 130px; width: 45%;  height: 200px; }
+#touch-controls.layout-a.style-full #tc-cstick-zone    { right: 0;    bottom: 0;     width: 45%;  height: 200px; }
+#touch-controls.layout-a.style-full #tc-dpad-cluster   { left: 40px;  bottom: 28px;  grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
+/* Face cluster row sizes match each button's height; columns 56/70 so
+   col 1 holds B and Y at their natural widths and col 2 fits A. The
+   X and Y rows are shorter than the buttons themselves and the items
+   are bottom-aligned (`align-self: end`) — that pulls the X+Y stack
+   down to sit tight against A's top edge while letting them overflow
+   upward into empty cluster space. */
+#touch-controls.layout-a.style-full #tc-face-cluster   { right: 14px; bottom: 130px; grid-template-columns: 56px 70px;       grid-template-rows: 18px 18px 70px 56px; }
+#touch-controls.layout-a.style-full #tc-face-cluster #tc-a { width: 70px; height: 70px; }
+#touch-controls.layout-a.style-full #tc-face-cluster #tc-b { width: 56px; height: 56px; transform: translateY(-30px); }
+#touch-controls.layout-a.style-full #tc-face-cluster #tc-y { width: 50px; height: 50px; align-self: end; transform: translateY(20px); }
+#touch-controls.layout-a.style-full #tc-face-cluster #tc-x { width: 50px; height: 50px; align-self: end; justify-self: start; transform: translate(8px, 10px); }
+#touch-controls.layout-a.style-full #tc-shoulder-row {
+    display: flex;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 340px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+#touch-controls.layout-a.style-full #tc-shoulder-row > .tc-button {
+    position: static;
+    pointer-events: auto;
+}
+#touch-controls.layout-a.style-full #tc-l     { width: 52px; height: 28px; }
+#touch-controls.layout-a.style-full #tc-r     { width: 52px; height: 28px; }
+#touch-controls.layout-a.style-full #tc-z     { width: 44px; height: 28px; }
+#touch-controls.layout-a.style-full #tc-start { width: 56px; height: 28px; }
+
+/* ----- Layout B (landscape) — full set =====
+   Stick upper-left, D-pad cluster lower-left; face cluster upper-
+   right (mirror), C-stick lower-right. Shoulder row is `display:
+   contents` so L/R/Z/Start use individual absolute positions —
+   landscape's shoulder placements aren't symmetric (L and Start hug
+   the bottom edge; R and Z sit above the face cluster) so a single
+   flex distribution doesn't fit. */
 #touch-controls.layout-b.style-full #tc-stick-zone   { left: 0;     top: 0;        width: 35%;  height: 38%; }
 #touch-controls.layout-b.style-full #tc-cstick-zone  { right: 0;    top: 30%;      width: 35%;  height: 70%; }
-#touch-controls.layout-b.style-full #tc-dpad-up      { left: 56px;  bottom: 206px; top: auto; width: 44px; height: 44px; }
-#touch-controls.layout-b.style-full #tc-dpad-down    { left: 56px;  bottom: 118px; top: auto; width: 44px; height: 44px; }
-#touch-controls.layout-b.style-full #tc-dpad-left    { left: 12px;  bottom: 162px; top: auto; width: 44px; height: 44px; }
-#touch-controls.layout-b.style-full #tc-dpad-right   { left: 100px; bottom: 162px; top: auto; width: 44px; height: 44px; }
-#touch-controls.layout-b.style-full #tc-a            { right: 30px; bottom: 100px; width: 76px;  height: 76px;  }
-#touch-controls.layout-b.style-full #tc-b            { right: 100px;bottom: 50px;  width: 60px;  height: 60px;  }
-#touch-controls.layout-b.style-full #tc-y            { right: 100px;bottom: 162px; width: 56px;  height: 56px;  }
-#touch-controls.layout-b.style-full #tc-x            { right: 30px; bottom: 180px; width: 50px;  height: 50px;  }
-#touch-controls.layout-b.style-full #tc-l            { left: 24px;  bottom: 24px;  top: auto; width: 52px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-r            { right: 24px; bottom: 240px; top: auto; width: 52px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-z            { right: 84px; bottom: 240px; top: auto; width: 44px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-start        { left: 50%;   bottom: 24px;  top: auto; transform: translateX(-50%); width: 56px; height: 28px; right: auto; }
-#touch-controls.layout-b.style-full #tc-stick-hint   { left: 40px;  top: 60%;      bottom: auto; transform: translateY(-50%); }
-#touch-controls.layout-b.style-full #tc-cstick-hint  { right: 40px; top: 50%;      transform: translateY(-50%); }
+#touch-controls.layout-b.style-full #tc-dpad-cluster { left: 14px;  bottom: 80px;  grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
+#touch-controls.layout-b.style-full #tc-face-cluster { right: 12px; bottom: 30px;  grid-template-columns: 60px 76px;       grid-template-rows: 18px 18px 76px 60px; }
+#touch-controls.layout-b.style-full #tc-face-cluster #tc-a { width: 76px; height: 76px; }
+#touch-controls.layout-b.style-full #tc-face-cluster #tc-b { width: 60px; height: 60px; }
+#touch-controls.layout-b.style-full #tc-face-cluster #tc-y { width: 56px; height: 56px; align-self: end; transform: translateY(22px); }
+#touch-controls.layout-b.style-full #tc-face-cluster #tc-x { width: 50px; height: 50px; align-self: end; justify-self: start; transform: translate(8px, 10px); }
+#touch-controls.layout-b.style-full #tc-l     { left: 24px;  bottom: 24px;  top: auto; width: 52px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-r     { right: 24px; bottom: 280px; top: auto; width: 52px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-z     { right: 84px; bottom: 280px; top: auto; width: 44px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-start { left: 50%;   bottom: 24px;  top: auto; transform: translateX(-50%); width: 56px; height: 28px; right: auto; }
