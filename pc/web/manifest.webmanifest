@@ -2,7 +2,7 @@
   "name": "ACGC",
   "short_name": "ACGC",
   "description": "ACGC WebAssembly Port",
-  "start_url": "./AnimalCrossing.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",
   "display_override": ["fullscreen", "standalone"],

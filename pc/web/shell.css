@@ -1,7 +1,7 @@
-/* Self-hosted webfonts. The .woff2 files live next to AnimalCrossing.html
- * after the build (copied via _PWA_FILES) and are pre-cached by sw.js so
- * the PWA renders with correct typography offline. font-display:swap
- * shows fallback text immediately while the woff2 streams. */
+/* Self-hosted webfonts. The .woff2 files live next to index.html after
+ * the build (copied via _PWA_FILES) and are pre-cached by sw.js so the
+ * PWA renders with correct typography offline. font-display:swap shows
+ * fallback text immediately while the woff2 streams. */
 @font-face {
     font-family: "Work Sans";
     font-style: normal;

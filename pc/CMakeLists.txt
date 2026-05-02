@@ -14,7 +14,6 @@ set(CMAKE_CXX_STANDARD 17)
 # GCC's default (-O0) which works correctly. The NDEBUG define below ensures
 # asserts stay disabled regardless of build type.
 
-# Options
 option(PC_CONSOLE "Show console window (disables -mwindows, useful for debugging)" OFF)
 
 # =============================================================================
@@ -31,7 +30,6 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
         "  Web: emcmake cmake .. (wasm32 is the default)")
 endif()
 
-# Allow mixed C/C++ linkage
 set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
@@ -60,7 +58,6 @@ else()
     )
 endif()
 
-# Common compiler flags (applied to all sources)
 if(MSVC)
     add_compile_options(/W0)
 else()
@@ -129,7 +126,6 @@ else()
     endif()
     if(NOT SDL2_FOUND)
         if(WIN32)
-            # Windows-specific fallback paths
             # MSYS2 32-bit location
             set(SDL2_MSYS2_DIR "C:/msys64/mingw32")
             if(EXISTS "${SDL2_MSYS2_DIR}/include/SDL2/SDL.h")
@@ -191,39 +187,18 @@ file(GLOB_RECURSE GAME_CXX_SOURCES CONFIGURE_DEPENDS
     "${DECOMP_ROOT}/src/*.cpp"
 )
 
-# Exclude files that conflict with PC port or are platform-specific
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/AUS/.*")  # AUS-specific versions
 
 # Exclude all Dolphin SDK hardware abstraction (we replace with pc_*.c stubs)
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/gx/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/os/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/vi/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/pad/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/card/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/dvd/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/ai/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/ar/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/dsp/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/exi/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/si/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/db/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/mtx/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/base/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/gba/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/amcstubs/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/OdemuExi2/.*")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/dolphin/odenotstub/.*")
+list(FILTER GAME_C_SOURCES EXCLUDE REGEX
+    ".*/dolphin/(gx|os|vi|pad|card|dvd|ai|ar|dsp|exi|si|db|mtx|base|gba|amcstubs|OdemuExi2|odenotstub)/.*")
 
 # Exclude PPC-specific runtime/compiler support (Metrowerks CodeWarrior)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/TRK_MINNOW_DOLPHIN/.*")
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/Runtime\\.PPCEABI\\.H/.*")
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/MSL_C\\.PPCEABI\\.bare\\.H/.*")
 
-# Bootdata: Include window/logo model display lists (gam_win1.c, gam_win2.c, gam_win3.c, logo_nin.c)
-# These provide Gfx[] arrays used by initial_menu.c for UI windows and Nintendo logo.
-
-# Include ALL data files now that .inc assets are extracted from ROM
-# (build/GAFE01_00/include/ is in the include path)
+# Pull in all generated data files (display lists, model arrays, etc.).
 file(GLOB_RECURSE DATA_C_SOURCES CONFIGURE_DEPENDS "${DECOMP_ROOT}/src/data/*.c")
 list(APPEND GAME_C_SOURCES ${DATA_C_SOURCES})
 
@@ -235,16 +210,14 @@ list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/src/furniture/.*")
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/src/data/model/obj_e_boat/.*")
 
 # Exclude template/include .c files that are #included from other files
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/ac_npc_shop_common\\.c$")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/ac_animal_logo_misc\\.c$")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/m_item_debug\\.c$")
+list(FILTER GAME_C_SOURCES EXCLUDE REGEX
+    ".*/(ac_npc_shop_common|ac_animal_logo_misc|m_item_debug)\\.c$")
 
 # Exclude NPC anime data fragments (no headers, #included from other NPC files)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/actor/npc/.*_anime\\.c$")
 
 # Exclude Dolphin OS sources that conflict with PC stubs
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/osreport\\.c$")
-# audio.c now included (jaudio_NES provides Na_* functions)
 
 # Exclude Famicom/NES emulator (contains PPC inline assembly)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/Famicom/.*")
@@ -253,16 +226,13 @@ list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/Famicom/.*")
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/MSL_C/.*")
 
 # jaudio_NES: Include audio engine, exclude GBA-specific files
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/jaudio_NES/internal/dsp_cardunlock\\.c$")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/jaudio_NES/internal/dsp_GBAKey\\.c$")
+list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/jaudio_NES/internal/(dsp_cardunlock|dsp_GBAKey)\\.c$")
 
 # libc64: Include most files (qrand, math64, sleep, etc.)
-# Exclude malloc.c (redefines system malloc/free which crashes CRT on PC)
-# Keep __osMalloc.c (game code uses __osMalloc* directly via m_malloc.c)
-# Exclude sprintf.c/aprintf.c (they need _Printf from libultra xprintf)
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/libc64/malloc\\.c$")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/libc64/sprintf\\.c$")
-list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/libc64/aprintf\\.c$")
+# Exclude malloc.c (redefines system malloc/free which crashes CRT on PC).
+# Keep __osMalloc.c (game code uses __osMalloc* directly via m_malloc.c).
+# Exclude sprintf.c/aprintf.c (they need _Printf from libultra xprintf).
+list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/libc64/(malloc|sprintf|aprintf)\\.c$")
 
 # libultra: Exclude most (we have pc_os.c replacements), but keep xprintf for libc64
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/libultra/.*")
@@ -273,16 +243,12 @@ list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/ReconfigBATs\\.c$")
 # Exclude GC-specific entry point (PC has its own main)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/executor\\.c$")
 
-# ROM asset .inc files now available in build/GAFE01_00/include/assets/
-# All previously-excluded files are now compiled with real data.
-
 # Exclude ef_effect_lib.c (has no #includes, pure function definitions without type context)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/ef_effect_lib\\.c$")
 
 # Exclude m_card.c (needs Dolphin CARD system headers with non-standard include paths)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/m_card\\.c$")
 
-# Also filter C++ sources
 list(FILTER GAME_CXX_SOURCES EXCLUDE REGEX ".*/AUS/.*")
 list(FILTER GAME_CXX_SOURCES EXCLUDE REGEX ".*/dolphin/.*")
 list(FILTER GAME_CXX_SOURCES EXCLUDE REGEX ".*/TRK_MINNOW_DOLPHIN/.*")
@@ -302,9 +268,8 @@ list(APPEND GAME_CXX_SOURCES
 list(FILTER GAME_CXX_SOURCES EXCLUDE REGEX ".*/emu64_print\\.cpp$")
 
 # libjsys: jsyswrapper_ext.cpp and jsyswrapper_main.cpp are #included from jsyswrapper.cpp
-# so exclude them from standalone compilation (just like emu64_utility.c)
-list(FILTER GAME_CXX_SOURCES EXCLUDE REGEX ".*/jsyswrapper_ext\\.cpp$")
-list(FILTER GAME_CXX_SOURCES EXCLUDE REGEX ".*/jsyswrapper_main\\.cpp$")
+# so exclude them from standalone compilation (just like emu64_utility.c).
+list(FILTER GAME_CXX_SOURCES EXCLUDE REGEX ".*/jsyswrapper_(ext|main)\\.cpp$")
 
 # =============================================================================
 # PC port source files
@@ -363,8 +328,8 @@ set(FIXNES_SOURCES
     ${FIXNES_DIR}/audio_s5b.c
     ${FIXNES_MAPPER_SOURCES}
 )
-# fixNES compile flags: optimize for performance (third-party code, no decomp UB),
-# enable inlining (critical for cycle-by-cycle emulation), lower APU frequency
+# fixNES compile flags: -O2 (third-party code, no decomp UB to worry about) +
+# DO_INLINE_ATTRIBS for hot-path inlining (cycle-accurate emulation).
 set_source_files_properties(${FIXNES_SOURCES}
     PROPERTIES
     COMPILE_OPTIONS "-w;-O2"
@@ -395,13 +360,13 @@ set_source_files_properties(
 # Exclude emu64_utility.c (it's #included from emu64.c, not a standalone file)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/emu64_utility\\.c$")
 
-# These .c files contain C++ code (classes, namespaces, ::) - compile as C++
-# Only files that truly need C++ (std::, extern "C", etc.) - NOT just for nullptr
+# These .c files contain C++ code (classes, namespaces, ::) and need C++
+# compilation. Don't promote a file just for nullptr — the COMPILE_LANGUAGE
+# generator expression below handles that case.
 set_source_files_properties(
     "${DECOMP_ROOT}/src/static/libforest/emu64/emu64.c"
     # ja_calc.c uses std::sinf, std::sqrtf
     "${DECOMP_ROOT}/src/static/jaudio_NES/internal/ja_calc.c"
-    # sample.c: reinterpret_cast replaced with C cast under TARGET_PC, no longer needs C++
     # jammain_2.c uses extern "C"
     "${DECOMP_ROOT}/src/static/jaudio_NES/internal/jammain_2.c"
     # game64.c includes .c_inc with extern "C" (OSAttention.c_inc)
@@ -469,33 +434,28 @@ endif()
 # =============================================================================
 # Build target
 # =============================================================================
+# Source list shared across all platforms (Android shared lib + Emscripten
+# wasm + desktop exe). Desktop appends its Windows resource file separately.
+set(_AC_SOURCES ${PC_SOURCES} ${FIXNES_SOURCES} ${GAME_C_SOURCES} ${GAME_CXX_SOURCES})
+
 if(ANDROID)
     # Android: shared library loaded by SDLActivity via System.loadLibrary()
-    add_library(ac_pc SHARED
-        ${PC_SOURCES}
-        ${FIXNES_SOURCES}
-        ${GAME_C_SOURCES}
-        ${GAME_CXX_SOURCES}
-    )
+    add_library(ac_pc SHARED ${_AC_SOURCES})
     target_link_libraries(ac_pc SDL2 GLESv3 EGL android log m)
 elseif(EMSCRIPTEN)
     # Web: single-page wasm build with assets baked into the .data bundle
-    add_executable(ac_pc
-        ${PC_SOURCES}
-        ${FIXNES_SOURCES}
-        ${GAME_C_SOURCES}
-        ${GAME_CXX_SOURCES}
-    )
+    add_executable(ac_pc ${_AC_SOURCES})
     set_target_properties(ac_pc PROPERTIES
-        OUTPUT_NAME "AnimalCrossing"
+        # Emitted as `index.*` so GitHub Pages serves the wasm shell directly
+        # at the repo root URL (e.g. https://user.github.io/repo/) without
+        # needing a redirector or rename step in CI.
+        OUTPUT_NAME "index"
         SUFFIX ".html"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/web"
     )
     # `-g` and `-sASSERTIONS=2` are debug-only — they bloat the wasm binary
     # by 50–100 MB and add per-allocation overhead, both of which push iOS
-    # Safari past its per-tab memory budget. `MAXIMUM_MEMORY` caps wasm heap
-    # growth so we OOM cleanly (handled by m_malloc) instead of getting
-    # silently killed by Safari's tab watchdog.
+    # Safari past its per-tab memory budget.
     set(_pc_web_debug_flags "")
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(_pc_web_debug_flags -g -sASSERTIONS=2)
@@ -533,43 +493,45 @@ elseif(EMSCRIPTEN)
         "SHELL:--shell-file ${CMAKE_BINARY_DIR}/web/shell.html"
     )
     # Make ac_pc re-link whenever shell.html changes — emcc bakes the
-    # shell into AnimalCrossing.html during link, but CMake doesn't
-    # track --shell-file as a dependency on its own. Without this,
-    # editing shell.html alone (no .c changes) wouldn't trigger a
-    # relink, so the served HTML stayed stale across builds.
+    # shell into index.html during link, but CMake doesn't track
+    # --shell-file as a dependency on its own. Without this, editing
+    # shell.html alone (no .c changes) wouldn't trigger a relink, so
+    # the served HTML stayed stale across builds.
     set_property(TARGET ac_pc APPEND PROPERTY
         LINK_DEPENDS "${CMAKE_BINARY_DIR}/web/shell.html"
     )
-    # Copy PWA assets (manifest + icons) next to the wasm output. The service
-    # worker registration in shell.html expects them at the same origin path
-    # as AnimalCrossing.html. (sw.js itself is configure_file'd below so the
-    # cache key gets the build SHA substituted in.)
+    # Helper: queue a POST_BUILD copy_if_different for each existing path in
+    # the given list, into the given destination directory. Skips missing
+    # entries (e.g. icons are optional).
+    function(_pc_web_copy_each dest)
+        foreach(_src IN LISTS ARGN)
+            if(EXISTS "${_src}")
+                add_custom_command(TARGET ac_pc POST_BUILD
+                    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_src}" "${dest}")
+            endif()
+        endforeach()
+    endfunction()
+
+    # Copy PWA assets (manifest + shell-* + woff2 fonts + icons) next to the
+    # wasm output. The service worker registration in shell.html expects
+    # them at the same origin path as index.html. (sw.js itself is
+    # configure_file'd below so the cache key gets the build SHA stamped in.)
     set(_PWA_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.css"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-touch.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-saves.js"
     )
-    foreach(_pwa_file IN LISTS _PWA_FILES)
-        if(EXISTS "${_pwa_file}")
-            add_custom_command(TARGET ac_pc POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "${_pwa_file}" "${CMAKE_BINARY_DIR}/web/")
-        endif()
-    endforeach()
+    _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/" ${_PWA_FILES})
 
-    # Self-hosted webfonts. Copied into a fonts/ subdir next to the wasm so
-    # the @font-face url() paths in shell.css resolve, and pre-cached by
-    # sw.js (CORE_ASSETS) for offline use.
+    # Self-hosted webfonts go in a fonts/ subdir so shell.css's url() paths
+    # resolve. make_directory POST_BUILD avoids needing the dir at configure
+    # time when the project is freshly cloned without fonts yet.
     file(GLOB _PWA_FONTS "${CMAKE_CURRENT_SOURCE_DIR}/web/fonts/*.woff2")
     if(_PWA_FONTS)
         add_custom_command(TARGET ac_pc POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/web/fonts")
-        foreach(_font IN LISTS _PWA_FONTS)
-            add_custom_command(TARGET ac_pc POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "${_font}" "${CMAKE_BINARY_DIR}/web/fonts/")
-        endforeach()
+        _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/fonts/" ${_PWA_FONTS})
     endif()
 
     # Service worker cache key: derive from the git short SHA so each deploy
@@ -581,7 +543,6 @@ elseif(EMSCRIPTEN)
     # is captured at configure time, so without this `ninja` could re-copy
     # an unchanged sw.js even though shell.css/shell-*.js were edited and
     # clients would never notice the new build.
-    file(GLOB _PWA_FONT_DEPS "${CMAKE_CURRENT_SOURCE_DIR}/web/fonts/*.woff2")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
@@ -589,7 +550,7 @@ elseif(EMSCRIPTEN)
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-touch.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-saves.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
-        ${_PWA_FONT_DEPS}
+        ${_PWA_FONTS}
     )
     find_package(Git QUIET)
     set(_pc_web_sha "")
@@ -640,11 +601,7 @@ elseif(EMSCRIPTEN)
     # Copy any icon-*.png that exist (icons are optional — the build still
     # works without them, the manifest just won't have art).
     file(GLOB _PWA_ICONS "${CMAKE_CURRENT_SOURCE_DIR}/web/icon-*.png")
-    foreach(_icon IN LISTS _PWA_ICONS)
-        add_custom_command(TARGET ac_pc POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${_icon}" "${CMAKE_BINARY_DIR}/web/")
-    endforeach()
+    _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/" ${_PWA_ICONS})
     # Copy nipplejs (vendored library for the touch analog stick). The copy
     # runs every build (not gated on configure-time existence), so dropping
     # the file in or updating its bytes is picked up without re-running
@@ -658,13 +615,7 @@ elseif(EMSCRIPTEN)
     )
 else()
     # Desktop: standalone executable
-    add_executable(ac_pc
-        ${PC_SOURCES}
-        ${FIXNES_SOURCES}
-        ${GAME_C_SOURCES}
-        ${GAME_CXX_SOURCES}
-        ${RC_FILE}
-    )
+    add_executable(ac_pc ${_AC_SOURCES} ${RC_FILE})
 
     # Link SDL2 without SDL2main (we define SDL_MAIN_HANDLED)
     if(TARGET SDL2::SDL2)

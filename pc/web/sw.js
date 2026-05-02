@@ -5,10 +5,10 @@
 const CACHE_VERSION = '@PC_WEB_CACHE_VERSION@';
 const CORE_ASSETS = [
     './',
-    './AnimalCrossing.html',
-    './AnimalCrossing.js',
-    './AnimalCrossing.wasm',
-    './AnimalCrossing.data',
+    './index.html',
+    './index.js',
+    './index.wasm',
+    './index.data',
     './manifest.webmanifest',
     './icon-192.png',
     './icon-512.png',
@@ -76,7 +76,7 @@ self.addEventListener('fetch', (event) => {
         caches.match(req, matchOpts || { ignoreSearch: true });
 
     const navFallback = () =>
-        caches.match('./AnimalCrossing.html', { ignoreSearch: true })
+        caches.match('./index.html', { ignoreSearch: true })
             .then((cached) => cached || caches.match('./', { ignoreSearch: true }));
 
     event.respondWith(
