@@ -650,6 +650,19 @@ body.tc-bias-top #container {
     stroke-width: 1;
 }
 #touch-controls #tc-start .tc-label { font-size: 14px; }
+/* D-pad arrow triangles — match the letter buttons' visual size and
+   round the apex/base corners. Using solid white fill+stroke and an
+   element-level opacity means the stroke and fill blend internally as
+   one solid shape before the alpha is applied; rgba()-based alpha on
+   both would double-blend at the stroke seam, producing a visible
+   outline around the triangle. */
+#touch-controls .tc-arrow {
+    fill: #fff;
+    stroke: #fff;
+    stroke-width: 4;
+    stroke-linejoin: round;
+    opacity: var(--tc-label-alpha);
+}
 /* Stick zone: invisible touch area where nipplejs spawns the joystick.
    Layout-A (default) covers bottom-left half; Layout-B (landscape)
    covers most of the left edge. */
@@ -716,3 +729,136 @@ body.tc-bias-top #container {
 #touch-controls.layout-b #tc-b     { right: 118px; bottom: 50px;  width: 70px;  height: 70px;  }
 #touch-controls.layout-b #tc-y     { right: 98px;  bottom: 178px; width: 64px;  height: 64px;  }
 #touch-controls.layout-b #tc-start { right: 58px;  bottom: 260px; width: 64px;  height: 32px;  }
+
+/* ===== Style modifiers =====
+   .style-simplified (default) hides the GameCube-faceplate extras
+   (D-pad, X, Z, L, R, C-stick). .style-full shows them and applies
+   per-layout positions for the full set. The simplified-positioning
+   rules above stay in effect for A/B/Y/Start/main-stick — the full
+   variant only adds and where necessary repositions to make room.
+
+   Default-hidden so they don't flash at unstyled positions before
+   applyStyle() runs; .style-full revives them below. */
+#touch-controls #tc-x,
+#touch-controls #tc-z,
+#touch-controls #tc-l,
+#touch-controls #tc-r,
+#touch-controls #tc-dpad-up,
+#touch-controls #tc-dpad-down,
+#touch-controls #tc-dpad-left,
+#touch-controls #tc-dpad-right,
+#touch-controls #tc-cstick-zone { display: none; }
+#touch-controls.style-simplified #tc-dpad,
+#touch-controls.style-simplified #tc-x,
+#touch-controls.style-simplified #tc-z,
+#touch-controls.style-simplified #tc-l,
+#touch-controls.style-simplified #tc-r,
+#touch-controls.style-simplified #tc-dpad-up,
+#touch-controls.style-simplified #tc-dpad-down,
+#touch-controls.style-simplified #tc-dpad-left,
+#touch-controls.style-simplified #tc-dpad-right,
+#touch-controls.style-simplified #tc-cstick-zone { display: none; }
+
+/* In style-full the D-pad cross is replaced by four discrete arrow
+   buttons so each direction has a clean target zone (the cross-shaped
+   single button required position math inside the SVG to detect the
+   pressed quadrant). */
+#touch-controls.style-full #tc-dpad { display: none; }
+#touch-controls.style-full #tc-x,
+#touch-controls.style-full #tc-z,
+#touch-controls.style-full #tc-l,
+#touch-controls.style-full #tc-r,
+#touch-controls.style-full #tc-dpad-up,
+#touch-controls.style-full #tc-dpad-down,
+#touch-controls.style-full #tc-dpad-left,
+#touch-controls.style-full #tc-dpad-right { display: flex; }
+#touch-controls.style-full #tc-cstick-zone { display: block; }
+/* Fallback sizes for the new full-mode buttons. Without these, an
+   absolutely-positioned div with no width/height contains an SVG with
+   no width/height attributes; Chromium falls back to the 300×150 HTML
+   inline-replaced-element default and the button renders at desktop-
+   monitor scale. The layout-a/-b position rules below override these.
+   No left/top fallback — those would fight the right/bottom anchors
+   in the layout rules; we rely on applyLayout() always setting one
+   layout class. */
+#touch-controls.style-full #tc-dpad-up,
+#touch-controls.style-full #tc-dpad-down,
+#touch-controls.style-full #tc-dpad-left,
+#touch-controls.style-full #tc-dpad-right { width: 50px; height: 50px; }
+#touch-controls.style-full #tc-x { width: 50px; height: 50px; }
+#touch-controls.style-full #tc-l,
+#touch-controls.style-full #tc-r { width: 52px; height: 28px; }
+#touch-controls.style-full #tc-z { width: 44px; height: 28px; }
+#touch-controls.style-full #tc-cstick-zone { width: 45%; height: 200px; }
+
+/* C-stick zone — twin of #tc-stick-zone but anchored on the opposite
+   side. nipplejs renders into it as a second floating analog stick. */
+#tc-cstick-zone {
+    position: absolute;
+    pointer-events: auto;
+    touch-action: none;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+#tc-cstick-hint {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+    opacity: 1;
+}
+#touch-controls.cstick-active #tc-cstick-hint { opacity: 0; }
+#tc-cstick-hint .hint-bg {
+    fill: rgba(255, 255, 255, var(--tc-bg-alpha));
+    stroke: rgba(255, 255, 255, var(--tc-stroke-alpha));
+    stroke-width: 2;
+}
+#tc-cstick-hint .hint-knob {
+    fill: rgba(255, 255, 255, calc(var(--tc-bg-alpha) + 0.15));
+}
+
+/* ----- Layout A (portrait) — full set -----
+   D-pad is built from four 50×50 arrow buttons in a cross. Face cluster
+   uses A=70, B=56, Y/X=50 so the four buttons fit in a tighter diamond
+   (was 86/70/64/64 — too crowded against the C-stick zone). The
+   shoulder/Z/Start row sits at bottom 380, just above the cluster's
+   top edge (Y/up-arrow tops out near bottom 360). */
+#touch-controls.layout-a.style-full #tc-stick-zone   { left: 0;     bottom: 190px; width: 45%;  height: 200px; }
+#touch-controls.layout-a.style-full #tc-cstick-zone  { right: 0;    bottom: 0;     width: 45%;  height: 200px; }
+#touch-controls.layout-a.style-full #tc-dpad-up      { left: 60px;  bottom: 130px; width: 50px;  height: 50px; }
+#touch-controls.layout-a.style-full #tc-dpad-down    { left: 60px;  bottom: 30px;  width: 50px;  height: 50px; }
+#touch-controls.layout-a.style-full #tc-dpad-left    { left: 10px;  bottom: 80px;  width: 50px;  height: 50px; }
+#touch-controls.layout-a.style-full #tc-dpad-right   { left: 110px; bottom: 80px;  width: 50px;  height: 50px; }
+#touch-controls.layout-a.style-full #tc-a            { right: 26px; bottom: 250px; width: 70px;  height: 70px;  }
+#touch-controls.layout-a.style-full #tc-b            { right: 96px; bottom: 220px; width: 56px;  height: 56px;  }
+#touch-controls.layout-a.style-full #tc-y            { right: 96px; bottom: 286px; width: 50px;  height: 50px;  }
+#touch-controls.layout-a.style-full #tc-x            { right: 30px; bottom: 326px; width: 50px;  height: 50px;  }
+#touch-controls.layout-a.style-full #tc-l            { left: 14px;  bottom: 380px; top: auto; width: 52px; height: 28px; }
+#touch-controls.layout-a.style-full #tc-r            { right: 14px; bottom: 380px; top: auto; width: 52px; height: 28px; }
+#touch-controls.layout-a.style-full #tc-z            { right: 76px; bottom: 380px; top: auto; width: 44px; height: 28px; }
+#touch-controls.layout-a.style-full #tc-start        { left: 50%;   bottom: 380px; top: auto; transform: translateX(-50%); width: 56px; height: 28px; right: auto; }
+#touch-controls.layout-a.style-full #tc-stick-hint   { left: 30px;  bottom: 130px; }
+#touch-controls.layout-a.style-full #tc-cstick-hint  { right: 30px; bottom: 50px;  }
+
+/* ----- Layout B (landscape) — full set -----
+   Same shrinkage logic: D-pad arrows 44×44, face cluster A=76, B=60,
+   Y/X=50, shoulder/Z buttons 52×28 / 44×28 / 56×28. R/Z drop to
+   bottom 240 (above X's top edge near bottom 230). */
+#touch-controls.layout-b.style-full #tc-stick-zone   { left: 0;     top: 0;        width: 35%;  height: 38%; }
+#touch-controls.layout-b.style-full #tc-cstick-zone  { right: 0;    top: 30%;      width: 35%;  height: 70%; }
+#touch-controls.layout-b.style-full #tc-dpad-up      { left: 56px;  bottom: 206px; top: auto; width: 44px; height: 44px; }
+#touch-controls.layout-b.style-full #tc-dpad-down    { left: 56px;  bottom: 118px; top: auto; width: 44px; height: 44px; }
+#touch-controls.layout-b.style-full #tc-dpad-left    { left: 12px;  bottom: 162px; top: auto; width: 44px; height: 44px; }
+#touch-controls.layout-b.style-full #tc-dpad-right   { left: 100px; bottom: 162px; top: auto; width: 44px; height: 44px; }
+#touch-controls.layout-b.style-full #tc-a            { right: 30px; bottom: 100px; width: 76px;  height: 76px;  }
+#touch-controls.layout-b.style-full #tc-b            { right: 100px;bottom: 50px;  width: 60px;  height: 60px;  }
+#touch-controls.layout-b.style-full #tc-y            { right: 100px;bottom: 162px; width: 56px;  height: 56px;  }
+#touch-controls.layout-b.style-full #tc-x            { right: 30px; bottom: 180px; width: 50px;  height: 50px;  }
+#touch-controls.layout-b.style-full #tc-l            { left: 24px;  bottom: 24px;  top: auto; width: 52px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-r            { right: 24px; bottom: 240px; top: auto; width: 52px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-z            { right: 84px; bottom: 240px; top: auto; width: 44px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-start        { left: 50%;   bottom: 24px;  top: auto; transform: translateX(-50%); width: 56px; height: 28px; right: auto; }
+#touch-controls.layout-b.style-full #tc-stick-hint   { left: 40px;  top: 60%;      bottom: auto; transform: translateY(-50%); }
+#touch-controls.layout-b.style-full #tc-cstick-hint  { right: 40px; top: 50%;      transform: translateY(-50%); }

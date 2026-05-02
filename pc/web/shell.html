@@ -57,6 +57,18 @@
                 <path class="tc-bg" d="M36 4 H64 V36 H96 V64 H64 V96 H36 V64 H4 V36 H36 Z" />
             </svg>
         </div>
+        <div id="tc-dpad-up"    class="tc-button" data-tc-button="0x0008" aria-label="Up">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><polygon points="50,43 60,57 40,57" class="tc-arrow" /></svg>
+        </div>
+        <div id="tc-dpad-down"  class="tc-button" data-tc-button="0x0004" aria-label="Down">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><polygon points="50,57 40,43 60,43" class="tc-arrow" /></svg>
+        </div>
+        <div id="tc-dpad-left"  class="tc-button" data-tc-button="0x0001" aria-label="Left">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><polygon points="43,50 57,40 57,60" class="tc-arrow" /></svg>
+        </div>
+        <div id="tc-dpad-right" class="tc-button" data-tc-button="0x0002" aria-label="Right">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><polygon points="57,50 43,40 43,60" class="tc-arrow" /></svg>
+        </div>
         <div id="tc-a"     class="tc-button" data-tc-button="0x0100" aria-label="A">
             <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" class="tc-label">A</text></svg>
         </div>
@@ -65,6 +77,26 @@
         </div>
         <div id="tc-y"     class="tc-button" data-tc-button="0x0800" aria-label="Y">
             <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" class="tc-label">Y</text></svg>
+        </div>
+        <div id="tc-x"     class="tc-button" data-tc-button="0x0400" aria-label="X">
+            <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><text x="50" y="52" class="tc-label">X</text></svg>
+        </div>
+        <div id="tc-z"     class="tc-button" data-tc-button="0x0010" aria-label="Z">
+            <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">Z</text></svg>
+        </div>
+        <div id="tc-l"     class="tc-button" data-tc-button="0x0040" aria-label="L">
+            <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">L</text></svg>
+        </div>
+        <div id="tc-r"     class="tc-button" data-tc-button="0x0020" aria-label="R">
+            <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">R</text></svg>
+        </div>
+        <div id="tc-cstick-zone">
+            <div id="tc-cstick-hint" aria-hidden="true">
+                <svg viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="46" class="hint-bg" />
+                    <circle cx="50" cy="50" r="20" class="hint-knob" />
+                </svg>
+            </div>
         </div>
         <div id="tc-start" class="tc-button" data-tc-button="0x1000" aria-label="Start">
             <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">START</text></svg>
@@ -168,6 +200,13 @@
                     <option value="auto">Auto (orientation)</option>
                     <option value="a">A — bottom controls (portrait)</option>
                     <option value="b">B — split left/right (landscape)</option>
+                </select>
+            </div>
+            <div class="row">
+                <label for="tc-style-select">Style</label>
+                <select id="tc-style-select">
+                    <option value="simplified">Simplified (A/B/Y/Start + stick)</option>
+                    <option value="full">Full (+ X, Z, L, R, D-pad, C-stick)</option>
                 </select>
             </div>
             <div class="row">

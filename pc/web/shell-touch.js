@@ -18,7 +18,7 @@
 
     // ---- Settings model + persistence -------------------------------
     var SETTINGS_KEY = 'acgc.touch.v1';
-    var DEFAULTS = { enabled: 'auto', layout: 'auto', opacity: 25 };
+    var DEFAULTS = { enabled: 'auto', layout: 'auto', opacity: 25, style: 'simplified' };
     function loadSettings() {
         try {
             var raw = localStorage.getItem(SETTINGS_KEY);
@@ -52,6 +52,11 @@
     function callStick(x, y) {
         if (!wasmReady()) return;
         var fn = Module._pc_input_touch_stick;
+        if (fn) fn(x | 0, y | 0);
+    }
+    function callCstick(x, y) {
+        if (!wasmReady()) return;
+        var fn = Module._pc_input_touch_cstick;
         if (fn) fn(x | 0, y | 0);
     }
 
@@ -100,10 +105,12 @@
             root.setAttribute('aria-hidden', 'false');
             /* When the stick zone first becomes interactable, init nipple */
             ensureNipple();
+            if (settings.style === 'full') ensureCstickNipple();
         } else {
             root.classList.remove('visible');
             root.setAttribute('aria-hidden', 'true');
             destroyNipple();
+            destroyCstickNipple();
         }
         applyCanvasBias();
     }
@@ -113,8 +120,23 @@
         root.classList.toggle('layout-b', l === 'b');
         /* nipplejs anchors to the zone; rebuild on layout change so the
          * overlay's coordinates match the new zone position. */
-        if (root.classList.contains('visible')) ensureNipple(true);
+        if (root.classList.contains('visible')) {
+            ensureNipple(true);
+            ensureCstickNipple(true);
+        }
         applyCanvasBias();
+    }
+    function applyStyle() {
+        var s = settings.style === 'full' ? 'full' : 'simplified';
+        root.classList.toggle('style-full', s === 'full');
+        root.classList.toggle('style-simplified', s === 'simplified');
+        /* C-stick zone visibility is gated by the style class; (re)build
+         * or destroy its nipplejs instance to match. */
+        if (s === 'full' && root.classList.contains('visible')) {
+            ensureCstickNipple(true);
+        } else {
+            destroyCstickNipple();
+        }
     }
     /* Bias the canvas higher in the viewport when controls occupy the
      * bottom (Layout A only). Landscape (Layout B) controls sit on the
@@ -138,7 +160,7 @@
         root.style.setProperty('--tc-stroke-alpha',     stroke);
         root.style.setProperty('--tc-label-alpha',      label);
     }
-    function applyAll() { applyVisibility(); applyLayout(); applyOpacity(); }
+    function applyAll() { applyVisibility(); applyLayout(); applyStyle(); applyOpacity(); }
 
     // ---- nipplejs analog stick -------------------------------------
     var nipple = null;
@@ -181,15 +203,60 @@
         nipple = null;
         callStick(0, 0);
     }
+
+    /* C-stick — second nipplejs instance pinned to #tc-cstick-zone, only
+     * active when style:full. Mirrors the main stick lifecycle. */
+    var cstick = null;
+    function ensureCstickNipple(forceRebuild) {
+        if (settings.style !== 'full') return;
+        var zone = document.getElementById('tc-cstick-zone');
+        if (!zone) return;
+        if (typeof nipplejs === 'undefined') return;
+        if (cstick && !forceRebuild) return;
+        destroyCstickNipple();
+        preventFocusShift(zone);
+        cstick = nipplejs.create({
+            zone: zone,
+            mode: 'dynamic',
+            color: '#d0d0d0',
+            size: 140,
+            fadeTime: 100,
+            threshold: 0.05,
+            restJoystick: true
+        });
+        cstick.on('start', function() { root.classList.add('cstick-active'); });
+        cstick.on('move', function(_evt, data) {
+            if (!data || !data.vector) return;
+            callCstick(
+                Math.round(data.vector.x * 127),
+                Math.round(data.vector.y * 127)
+            );
+        });
+        cstick.on('end', function() {
+            root.classList.remove('cstick-active');
+            callCstick(0, 0);
+        });
+    }
+    function destroyCstickNipple() {
+        if (!cstick) return;
+        try { cstick.destroy(); } catch (e) {}
+        cstick = null;
+        callCstick(0, 0);
+    }
+
     /* nipplejs is loaded via <script ... onload="window._nippleLoaded()">.
      * If it lands after applyVisibility ran, the onload handler retries
      * ensureNipple here. If it landed first, _nippleLoaded is wired up
      * but harmless — applyVisibility already saw nipplejs as defined. */
     window._nippleLoaded = function() {
-        if (root.classList.contains('visible')) ensureNipple();
+        if (root.classList.contains('visible')) {
+            ensureNipple();
+            if (settings.style === 'full') ensureCstickNipple();
+        }
     };
     if (typeof nipplejs !== 'undefined' && root.classList.contains('visible')) {
         ensureNipple();
+        if (settings.style === 'full') ensureCstickNipple();
     }
 
     // ---- Simple buttons (A, B, Y, Start) ---------------------------
@@ -302,11 +369,13 @@
     // ---- Settings dialog wiring ------------------------------------
     var enabledSel = document.getElementById('tc-enabled-select');
     var layoutSel  = document.getElementById('tc-layout-select');
+    var styleSel   = document.getElementById('tc-style-select');
     var opacityRng = document.getElementById('tc-opacity-range');
     var opacityVal = document.getElementById('tc-opacity-value');
-    if (enabledSel && layoutSel && opacityRng && opacityVal) {
+    if (enabledSel && layoutSel && styleSel && opacityRng && opacityVal) {
         enabledSel.value = settings.enabled;
         layoutSel.value  = settings.layout;
+        styleSel.value   = settings.style;
         opacityRng.value = settings.opacity;
         opacityVal.textContent = settings.opacity + '%';
 
@@ -317,6 +386,10 @@
         layoutSel.addEventListener('change', function() {
             settings.layout = layoutSel.value;
             saveSettings(settings); applyLayout();
+        });
+        styleSel.addEventListener('change', function() {
+            settings.style = styleSel.value;
+            saveSettings(settings); applyStyle();
         });
         opacityRng.addEventListener('input', function() {
             settings.opacity = parseInt(opacityRng.value, 10);

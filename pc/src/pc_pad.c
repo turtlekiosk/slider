@@ -24,6 +24,8 @@ static SDL_GameController* g_controller = NULL;
 static u16 g_touch_buttons = 0;
 static s8  g_touch_stick_x = 0;
 static s8  g_touch_stick_y = 0;
+static s8  g_touch_cstick_x = 0;
+static s8  g_touch_cstick_y = 0;
 
 EMSCRIPTEN_KEEPALIVE
 void pc_input_touch_button(int gc_button_mask, int pressed) {
@@ -39,6 +41,16 @@ void pc_input_touch_stick(int x, int y) {
     if (y < -128) y = -128;
     g_touch_stick_x = (s8)x;
     g_touch_stick_y = (s8)y;
+}
+
+EMSCRIPTEN_KEEPALIVE
+void pc_input_touch_cstick(int x, int y) {
+    if (x >  127) x =  127;
+    if (x < -128) x = -128;
+    if (y >  127) y =  127;
+    if (y < -128) y = -128;
+    g_touch_cstick_x = (s8)x;
+    g_touch_cstick_y = (s8)y;
 }
 #endif
 
@@ -173,8 +185,10 @@ u32 PADRead(PADStatus* status) {
      * additive: only override the merged stick if the touch UI is
      * actively reporting a non-neutral value. */
     buttons |= g_touch_buttons;
-    if (g_touch_stick_x != 0) stickX = g_touch_stick_x;
-    if (g_touch_stick_y != 0) stickY = g_touch_stick_y;
+    if (g_touch_stick_x != 0)  stickX  = g_touch_stick_x;
+    if (g_touch_stick_y != 0)  stickY  = g_touch_stick_y;
+    if (g_touch_cstick_x != 0) cstickX = g_touch_cstick_x;
+    if (g_touch_cstick_y != 0) cstickY = g_touch_cstick_y;
 #endif
 
     status[0].button = buttons;
