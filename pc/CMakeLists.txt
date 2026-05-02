@@ -550,6 +550,20 @@ elseif(EMSCRIPTEN)
         endif()
     endforeach()
 
+    # Self-hosted webfonts. Copied into a fonts/ subdir next to the wasm so
+    # the @font-face url() paths in shell.css resolve, and pre-cached by
+    # sw.js (CORE_ASSETS) for offline use.
+    file(GLOB _PWA_FONTS "${CMAKE_CURRENT_SOURCE_DIR}/web/fonts/*.woff2")
+    if(_PWA_FONTS)
+        add_custom_command(TARGET ac_pc POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/web/fonts")
+        foreach(_font IN LISTS _PWA_FONTS)
+            add_custom_command(TARGET ac_pc POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${_font}" "${CMAKE_BINARY_DIR}/web/fonts/")
+        endforeach()
+    endif()
+
     # Service worker cache key: derive from the git short SHA so each deploy
     # invalidates the previous SW cache automatically. Falls back to a
     # timestamp on dirty trees or non-git checkouts so dev iterations also
@@ -559,6 +573,7 @@ elseif(EMSCRIPTEN)
     # is captured at configure time, so without this `ninja` could re-copy
     # an unchanged sw.js even though shell.css/shell-*.js were edited and
     # clients would never notice the new build.
+    file(GLOB _PWA_FONT_DEPS "${CMAKE_CURRENT_SOURCE_DIR}/web/fonts/*.woff2")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
@@ -566,6 +581,7 @@ elseif(EMSCRIPTEN)
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-touch.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-saves.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
+        ${_PWA_FONT_DEPS}
     )
     find_package(Git QUIET)
     set(_pc_web_sha "")

@@ -1,3 +1,36 @@
+/* Self-hosted webfonts. The .woff2 files live next to AnimalCrossing.html
+ * after the build (copied via _PWA_FILES) and are pre-cached by sw.js so
+ * the PWA renders with correct typography offline. font-display:swap
+ * shows fallback text immediately while the woff2 streams. */
+@font-face {
+    font-family: "Work Sans";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/work-sans-400.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Work Sans";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("fonts/work-sans-500.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Work Sans";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("fonts/work-sans-600.woff2") format("woff2");
+}
+@font-face {
+    font-family: "Fragment Mono";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("fonts/fragment-mono-400.woff2") format("woff2");
+}
+
 /* Compositor activity keepalive. Chromium on Snapdragon 8 Gen 3 +
  * adaptive AMOLED phones (Z Flip 6, S24 family) classifies a wasm
  * canvas-only page as "idle" between user inputs and applies
@@ -33,6 +66,7 @@ html, body {
     background: #000;
     color: #ddd;
     font-family:
+        "Work Sans",
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
@@ -318,6 +352,11 @@ body.tc-bias-top #container {
     opacity: 0.85;
     margin-top: 8px;
 }
+#settings-menu .rom-saves-status {
+    min-height: 0;
+    margin-top: 0;
+}
+#settings-menu .rom-saves-status:empty { display: none; }
 .rom-saves-status.error { color: #f88; opacity: 1; }
 .rom-saves-status.ok    { color: #6c0; opacity: 1; }
 
@@ -444,7 +483,33 @@ body.tc-bias-top #container {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    align-items: center;
     margin-bottom: 6px;
+    font-size: 13px;
+}
+/* Form controls don't inherit font-family/size from their host by
+ * default, so left alone they render in the UA default (typically
+ * 16px in a system font) and stick out next to the rest of the
+ * menu's 13px Work Sans copy. Pull them back into the menu's type
+ * scale. */
+#settings-menu .row label,
+#settings-menu .row select,
+#settings-menu .row input {
+    font-family: inherit;
+    font-size: 13px;
+    color: inherit;
+}
+#settings-menu .row label { min-width: 90px; }
+#settings-menu .row select {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 4px 6px;
+    cursor: pointer;
+}
+#settings-menu .row input[type="range"] {
+    flex: 1 1 auto;
+    min-width: 120px;
 }
 #settings-menu button.action {
     flex: 1 1 auto;
@@ -473,6 +538,7 @@ body.tc-bias-top #container {
     gap: 10px;
     cursor: pointer;
     user-select: none;
+    font-size: 13px;
 }
 #settings-menu .toggle input { width: 16px; height: 16px; cursor: pointer; }
 #settings-menu .status {

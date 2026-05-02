@@ -21,6 +21,14 @@ const CORE_ASSETS = [
     './shell.css',
     './shell-touch.js',
     './shell-saves.js',
+    /* Self-hosted webfonts referenced by shell.css @font-face blocks.
+     * Pre-caching them is the only way to keep typography correct
+     * offline — the SW's runtime fetch handler skips opaque/cors
+     * responses and same-origin .woff2 isn't navigated to organically. */
+    './fonts/work-sans-400.woff2',
+    './fonts/work-sans-500.woff2',
+    './fonts/work-sans-600.woff2',
+    './fonts/fragment-mono-400.woff2',
 ];
 
 self.addEventListener('install', (event) => {

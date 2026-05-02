@@ -14,10 +14,11 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <!-- Fragment Mono for the on-screen touch button labels. -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fragment+Mono&display=swap">
+    <!-- Fonts are self-hosted under fonts/*.woff2 and pre-cached by sw.js so
+         the PWA renders correctly offline. The @font-face declarations
+         live in shell.css. -->
+    <link rel="preload" href="fonts/work-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/fragment-mono-400.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="shell.css">
     <title>Slider</title>
 </head>
@@ -175,7 +176,7 @@
                 <span id="tc-opacity-value" style="opacity:0.7; font-variant-numeric: tabular-nums; min-width: 3em; text-align: right;"></span>
             </div>
 
-            <h3>Controls</h3>
+            <h3>Control Assignments</h3>
             <table class="controls">
                 <thead>
                     <tr><th>GameCube</th><th>Keyboard</th><th>Gamepad</th></tr>
