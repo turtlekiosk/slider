@@ -98,6 +98,11 @@ html, body {
    50% line to the 25% line; in landscape (Layout B) controls sit
    on the sides so we keep normal centering. */
 body.tc-bias-top #container {
+    /* padding-top clears the settings-gear / fullscreen-toggle buttons
+       (positioned fixed at top: 8 + safe-area-inset, 32×32) so the
+       canvas starts below them instead of being covered by their
+       upper-right corner overlay. */
+    padding-top: calc(48px + env(safe-area-inset-top));
     padding-bottom: 50dvh;
     box-sizing: border-box;
 }
@@ -403,7 +408,8 @@ body.tc-bias-top #container {
     opacity: 0.85;
 }
 #settings-gear,
-#fullscreen-toggle {
+#fullscreen-toggle,
+#tc-style-swap {
     display: none;
     position: fixed;
     /* Add safe-area inset so the buttons clear iOS notch / Android
@@ -429,11 +435,13 @@ body.tc-bias-top #container {
 }
 #settings-gear     { right: calc(8px  + env(safe-area-inset-right)); }
 #fullscreen-toggle { right: calc(48px + env(safe-area-inset-right)); font-size: 16px; }
+#tc-style-swap     { right: calc(88px + env(safe-area-inset-right)); font-size: 16px; }
 #fullscreen-toggle .fs-icon-collapse { display: none; }
 #fullscreen-toggle.is-fullscreen .fs-icon-expand   { display: none; }
 #fullscreen-toggle.is-fullscreen .fs-icon-collapse { display: inline; }
 #settings-gear:hover,
-#fullscreen-toggle:hover {
+#fullscreen-toggle:hover,
+#tc-style-swap:hover {
     opacity: 1;
     background: rgba(0,0,0,0.7);
     border-color: rgba(255,255,255,0.35);
@@ -728,7 +736,7 @@ body.tc-bias-top #container {
    style-full overrides these (further down) to vertical-center the
    hint inside the small full-mode stick zone. */
 #touch-controls.layout-a #tc-stick-hint { bottom: 78px; }
-#touch-controls.layout-b #tc-stick-hint { bottom: 98px; }
+#touch-controls.layout-b #tc-stick-hint { bottom: 98px; left: 100px; }
 
 /* ===== Layout A — portrait / default =====
    D-pad is hidden in portrait — its uses (letter writing, pattern
@@ -800,7 +808,7 @@ body.tc-bias-top #container {
    The transform from the rule above (translate(-50%, -50%)) re-anchors
    the hint's center on the new `left` value. */
 #touch-controls.layout-a.style-full #tc-stick-hint { left: 100px; }
-#touch-controls.layout-b.style-full #tc-stick-hint { left: 74px; }
+#touch-controls.layout-b.style-full #tc-stick-hint { left: 110px; top: 65%; }
 
 /* In style-full the D-pad cross is replaced by the 3×3 arrow grid
    (#tc-dpad-cluster); reveal the cluster wrappers and shoulder row
@@ -1003,21 +1011,33 @@ body.tc-bias-top #container {
 #touch-controls.layout-a.style-full #tc-start { width: 56px; height: 28px; }
 
 /* ----- Layout B (landscape) — full set =====
-   Stick upper-left, D-pad cluster lower-left; face cluster upper-
-   right (mirror), C-stick lower-right. Shoulder row is `display:
-   contents` so L/R/Z/Start use individual absolute positions —
-   landscape's shoulder placements aren't symmetric (L and Start hug
-   the bottom edge; R and Z sit above the face cluster) so a single
-   flex distribution doesn't fit. */
-#touch-controls.layout-b.style-full #tc-stick-zone   { left: 0;     top: 0;        width: 35%;  height: 38%; }
-#touch-controls.layout-b.style-full #tc-cstick-zone  { right: 0;    top: 30%;      width: 35%;  height: 70%; }
-#touch-controls.layout-b.style-full #tc-dpad-cluster { left: 14px;  bottom: 80px;  grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
-#touch-controls.layout-b.style-full #tc-face-cluster { right: 12px; bottom: 30px;  grid-template-columns: 60px 76px;       grid-template-rows: 18px 18px 76px 60px; }
+   Layout (~800×400 viewport):
+     - upper-left   : main stick zone
+     - lower-left   : D-pad cluster (below stick)
+     - upper-right  : face cluster A/B/X/Y
+     - lower-right  : C-stick zone (below face)
+     - top edge     : L, Start, Z, R
+   This mirrors the user's preferred portrait-mode arrangement (stick
+   above the directional pad on the left; face buttons above the
+   C-stick on the right) so the same thumb path works in both
+   orientations. Bottom elements (D-pad and C-stick) are inset from
+   the screen edges relative to the top elements (stick zone and
+   face cluster) to give the layout a wider-top / narrower-bottom
+   trapezoidal silhouette and reduce overlap with touch zones. */
+#touch-controls.layout-b.style-full #tc-stick-zone   { left: 0;     top: 0;        bottom: auto;  width: 30%; height: 50%; }
+#touch-controls.layout-b.style-full #tc-cstick-zone  { right: 0;    bottom: 0;     top: auto;     width: 25%; height: 35%; }
+#touch-controls.layout-b.style-full #tc-dpad-cluster { left: 100px; bottom: calc(17.5% - 60px); top: auto; grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
+#touch-controls.layout-b.style-full #tc-face-cluster { right: 30px; top: 80px;     bottom: auto;  grid-template-columns: 60px 76px;       grid-template-rows: 18px 18px 76px 60px; }
 #touch-controls.layout-b.style-full #tc-face-cluster #tc-a { width: 76px; height: 76px; }
-#touch-controls.layout-b.style-full #tc-face-cluster #tc-b { width: 60px; height: 60px; }
+#touch-controls.layout-b.style-full #tc-face-cluster #tc-b { width: 60px; height: 60px; transform: translateY(-30px); }
 #touch-controls.layout-b.style-full #tc-face-cluster #tc-y { width: 56px; height: 56px; align-self: end; transform: translateY(22px); }
 #touch-controls.layout-b.style-full #tc-face-cluster #tc-x { width: 50px; height: 50px; align-self: end; justify-self: start; transform: translate(8px, 10px); }
-#touch-controls.layout-b.style-full #tc-l     { left: 24px;  bottom: 24px;  top: auto; width: 52px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-r     { right: 24px; bottom: 280px; top: auto; width: 52px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-z     { right: 84px; bottom: 280px; top: auto; width: 44px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-start { left: 50%;   bottom: 24px;  top: auto; transform: translateX(-50%); width: 56px; height: 28px; right: auto; }
+/* Top-edge row. L sits between the stick zone (left 0–30%) and Start;
+   R and Z are pulled inward from the right edge so they don't cover
+   the settings-gear and fullscreen-toggle buttons (top: 8px, right:
+   8 / 48 px), and the whole row reads as more centered relative to
+   the viewport. */
+#touch-controls.layout-b.style-full #tc-l     { left: 240px;  top: 14px;  bottom: auto; right: auto; width: 52px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-r     { right: 240px; top: 14px;  bottom: auto; left: auto;  width: 52px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-z     { right: 300px; top: 14px;  bottom: auto; left: auto;  width: 44px; height: 28px; }
+#touch-controls.layout-b.style-full #tc-start { left: 50%;    top: 14px;  bottom: auto; transform: translateX(-50%); width: 56px; height: 28px; right: auto; }

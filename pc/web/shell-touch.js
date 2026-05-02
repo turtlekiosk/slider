@@ -370,22 +370,29 @@
 
     // ---- Settings dialog wiring ------------------------------------
     var enabledSel = document.getElementById('tc-enabled-select');
-    var styleSel   = document.getElementById('tc-style-select');
+    var styleSwap  = document.getElementById('tc-style-swap');
     var opacityRng = document.getElementById('tc-opacity-range');
     var opacityVal = document.getElementById('tc-opacity-value');
-    if (enabledSel && styleSel && opacityRng && opacityVal) {
+
+    /* Floating swap button (top-right, next to fullscreen) — toggles
+     * style: simplified ↔ full. The in-menu Style dropdown was removed
+     * since this button covers the same action. */
+    if (styleSwap) {
+        styleSwap.addEventListener('click', function(ev) {
+            ev.preventDefault();
+            settings.style = settings.style === 'full' ? 'simplified' : 'full';
+            saveSettings(settings);
+            applyStyle();
+        });
+    }
+    if (enabledSel && opacityRng && opacityVal) {
         enabledSel.value = settings.enabled;
-        styleSel.value   = settings.style;
         opacityRng.value = settings.opacity;
         opacityVal.textContent = settings.opacity + '%';
 
         enabledSel.addEventListener('change', function() {
             settings.enabled = enabledSel.value;
             saveSettings(settings); applyVisibility();
-        });
-        styleSel.addEventListener('change', function() {
-            settings.style = styleSel.value;
-            saveSettings(settings); applyStyle();
         });
         opacityRng.addEventListener('input', function() {
             settings.opacity = parseInt(opacityRng.value, 10);

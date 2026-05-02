@@ -171,6 +171,7 @@
         <button id="rom-start" type="button" disabled>Start</button>
     </div>
 
+    <button id="tc-style-swap" type="button" aria-label="Swap touch control style" title="Swap touch controls"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 3l4 4l-4 4m4-4H4m4 14l-4-4l4-4m-4 4h16"/></svg></button>
     <button id="fullscreen-toggle" type="button" aria-label="Toggle fullscreen" title="Fullscreen"><svg class="fs-icon-expand" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 15l6 6M15 9l6-6m0 13v5h-5m5-13V3h-5M3 16v5h5m-5 0l6-6M3 8V3h5m1 6L3 3"/></svg><svg class="fs-icon-collapse" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 15l6 6m-6-6v4.8m0-4.8h4.8M9 19.8V15m0 0H4.2M9 15l-6 6M15 4.2V9m0 0h4.8M15 9l6-6M9 4.2V9m0 0H4.2M9 9L3 3"/></svg></button>
     <button id="settings-gear" type="button" aria-label="Settings" title="Settings"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0a2.34 2.34 0 0 0 3.319 1.915a2.34 2.34 0 0 1 2.33 4.033a2.34 2.34 0 0 0 0 3.831a2.34 2.34 0 0 1-2.33 4.033a2.34 2.34 0 0 0-3.319 1.915a2.34 2.34 0 0 1-4.659 0a2.34 2.34 0 0 0-3.32-1.915a2.34 2.34 0 0 1-2.33-4.033a2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></g></svg></button>
 
@@ -215,13 +216,6 @@
                     <option value="auto">Auto (touch devices)</option>
                     <option value="on">Always on</option>
                     <option value="off">Off</option>
-                </select>
-            </div>
-            <div class="row">
-                <label for="tc-style-select">Style</label>
-                <select id="tc-style-select">
-                    <option value="simplified">Simplified (A/B/Y/Start + stick)</option>
-                    <option value="full">Full (+ X, Z, L, R, D-pad, C-stick)</option>
                 </select>
             </div>
             <div class="row">
@@ -431,9 +425,14 @@
             // are initialized further down).
             var gearBtn       = document.getElementById('settings-gear');
             var fullscreenBtn = document.getElementById('fullscreen-toggle');
+            var styleSwapBtn  = document.getElementById('tc-style-swap');
             var ready = _runtimeReady && !pickerEl.classList.contains('visible');
             if (gearBtn)       gearBtn.style.display       = ready ? 'flex' : 'none';
             if (fullscreenBtn) fullscreenBtn.style.display = (ready && _fullscreenAvailable()) ? 'flex' : 'none';
+            // Touch-style swap shown alongside the gear; the swap is harmless
+            // for non-touch users (it just toggles the touch-overlay style
+            // even when nothing's bound to it).
+            if (styleSwapBtn)  styleSwapBtn.style.display  = ready ? 'flex' : 'none';
         }
         function _fullscreenAvailable() {
             var el = document.documentElement;
