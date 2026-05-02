@@ -6,51 +6,45 @@
 #ifdef __EMSCRIPTEN__
 #include <stdarg.h>
 /* Gate decomp/jaudio printf debug logging on g_pc_verbose. The
- * --wrap=printf family in pc/CMakeLists.txt routes every printf call
+ * --wrap=printf/iprintf/puts in pc/CMakeLists.txt routes those calls
  * here; in normal runs the flag is off and the wraps short-circuit
- * before crossing the wasm→JS bridge (each crossing is ~100–500 µs
- * and jaudio fires several per voice setup, producing a ~25 ms
- * press-time hitch). With --verbose the original libc paths run and
- * the [TRG_ALLOC]/[TRG_P5]/etc. logs reach the console.
+ * before crossing the wasm→JS bridge (~100–500 µs per crossing;
+ * jaudio fires several per voice setup, producing a ~25 ms press-time
+ * hitch). With --verbose the originals run and [TRG_ALLOC]/[TRG_P5]/
+ * etc. reach the console.
  *
- * clang -O2 rewrites `printf("...\n")` → `puts(...)` and
- * `printf("...%d...\n")` → `iprintf(...)`, so puts/iprintf/fputs/
- * fprintf/v(f)printf must all be wrapped or the rewritten calls
- * bypass the gate. Native and Android builds aren't wrapped at all. */
+ * Only the bare printf-family calls clang -O2 rewrites stdout output
+ * into are gated: printf, puts, iprintf. fprintf/fputs/vfprintf go
+ * through unwrapped — they're rare (engine errors, FATAL messages),
+ * always need to be visible, and forwarding va_list across a wasm32
+ * wrap was dropping arg slots in practice (empty %s in fprintf). */
 extern int __real_puts(const char* s);
-extern int __real_fputs(const char* s, void* fp);
-extern int __real_vprintf(const char* fmt, va_list ap);
-extern int __real_vfprintf(void* fp, const char* fmt, va_list ap);
 
+/* Forward via vsnprintf+__real_puts rather than __real_vprintf so we
+ * don't need --wrap=vprintf (which would require us to also provide
+ * __wrap_vprintf and stay coherent with the family). 4 KB buffer is
+ * enough for any single decomp/jaudio log line; longer ones get
+ * truncated, which is fine for diagnostics. */
 int __wrap_printf(const char* fmt, ...) {
     if (!g_pc_verbose) return 0;
+    char buf[4096];
     va_list ap; va_start(ap, fmt);
-    int r = __real_vprintf(fmt, ap);
+    int n = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
-    return r;
+    /* strip trailing newline — __real_puts adds one of its own */
+    if (n > 0 && buf[n - 1] == '\n') buf[n - 1] = '\0';
+    return __real_puts(buf);
 }
 int __wrap_iprintf(const char* fmt, ...) {
     if (!g_pc_verbose) return 0;
+    char buf[4096];
     va_list ap; va_start(ap, fmt);
-    int r = __real_vprintf(fmt, ap);
+    int n = vsnprintf(buf, sizeof(buf), fmt, ap);
     va_end(ap);
-    return r;
+    if (n > 0 && buf[n - 1] == '\n') buf[n - 1] = '\0';
+    return __real_puts(buf);
 }
-int __wrap_fprintf(void* fp, const char* fmt, ...) {
-    if (!g_pc_verbose) return 0;
-    va_list ap; va_start(ap, fmt);
-    int r = __real_vfprintf(fp, fmt, ap);
-    va_end(ap);
-    return r;
-}
-int __wrap_puts(const char* s)  { return g_pc_verbose ? __real_puts(s) : 0; }
-int __wrap_fputs(const char* s, void* fp) { return g_pc_verbose ? __real_fputs(s, fp) : 0; }
-int __wrap_vprintf(const char* fmt, va_list ap) {
-    return g_pc_verbose ? __real_vprintf(fmt, ap) : 0;
-}
-int __wrap_vfprintf(void* fp, const char* fmt, va_list ap) {
-    return g_pc_verbose ? __real_vfprintf(fp, fmt, ap) : 0;
-}
+int __wrap_puts(const char* s) { return g_pc_verbose ? __real_puts(s) : 0; }
 #endif
 
 /* --- Memory arena --- */

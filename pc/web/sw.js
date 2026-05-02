@@ -14,6 +14,13 @@ const CORE_ASSETS = [
     './icon-512.png',
     './icon-maskable-512.png',
     './nipplejs.min.js',
+    /* The shell is loaded as separate <link>/<script> from the HTML, so it
+     * must be pre-cached here too — otherwise an old runtime-cached copy
+     * lingers across builds (until activate's eviction sweep) and clients
+     * see stale CSS/JS when the wasm has already updated. */
+    './shell.css',
+    './shell-touch.js',
+    './shell-saves.js',
 ];
 
 self.addEventListener('install', (event) => {

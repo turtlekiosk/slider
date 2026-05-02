@@ -744,9 +744,16 @@
         // localhost). Failure is non-fatal — the app still works online.
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-                navigator.serviceWorker.register('sw.js').catch(function(err) {
-                    console.warn('[pwa] service worker registration failed:', err);
-                });
+                /* updateViaCache:'none' makes the browser bypass its own HTTP
+                 * cache for sw.js itself — without this, browsers may hold
+                 * sw.js for up to 24h and miss new-build detection entirely
+                 * (CACHE_VERSION inside sw.js is what triggers cache eviction
+                 * for everything else, so a stale sw.js means stale shell
+                 * even though the wasm has updated). */
+                navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+                    .catch(function(err) {
+                        console.warn('[pwa] service worker registration failed:', err);
+                    });
             });
         }
         // Ask the browser not to evict our IndexedDB (saves + future ROM

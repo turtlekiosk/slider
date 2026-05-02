@@ -528,10 +528,6 @@ elseif(EMSCRIPTEN)
         -Wl,--wrap=printf
         -Wl,--wrap=puts
         -Wl,--wrap=iprintf
-        -Wl,--wrap=fputs
-        -Wl,--wrap=fprintf
-        -Wl,--wrap=vprintf
-        -Wl,--wrap=vfprintf
         # Use Android's GLES 300-flavored shaders — WebGL2 is GLES 3.0, not desktop GL.
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_BINARY_DIR}/web/shell.html"
@@ -558,6 +554,19 @@ elseif(EMSCRIPTEN)
     # invalidates the previous SW cache automatically. Falls back to a
     # timestamp on dirty trees or non-git checkouts so dev iterations also
     # bust the cache instead of silently reusing stale bytes.
+    #
+    # Force a reconfigure whenever any web source changes — the cache tag
+    # is captured at configure time, so without this `ninja` could re-copy
+    # an unchanged sw.js even though shell.css/shell-*.js were edited and
+    # clients would never notice the new build.
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.css"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-touch.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-saves.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
+    )
     find_package(Git QUIET)
     set(_pc_web_sha "")
     if(Git_FOUND)
