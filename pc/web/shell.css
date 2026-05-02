@@ -1,0 +1,652 @@
+/* Compositor activity keepalive. Chromium on Snapdragon 8 Gen 3 +
+ * adaptive AMOLED phones (Z Flip 6, S24 family) classifies a wasm
+ * canvas-only page as "idle" between user inputs and applies
+ * intensive timer throttling — RAF and setTimeout get delayed
+ * by 50–200 ms, producing visible stutters on every press as the
+ * wasm waits longer than expected for its yield to return.
+ *
+ * A 1×1, fully transparent, GPU-composited transform animation
+ * is enough to keep the compositor's "page is animating" flag
+ * set, which keeps the panel at full refresh and timer dispatch
+ * tight. The animation runs entirely on the compositor thread
+ * (no main-thread cost) and is invisible to the user.
+ *
+ * Devices that didn't have the throttle problem pay only the
+ * negligible cost of one extra composited layer. */
+@keyframes _refresh-keepalive {
+    0%, 100% { opacity: 0.001; }
+    50%      { opacity: 0.002; }
+}
+body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 1px; height: 1px;
+    pointer-events: none;
+    background: #fff;
+    animation: _refresh-keepalive 1s linear infinite;
+    will-change: opacity;
+}
+html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    color: #ddd;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Roboto",
+        "Helvetica Neue",
+        Arial,
+        sans-serif;
+    /* dvh/dvw track the *visible* viewport on mobile (account
+       for the URL bar / soft keyboard); 100vh/100% would resolve
+       to the layout viewport, which on Android Chrome can be
+       larger than what's actually visible — that's what was
+       pushing the canvas content under the URL bar. */
+    height: 100dvh;
+    width: 100dvw;
+    overflow: hidden;
+}
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+/* When the portrait touch overlay is active, bias the canvas toward
+   the top of the viewport so the bottom-anchored controls have
+   breathing room without fully detaching from the game image.
+   padding-bottom: 50dvh shifts the flex-centered child from the
+   50% line to the 25% line; in landscape (Layout B) controls sit
+   on the sides so we keep normal centering. */
+body.tc-bias-top #container {
+    padding-bottom: 50dvh;
+    box-sizing: border-box;
+}
+#canvas {
+    display: block;
+    background: #000;
+    outline: none;
+    image-rendering: pixelated;
+    width: 100%;
+    height: 100%;
+}
+/* Only when the viewport is narrower than 4:3 do we letterbox: pin
+   width to 100vw and derive height from the 4:3 aspect so the bottom
+   of the canvas leaves room for the touch overlay / URL bar instead
+   of squashing the image. Wider viewports keep the previous fill
+   behavior (canvas stretches to the container). */
+@media (max-aspect-ratio: 4/3) {
+    #canvas {
+        width: 100vw;
+        height: calc(100vw * 3 / 4);
+    }
+}
+#status {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    font-size: 12px;
+    opacity: 0.7;
+    pointer-events: none;
+}
+#build-tag {
+    position: fixed;
+    right: 8px;
+    bottom: 8px;
+    font-family: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    opacity: 0.45;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
+}
+#progress {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: #4a9;
+    width: 0%;
+    transition: width 0.2s;
+}
+#rom-picker {
+    display: none;
+    position: fixed;
+    inset: 0;
+    /* Background: pre-decoded blurhash baked into a 6×6 SVG of
+       1×1 colored rects with a Gaussian-blur filter. SVG is
+       re-rasterized at the viewport size every paint, so it
+       scales cleanly to any DPR / window size with no stored
+       raster. The linear-gradient layer dims it so the
+       foreground text and inputs stay readable.
+       (Source blurhash: okG^6Du6K+rB…, see decoder script.) */
+    background:
+        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+        url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 6' preserveAspectRatio='xMidYMid slice'%3E%3Cfilter id='b' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeGaussianBlur stdDeviation='0.5'/%3E%3C/filter%3E%3Cg filter='url(%23b)'%3E%3Crect x='0' y='0' width='1' height='1' fill='%2399d8ff'/%3E%3Crect x='1' y='0' width='1' height='1' fill='%23a5e1ff'/%3E%3Crect x='2' y='0' width='1' height='1' fill='%2380c9fa'/%3E%3Crect x='3' y='0' width='1' height='1' fill='%239dc1ea'/%3E%3Crect x='4' y='0' width='1' height='1' fill='%2399bad7'/%3E%3Crect x='5' y='0' width='1' height='1' fill='%235db2dd'/%3E%3Crect x='0' y='1' width='1' height='1' fill='%23a0daf0'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23a1d5f4'/%3E%3Crect x='2' y='1' width='1' height='1' fill='%23b7daf0'/%3E%3Crect x='3' y='1' width='1' height='1' fill='%23bdc5d4'/%3E%3Crect x='4' y='1' width='1' height='1' fill='%23ad9195'/%3E%3Crect x='5' y='1' width='1' height='1' fill='%2397aab4'/%3E%3Crect x='0' y='2' width='1' height='1' fill='%238bcdec'/%3E%3Crect x='1' y='2' width='1' height='1' fill='%2382ccf3'/%3E%3Crect x='2' y='2' width='1' height='1' fill='%23add4ed'/%3E%3Crect x='3' y='2' width='1' height='1' fill='%23c8aab3'/%3E%3Crect x='4' y='2' width='1' height='1' fill='%23b56034'/%3E%3Crect x='5' y='2' width='1' height='1' fill='%239a9ca0'/%3E%3Crect x='0' y='3' width='1' height='1' fill='%237dc9e7'/%3E%3Crect x='1' y='3' width='1' height='1' fill='%238ad0f8'/%3E%3Crect x='2' y='3' width='1' height='1' fill='%2385bfe1'/%3E%3Crect x='3' y='3' width='1' height='1' fill='%23a79ba3'/%3E%3Crect x='4' y='3' width='1' height='1' fill='%23a18167'/%3E%3Crect x='5' y='3' width='1' height='1' fill='%23709aa0'/%3E%3Crect x='0' y='4' width='1' height='1' fill='%2391cadc'/%3E%3Crect x='1' y='4' width='1' height='1' fill='%239ed5fa'/%3E%3Crect x='2' y='4' width='1' height='1' fill='%2398bdd4'/%3E%3Crect x='3' y='4' width='1' height='1' fill='%239f928d'/%3E%3Crect x='4' y='4' width='1' height='1' fill='%23a47a5c'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%237a887d'/%3E%3Crect x='0' y='5' width='1' height='1' fill='%2388c6e2'/%3E%3Crect x='1' y='5' width='1' height='1' fill='%2385d0f4'/%3E%3Crect x='2' y='5' width='1' height='1' fill='%237eb4c8'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%2391837f'/%3E%3Crect x='4' y='5' width='1' height='1' fill='%23907647'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%23668774'/%3E%3C/g%3E%3C/svg%3E"),
+        #000;
+    background-size: cover;
+    background-position: center;
+    color: #ddd;
+    z-index: 10;
+    padding: 32px 24px;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 20px;
+}
+@media (max-width: 480px) {
+    #rom-picker { padding: 20px 14px; gap: 14px; }
+    #rom-instructions { padding-left: 16px; font-size: 13px; }
+    #rom-picker h1 { font-size: 18px; }
+}
+#rom-picker.visible { display: flex; }
+#rom-picker h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+#rom-instructions {
+    max-width: 600px;
+    width: 100%;
+    line-height: 1.5;
+    font-size: 14px;
+    opacity: 0.85;
+    padding-left: 20px;
+    box-sizing: border-box;
+}
+#rom-instructions li { margin: 6px 0; }
+#rom-instructions a {
+    color: #ddd;
+    text-decoration: underline;
+    text-decoration-color: rgba(255,255,255,0.35);
+    text-underline-offset: 2px;
+    transition: color 0.1s, text-decoration-color 0.1s;
+}
+#rom-instructions a:hover,
+#rom-instructions a:focus-visible {
+    color: #fff;
+    text-decoration-color: #ccc;
+}
+#rom-instructions a:visited { color: #ddd; }
+#rom-drop {
+    /* Hidden until refreshRomStatus has resolved the ROM check;
+     * otherwise the drop zone briefly appears before we know
+     * whether a previously-imported ROM is available. */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+    min-height: 180px;
+    border: 2px dashed #888;
+    border-radius: 12px;
+    padding: 24px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    box-sizing: border-box;
+}
+#rom-drop:hover,
+#rom-drop.dragging {
+    background: rgba(255,255,255,0.08);
+    border-color: #ccc;
+}
+#rom-drop input { display: none; }
+#rom-drop .primary { font-size: 16px; margin-bottom: 4px; }
+#rom-drop .secondary { font-size: 12px; opacity: 0.65; }
+#rom-status,
+#rom-runtime-status {
+    min-height: 1.4em;
+    font-size: 13px;
+    opacity: 0.85;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+    max-width: 600px;
+}
+#rom-status.error,
+#rom-runtime-status.error { color: #f88; opacity: 1; }
+#rom-status.ok,
+#rom-runtime-status.ok    { color: #6c0; opacity: 1; }
+#rom-status .status-spinner,
+#rom-runtime-status .status-spinner {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+}
+#rom-saves {
+    width: 100%;
+    max-width: 600px;
+    border-top: 1px solid #222;
+    padding-top: 16px;
+}
+.rom-saves-heading {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #aaa;
+    margin-bottom: 4px;
+}
+.rom-saves-help {
+    font-size: 12px;
+    opacity: 0.65;
+    margin-bottom: 10px;
+}
+.rom-saves-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+@media (max-width: 480px) {
+    .rom-saves-grid { grid-template-columns: 1fr; gap: 16px; }
+}
+.rom-saves-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid #222;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.02);
+}
+.rom-saves-slot-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ddd;
+}
+.rom-saves-slot-state {
+    font-size: 12px;
+    opacity: 0.7;
+    min-height: 1.4em;
+    word-break: break-all;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.rom-saves-slot-state .status-spinner {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+}
+.rom-saves-slot.has-data .rom-saves-slot-state { opacity: 1; color: #6c0; }
+.rom-saves-slot-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+.rom-saves-btn {
+    flex: 1 1 auto;
+    padding: 6px 10px;
+    background: #1a1a1a;
+    color: #ddd;
+    border: 1px solid #888;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+}
+.rom-saves-btn:hover:not(:disabled) {
+    background: rgba(255,255,255,0.08);
+    border-color: #ccc;
+}
+.rom-saves-btn-secondary {
+    border-color: #555;
+    flex: 0 1 auto;
+}
+.rom-saves-btn-secondary:hover:not(:disabled) {
+    background: rgba(255,90,90,0.08);
+    border-color: #c66;
+}
+.rom-saves-btn:disabled { opacity: 0.4; cursor: default; }
+.rom-saves-status {
+    min-height: 1.4em;
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 8px;
+}
+.rom-saves-status.error { color: #f88; opacity: 1; }
+.rom-saves-status.ok    { color: #6c0; opacity: 1; }
+
+#rom-start {
+    margin-top: 8px;
+    margin-bottom: 24px;
+    padding: 12px 24px;
+    background: #1a1a1a;
+    color: #ddd;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    min-width: 200px;
+    transition: background 0.1s, border-color 0.1s, opacity 0.1s;
+}
+#rom-start:hover:not(:disabled) {
+    background: rgba(255,255,255,0.1);
+    border-color: #ccc;
+}
+#rom-start:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #444;
+}
+
+#loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 8;          /* below #rom-picker (10), above the canvas */
+    background: #000;
+    color: #ddd;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 14px;
+    pointer-events: none;
+}
+#loading-overlay.visible { display: flex; }
+#loading-overlay svg {
+    opacity: 0.85;
+}
+#settings-gear,
+#fullscreen-toggle {
+    display: none;
+    position: fixed;
+    /* Add safe-area inset so the buttons clear iOS notch / Android
+     * cutout / status bar / gesture areas when the viewport is set
+     * to viewport-fit=cover. env() returns 0 on devices/browsers
+     * without insets, so the offsets degrade to plain 8 / 48 px. */
+    top: calc(8px + env(safe-area-inset-top));
+    z-index: 5;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 6px;
+    background: rgba(0,0,0,0.45);
+    color: #ddd;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s, background 0.15s, border-color 0.15s;
+    align-items: center;
+    justify-content: center;
+}
+#settings-gear     { right: calc(8px  + env(safe-area-inset-right)); }
+#fullscreen-toggle { right: calc(48px + env(safe-area-inset-right)); font-size: 16px; }
+#fullscreen-toggle .fs-icon-collapse { display: none; }
+#fullscreen-toggle.is-fullscreen .fs-icon-expand   { display: none; }
+#fullscreen-toggle.is-fullscreen .fs-icon-collapse { display: inline; }
+#settings-gear:hover,
+#fullscreen-toggle:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.7);
+    border-color: rgba(255,255,255,0.35);
+}
+#settings-menu {
+    color: #ddd;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 0;
+    max-width: 560px;
+    width: 90vw;
+    max-height: 90vh;
+    font-family: inherit;
+}
+/* Override the browser's default `dialog[open] { display: block }`
+ * so the menu uses flex column layout — keeps .menu-footer pinned
+ * to the bottom of the dialog while .menu-body scrolls. */
+#settings-menu[open] {
+    display: flex;
+    flex-direction: column;
+}
+#settings-menu::backdrop {
+    background: rgba(0,0,0,0.6);
+}
+#settings-menu .menu-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    min-height: 0;          /* lets the body actually shrink so .menu-footer stays visible */
+}
+#settings-menu h2 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+}
+#settings-menu h3 {
+    margin: 18px 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #aaa;
+}
+#settings-menu h3:first-of-type { margin-top: 0; }
+#settings-menu .row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+#settings-menu button.action {
+    flex: 1 1 auto;
+    min-width: 140px;
+    padding: 8px 12px;
+    background: #1a1a1a;
+    color: #ddd;
+    border: 1px solid #4a9;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+}
+#settings-menu button.action:hover:not(:disabled) {
+    background: rgba(74,153,89,0.12);
+    border-color: #6c0;
+}
+#settings-menu button.action:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+#settings-menu .toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+#settings-menu .toggle input { width: 16px; height: 16px; cursor: pointer; }
+#settings-menu .status {
+    font-size: 12px;
+    opacity: 0.75;
+    min-height: 1.2em;
+    margin-top: 4px;
+}
+#settings-menu .status.error { color: #f88; opacity: 1; }
+#settings-menu .status.ok    { color: #6c0; opacity: 1; }
+#settings-menu table.controls {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+#settings-menu table.controls th,
+#settings-menu table.controls td {
+    text-align: left;
+    padding: 4px 8px;
+    border-bottom: 1px solid #222;
+}
+#settings-menu table.controls th {
+    color: #aaa;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+#settings-menu .menu-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 24px;
+    border-top: 1px solid #222;
+    flex: 0 0 auto;          /* pinned: never shrinks/scrolls with .menu-body */
+    background: #111;        /* opaque so scrolled body content doesn't bleed through */
+}
+#settings-menu .menu-footer button {
+    padding: 6px 14px;
+    background: #222;
+    color: #ddd;
+    border: 1px solid #444;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+#settings-menu .menu-footer button:hover {
+    background: #2a2a2a;
+    border-color: #666;
+}
+
+/* ----- Touch gamepad overlay (mobile) ---------------------------
+   Hidden by default; the script below adds .visible when the user's
+   setting (auto / on / off) and device capability agree. Container
+   has pointer-events:none so empty space passes through to the
+   canvas; only individual controls opt into pointer-events:auto.
+   touch-action:none on the controls prevents the browser from
+   hijacking touches for scroll/zoom.
+   Opacity is driven by CSS variables so the settings slider can
+   change it at runtime without re-rendering. */
+#touch-controls {
+    --tc-bg-alpha:         0.18;
+    --tc-bg-pressed-alpha: 0.45;
+    --tc-stroke-alpha:     0.40;
+    --tc-label-alpha:      0.92;
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    display: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+#touch-controls.visible { display: block; }
+#touch-controls .tc-button {
+    position: absolute;
+    pointer-events: auto;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
+}
+#touch-controls .tc-button svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+}
+#touch-controls .tc-bg {
+    fill: rgba(255, 255, 255, var(--tc-bg-alpha));
+    stroke: rgba(255, 255, 255, var(--tc-stroke-alpha));
+    stroke-width: 2;
+    transition: fill 0.05s;
+}
+#touch-controls .pressed .tc-bg {
+    fill: rgba(255, 255, 255, var(--tc-bg-pressed-alpha));
+}
+/* Fixed CSS-pixel size so labels don't scale with the SVG container —
+ * without this, font-size on the inline <text> attribute would
+ * scale with the viewBox / button-size ratio. */
+#touch-controls .tc-label {
+    font-size: 24px;
+    fill: rgba(255, 255, 255, var(--tc-label-alpha));
+    font-family: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-weight: 600;
+    text-anchor: middle;
+    dominant-baseline: central;
+    paint-order: stroke;
+    stroke: rgba(0, 0, 0, 0.4);
+    stroke-width: 1;
+}
+#touch-controls #tc-start .tc-label { font-size: 14px; }
+/* Stick zone: invisible touch area where nipplejs spawns the joystick.
+   Layout-A (default) covers bottom-left half; Layout-B (landscape)
+   covers most of the left edge. */
+#tc-stick-zone {
+    position: absolute;
+    pointer-events: auto;
+    touch-action: none;
+}
+/* nipplejs renders absolutely-positioned joystick visuals into the
+   zone; ensure they sit above the canvas but below the buttons.
+   Pure white was too harsh against the game image — soften to a
+   dim translucent white that visually matches the other controls. */
+#tc-stick-zone .nipple { z-index: 5; }
+#tc-stick-zone .nipple .back  { opacity: 0.55 !important; }
+#tc-stick-zone .nipple .front { opacity: 0.75 !important; }
+
+/* Hint shown in the stick zone while idle so users know it's
+   interactive. Fades out when nipplejs is active (managed by the
+   script via .stick-active on the parent overlay). Inherits the
+   same opacity variables as the other controls. */
+#tc-stick-hint {
+    position: absolute;
+    pointer-events: none;
+    width: 110px;
+    height: 110px;
+    transition: opacity 0.15s ease;
+    opacity: 1;
+}
+#touch-controls.stick-active #tc-stick-hint { opacity: 0; }
+#tc-stick-hint .hint-bg {
+    fill: rgba(255, 255, 255, var(--tc-bg-alpha));
+    stroke: rgba(255, 255, 255, var(--tc-stroke-alpha));
+    stroke-width: 2;
+}
+#tc-stick-hint .hint-knob {
+    fill: rgba(255, 255, 255, calc(var(--tc-bg-alpha) + 0.15));
+}
+/* Hint position. In portrait, vertically center the hint against
+   the right-column button cluster (B at bottom ~38, Start at top
+   ~272 → midpoint ~155 from bottom; minus the 55px hint half-
+   height gives bottom: 100). In landscape, mid-left edge. */
+#touch-controls.layout-a #tc-stick-hint { left: 30px;  bottom: 80px; }
+#touch-controls.layout-b #tc-stick-hint { left: 40px;  bottom: 80px; }
+
+/* ===== Layout A — portrait / default =====
+   D-pad is hidden in portrait — its uses (letter writing, pattern
+   editor, item arrangement, NES emulator) all benefit from a wider
+   screen anyway. Players who need it rotate to Layout B.
+   Start is stacked above Y in the right cluster so it's reachable
+   by the right thumb instead of needing a stretch to the top. */
+#touch-controls.layout-a #tc-stick-zone { left: 0; bottom: 0; width: 50%; height: 60%; }
+#touch-controls.layout-a #tc-dpad  { display: none; }
+#touch-controls.layout-a #tc-a     { right: 28px; bottom: 90px;  width: 86px;  height: 86px;  }
+#touch-controls.layout-a #tc-b     { right: 110px;bottom: 38px;  width: 70px;  height: 70px;  }
+#touch-controls.layout-a #tc-y     { right: 90px; bottom: 158px; width: 64px;  height: 64px;  }
+#touch-controls.layout-a #tc-start { right: 50px; bottom: 240px; width: 64px;  height: 32px;  }
+
+/* ===== Layout B — landscape / split =====
+   D-pad hidden here too — its uses are rare and dedicated thumb
+   real estate is better given to the stick. */
+#touch-controls.layout-b #tc-stick-zone { left: 0;   top: 0; width: 40%; height: 100%; }
+#touch-controls.layout-b #tc-dpad  { display: none; }
+#touch-controls.layout-b #tc-a     { right: 36px;  bottom: 110px; width: 86px;  height: 86px;  }
+#touch-controls.layout-b #tc-b     { right: 118px; bottom: 50px;  width: 70px;  height: 70px;  }
+#touch-controls.layout-b #tc-y     { right: 98px;  bottom: 178px; width: 64px;  height: 64px;  }
+#touch-controls.layout-b #tc-start { right: 24px;  top: 24px;    width: 64px;  height: 32px;  }

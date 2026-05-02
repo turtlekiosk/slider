@@ -517,14 +517,21 @@ elseif(EMSCRIPTEN)
         -sEXIT_RUNTIME=0
         -sFORCE_FILESYSTEM=1
         -lidbfs.js
-        # Suppress decomp/jaudio printf debug logging in the wasm build.
-        # Each printf does a wasm→JS bridge crossing into the runtime's
-        # console.log import — easily 100–500 µs per call. jaudio in
-        # particular emits several debug prints during sound-effect
-        # voice setup, which fires on every button press and produces a
-        # ~25 ms hitch. The shim in pc_os.c provides __wrap_printf so
-        # the calls become no-ops without touching src/static/.
+        # Gate decomp/jaudio printf debug logging on g_pc_verbose in the
+        # wasm build. Each printf crosses the wasm→JS bridge into the
+        # runtime's console.log import (~100–500 µs); jaudio emits
+        # several per voice setup, producing a ~25 ms press-time hitch.
+        # The shims in pc_os.c short-circuit when verbose is off and
+        # forward to the real libc paths when it's on. Cover puts/
+        # iprintf/fputs/fprintf/v(f)printf as well — clang -O2 rewrites
+        # printf calls into those depending on the format string.
         -Wl,--wrap=printf
+        -Wl,--wrap=puts
+        -Wl,--wrap=iprintf
+        -Wl,--wrap=fputs
+        -Wl,--wrap=fprintf
+        -Wl,--wrap=vprintf
+        -Wl,--wrap=vfprintf
         # Use Android's GLES 300-flavored shaders — WebGL2 is GLES 3.0, not desktop GL.
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_BINARY_DIR}/web/shell.html"
@@ -535,6 +542,9 @@ elseif(EMSCRIPTEN)
     # cache key gets the build SHA substituted in.)
     set(_PWA_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.css"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-touch.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-saves.js"
     )
     foreach(_pwa_file IN LISTS _PWA_FILES)
         if(EXISTS "${_pwa_file}")

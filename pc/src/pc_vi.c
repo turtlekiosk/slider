@@ -51,7 +51,7 @@ void VIWaitForRetrace(void) {
     if (!perf_freq) perf_freq = SDL_GetPerformanceFrequency();
 
 #ifdef TARGET_ANDROID
-    {
+    if (g_pc_verbose) {
         static int vi_calls_this_sec = 0;
         static Uint64 vi_sec_start = 0;
         if (vi_sec_start == 0) vi_sec_start = SDL_GetPerformanceCounter();
@@ -66,11 +66,15 @@ void VIWaitForRetrace(void) {
     }
 #endif
 
-    /* --- frame time diagnostic --- */
-    Uint64 vi_enter = SDL_GetPerformanceCounter();
+    /* --- frame time diagnostic (only collected when verbose; printed below) --- */
+    Uint64 vi_enter = 0, t_before_swap = 0, t_after_swap = 0;
+    Uint64 t_before_pace = 0;
     double frame_ms = 0.0;
-    if (frame_start_time) {
-        frame_ms = (double)(vi_enter - frame_start_time) * 1000.0 / (double)perf_freq;
+    if (g_pc_verbose) {
+        vi_enter = SDL_GetPerformanceCounter();
+        if (frame_start_time) {
+            frame_ms = (double)(vi_enter - frame_start_time) * 1000.0 / (double)perf_freq;
+        }
     }
 
     if (!pc_platform_poll_events()) {
@@ -78,11 +82,12 @@ void VIWaitForRetrace(void) {
         return;
     }
 
-    Uint64 t_before_swap = SDL_GetPerformanceCounter();
+    if (g_pc_verbose) t_before_swap = SDL_GetPerformanceCounter();
     pc_platform_swap_buffers();
-    Uint64 t_after_swap = SDL_GetPerformanceCounter();
-
-    Uint64 t_before_pace = SDL_GetPerformanceCounter();
+    if (g_pc_verbose) {
+        t_after_swap = SDL_GetPerformanceCounter();
+        t_before_pace = t_after_swap;
+    }
 #ifdef __EMSCRIPTEN__
     /* Emscripten: yield to the browser via Asyncify so rAF can paint.
      * Audio is also pumped here since there's no producer thread. */
@@ -126,10 +131,9 @@ void VIWaitForRetrace(void) {
         }
     }
 #endif
-    Uint64 t_after_pace = SDL_GetPerformanceCounter();
-
     /* report slow frames (>20ms = missed 60fps by >4ms) */
-    if (frame_ms > 20.0 && g_pc_verbose) {
+    if (g_pc_verbose && frame_ms > 20.0) {
+        Uint64 t_after_pace = SDL_GetPerformanceCounter();
         double swap_ms = (double)(t_after_swap - t_before_swap) * 1000.0 / (double)perf_freq;
         double pace_ms = (double)(t_after_pace - t_before_pace) * 1000.0 / (double)perf_freq;
         double work_ms = (double)(vi_enter - frame_start_time) * 1000.0 / (double)perf_freq;
