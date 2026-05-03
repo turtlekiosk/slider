@@ -1,0 +1,65 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [web-release]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Don't cancel in-flight deploys — Pages doesn't tolerate two deploy jobs
+# racing for the same environment, and aborting a build mid-link wastes
+# the emsdk cache warmup.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 5.0.6
+          actions-cache-folder: emsdk-cache
+
+      - name: Configure
+        run: emcmake cmake -S pc -B pc/build-web -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: emmake make -C pc/build-web -j$(nproc)
+
+      - name: Verify build output
+        run: |
+          set -e
+          for f in index.html index.js index.wasm index.data; do
+            if [ ! -f "pc/build-web/web/$f" ]; then
+              echo "::error::Missing expected build output: pc/build-web/web/$f"
+              exit 1
+            fi
+          done
+          ls -lh pc/build-web/web/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: pc/build-web/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
