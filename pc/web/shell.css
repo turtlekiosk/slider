@@ -764,8 +764,9 @@ body.tc-bias-top #container {
 #touch-controls.layout-a #tc-dpad  { display: none; }
 #touch-controls.layout-a #tc-a     { right: 28px; bottom: 90px;  width: 86px;  height: 86px;  }
 #touch-controls.layout-a #tc-b     { right: 110px;bottom: 38px;  width: 70px;  height: 70px;  }
-#touch-controls.layout-a #tc-y     { right: 90px; bottom: 158px; width: 64px;  height: 64px;  }
-#touch-controls.layout-a #tc-start { right: 50px; bottom: 240px; width: 64px;  height: 32px;  }
+#touch-controls.layout-a #tc-y     { right: 100px;bottom: 152px; width: 64px;  height: 64px;  }
+#touch-controls.layout-a #tc-x     { right: 28px; bottom: 176px; width: 64px;  height: 64px;  }
+#touch-controls.layout-a #tc-start { right: 70px; bottom: 240px; width: 64px;  height: 32px;  }
 
 /* ===== Layout B — landscape / split =====
    D-pad hidden here too — its uses are rare and dedicated thumb
@@ -774,8 +775,9 @@ body.tc-bias-top #container {
 #touch-controls.layout-b #tc-dpad  { display: none; }
 #touch-controls.layout-b #tc-a     { right: 36px;  bottom: 110px; width: 86px;  height: 86px;  }
 #touch-controls.layout-b #tc-b     { right: 118px; bottom: 50px;  width: 70px;  height: 70px;  }
-#touch-controls.layout-b #tc-y     { right: 98px;  bottom: 178px; width: 64px;  height: 64px;  }
-#touch-controls.layout-b #tc-start { right: 58px;  bottom: 260px; width: 64px;  height: 32px;  }
+#touch-controls.layout-b #tc-y     { right: 108px; bottom: 172px; width: 64px;  height: 64px;  }
+#touch-controls.layout-b #tc-x     { right: 36px;  bottom: 196px; width: 64px;  height: 64px;  }
+#touch-controls.layout-b #tc-start { right: 80px;  bottom: 260px; width: 64px;  height: 32px;  }
 
 /* ===== Style modifiers =====
    .style-simplified (default) hides the GameCube-faceplate extras
@@ -786,7 +788,6 @@ body.tc-bias-top #container {
 
    Default-hidden so they don't flash at unstyled positions before
    applyStyle() runs; .style-full revives them below. */
-#touch-controls #tc-x,
 #touch-controls #tc-z,
 #touch-controls #tc-l,
 #touch-controls #tc-r,
@@ -796,7 +797,6 @@ body.tc-bias-top #container {
 #touch-controls #tc-dpad-right,
 #touch-controls #tc-cstick-zone { display: none; }
 #touch-controls.style-simplified #tc-dpad,
-#touch-controls.style-simplified #tc-x,
 #touch-controls.style-simplified #tc-z,
 #touch-controls.style-simplified #tc-l,
 #touch-controls.style-simplified #tc-r,
