@@ -520,8 +520,11 @@ elseif(EMSCRIPTEN)
         _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/fonts/" ${_PWA_FONTS})
     endif()
 
-    # SW cache key = git short SHA (or dirty-timestamp for uncommitted
-    # changes / non-git checkouts) so each deploy busts the previous cache.
+    # SW cache key = git short SHA. Append a "-dirty-<timestamp>" suffix
+    # only when a tracked file under pc/ has been modified relative to
+    # HEAD. Untracked files (the build dir at pc/build-web/, editor
+    # scratch) and submodule churn are explicitly excluded — neither
+    # represents a real source change for cache-busting purposes.
     # CMAKE_CONFIGURE_DEPENDS forces a reconfigure on any web-source edit
     # — the cache tag is captured at configure time.
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
@@ -550,7 +553,8 @@ elseif(EMSCRIPTEN)
     if(_pc_web_sha)
         set(PC_WEB_BUILD_TAG "${_pc_web_sha}")
         execute_process(
-            COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_SOURCE_DIR}" status --porcelain
+            COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_SOURCE_DIR}"
+                    status --porcelain --untracked-files=no --ignore-submodules=all
             OUTPUT_VARIABLE _pc_web_status
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_QUIET
