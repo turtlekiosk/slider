@@ -1,16 +1,20 @@
-This project is dual-licensed:
+This project is multi-licensed:
 
 - The original decompilation code is from ACreTeam/ac-decomp and is
   licensed under CC0 1.0 Universal (public domain).
   See: https://github.com/ACreTeam/ac-decomp
 
 - The PC port layer (pc/ directory and all #ifdef TARGET_PC additions
-  to decomp files) is licensed under the MIT License below.
+  to decomp files) is licensed under the MIT License.
+  See: https://github.com/flyngmt/ACGC-PC-Port
+
+- Modifications and additions made on top of the PC port for web and
+  Android targets are licensed under the MIT License below.
 
 
 MIT License
 
-Copyright (c) 2026 FlyingMeta
+Copyright (c) 2026 turtlekiosk
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +33,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
 
 - FixNES is licensed under the MIT License below.
 
@@ -54,4 +59,26 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+Additional bundled third-party libraries:
+    
+- FixNES is licensed under MIT License, Copyright (c) FIX94.
+  See: https://github.com/FIX94/fixnes
+
+- GLAD-generated OpenGL loader is licensed under WTFPL OR CC0-1.0 AND
+  Apache-2.0 (per the generator's SPDX header). See the bundled source
+  files for the SPDX identifier and https://github.com/Dav1dde/glad for
+  upstream details.
+
+- nipplejs is licensed under the MIT License, Copyright (c) Yoann Moinet.
+  See: https://github.com/yoannmoinet/nipplejs
+
+- Work Sans webfont is licensed under the SIL Open Font License version
+  1.1, Copyright (c) Wei Huang.
+  See: https://github.com/weiweihuanghuang/Work-Sans
+
+- Fragment Mono webfont is licensed under the SIL Open Font License
+  version 1.1, Copyright (c) The Fragment Mono Project Authors.
+  See: https://github.com/weiweihuanghuang/fragment-mono
 
