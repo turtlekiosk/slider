@@ -1,6 +1,6 @@
 {
-  "name": "ACGC",
-  "short_name": "ACGC",
+  "name": "Slider",
+  "short_name": "Slider",
   "description": "ACGC WebAssembly Port",
   "start_url": "./index.html",
   "scope": "./",
