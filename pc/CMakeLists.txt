@@ -105,20 +105,17 @@ endif()
 # Find SDL2
 # =============================================================================
 if(ANDROID)
-    # Build SDL2 from source for Android
     add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2-src SDL2-build)
     message(STATUS "SDL2: Building from source for Android")
 elseif(EMSCRIPTEN)
-    # Emscripten: -sUSE_SDL=2 (set in compile/link options) handles headers + linking
+    # -sUSE_SDL=2 (set in compile/link options) handles headers + linking
     message(STATUS "SDL2: Using Emscripten port (-sUSE_SDL=2)")
 else()
-    # Try system SDL2 first, then fall back to platform-specific locations
     if(WIN32)
         set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/lib/SDL2/cmake" CACHE PATH "SDL2 cmake dir")
     endif()
     find_package(SDL2 QUIET)
     if(NOT SDL2_FOUND)
-        # Try pkg-config (works on both Linux and MSYS2)
         find_package(PkgConfig QUIET)
         if(PKG_CONFIG_FOUND)
             pkg_check_modules(SDL2 QUIET sdl2)
@@ -198,7 +195,6 @@ list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/TRK_MINNOW_DOLPHIN/.*")
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/Runtime\\.PPCEABI\\.H/.*")
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/MSL_C\\.PPCEABI\\.bare\\.H/.*")
 
-# Pull in all generated data files (display lists, model arrays, etc.).
 file(GLOB_RECURSE DATA_C_SOURCES CONFIGURE_DEPENDS "${DECOMP_ROOT}/src/data/*.c")
 list(APPEND GAME_C_SOURCES ${DATA_C_SOURCES})
 
@@ -225,7 +221,7 @@ list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/Famicom/.*")
 # Exclude MSL_C library sources (using system libc on PC)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/MSL_C/.*")
 
-# jaudio_NES: Include audio engine, exclude GBA-specific files
+# Exclude GBA-specific jaudio sources (the rest of the audio engine is kept)
 list(FILTER GAME_C_SOURCES EXCLUDE REGEX ".*/jaudio_NES/internal/(dsp_cardunlock|dsp_GBAKey)\\.c$")
 
 # libc64: Include most files (qrand, math64, sleep, etc.)
@@ -443,7 +439,6 @@ if(ANDROID)
     add_library(ac_pc SHARED ${_AC_SOURCES})
     target_link_libraries(ac_pc SDL2 GLESv3 EGL android log m)
 elseif(EMSCRIPTEN)
-    # Web: single-page wasm build with assets baked into the .data bundle
     add_executable(ac_pc ${_AC_SOURCES})
     set_target_properties(ac_pc PROPERTIES
         # Emitted as `index.*` so GitHub Pages serves the wasm shell directly
@@ -453,9 +448,9 @@ elseif(EMSCRIPTEN)
         SUFFIX ".html"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/web"
     )
-    # `-g` and `-sASSERTIONS=2` are debug-only — they bloat the wasm binary
-    # by 50–100 MB and add per-allocation overhead, both of which push iOS
-    # Safari past its per-tab memory budget.
+    # `-g` and `-sASSERTIONS=2` are debug-only — they bloat the wasm by
+    # 50–100 MB and add per-allocation overhead, pushing iOS Safari past
+    # its per-tab memory budget in release.
     set(_pc_web_debug_flags "")
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(_pc_web_debug_flags -g -sASSERTIONS=2)
@@ -477,14 +472,12 @@ elseif(EMSCRIPTEN)
         -sEXIT_RUNTIME=0
         -sFORCE_FILESYSTEM=1
         -lidbfs.js
-        # Gate decomp/jaudio printf debug logging on g_pc_verbose in the
-        # wasm build. Each printf crosses the wasm→JS bridge into the
-        # runtime's console.log import (~100–500 µs); jaudio emits
-        # several per voice setup, producing a ~25 ms press-time hitch.
-        # The shims in pc_os.c short-circuit when verbose is off and
-        # forward to the real libc paths when it's on. Cover puts/
-        # iprintf/fputs/fprintf/v(f)printf as well — clang -O2 rewrites
-        # printf calls into those depending on the format string.
+        # Gate decomp/jaudio printf logging on g_pc_verbose: each printf
+        # crosses the wasm→JS bridge into console.log (~100–500 µs) and
+        # jaudio emits several per voice setup → ~25 ms press-time hitch.
+        # The shims in pc_os.c short-circuit when verbose is off. Wrap
+        # puts/iprintf too because clang -O2 rewrites `printf("…\n")` →
+        # puts and `printf("…%d…")` → iprintf based on format string.
         -Wl,--wrap=printf
         -Wl,--wrap=puts
         -Wl,--wrap=iprintf
@@ -492,17 +485,13 @@ elseif(EMSCRIPTEN)
         "SHELL:--preload-file ${CMAKE_CURRENT_SOURCE_DIR}/android/app/src/main/assets/shaders@/shaders"
         "SHELL:--shell-file ${CMAKE_BINARY_DIR}/web/shell.html"
     )
-    # Make ac_pc re-link whenever shell.html changes — emcc bakes the
-    # shell into index.html during link, but CMake doesn't track
-    # --shell-file as a dependency on its own. Without this, editing
-    # shell.html alone (no .c changes) wouldn't trigger a relink, so
-    # the served HTML stayed stale across builds.
+    # Re-link when shell.html changes — emcc bakes it into index.html via
+    # --shell-file but CMake doesn't track that as a dep on its own.
     set_property(TARGET ac_pc APPEND PROPERTY
         LINK_DEPENDS "${CMAKE_BINARY_DIR}/web/shell.html"
     )
-    # Helper: queue a POST_BUILD copy_if_different for each existing path in
-    # the given list, into the given destination directory. Skips missing
-    # entries (e.g. icons are optional).
+    # POST_BUILD copy_if_different for each existing path; skips missing
+    # entries so optional assets (icons) don't break the build.
     function(_pc_web_copy_each dest)
         foreach(_src IN LISTS ARGN)
             if(EXISTS "${_src}")
@@ -512,10 +501,9 @@ elseif(EMSCRIPTEN)
         endforeach()
     endfunction()
 
-    # Copy PWA assets (manifest + shell-* + woff2 fonts + icons) next to the
-    # wasm output. The service worker registration in shell.html expects
-    # them at the same origin path as index.html. (sw.js itself is
-    # configure_file'd below so the cache key gets the build SHA stamped in.)
+    # PWA assets copied next to the wasm output so the SW finds them at
+    # the same origin path as index.html. sw.js is configure_file'd below
+    # to stamp in the cache version.
     set(_PWA_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.css"
@@ -524,9 +512,7 @@ elseif(EMSCRIPTEN)
     )
     _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/" ${_PWA_FILES})
 
-    # Self-hosted webfonts go in a fonts/ subdir so shell.css's url() paths
-    # resolve. make_directory POST_BUILD avoids needing the dir at configure
-    # time when the project is freshly cloned without fonts yet.
+    # Webfonts go in a fonts/ subdir so shell.css's url() paths resolve.
     file(GLOB _PWA_FONTS "${CMAKE_CURRENT_SOURCE_DIR}/web/fonts/*.woff2")
     if(_PWA_FONTS)
         add_custom_command(TARGET ac_pc POST_BUILD
@@ -534,15 +520,10 @@ elseif(EMSCRIPTEN)
         _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/fonts/" ${_PWA_FONTS})
     endif()
 
-    # Service worker cache key: derive from the git short SHA so each deploy
-    # invalidates the previous SW cache automatically. Falls back to a
-    # timestamp on dirty trees or non-git checkouts so dev iterations also
-    # bust the cache instead of silently reusing stale bytes.
-    #
-    # Force a reconfigure whenever any web source changes — the cache tag
-    # is captured at configure time, so without this `ninja` could re-copy
-    # an unchanged sw.js even though shell.css/shell-*.js were edited and
-    # clients would never notice the new build.
+    # SW cache key = git short SHA (or dirty-timestamp for uncommitted
+    # changes / non-git checkouts) so each deploy busts the previous cache.
+    # CMAKE_CONFIGURE_DEPENDS forces a reconfigure on any web-source edit
+    # — the cache tag is captured at configure time.
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
         "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
@@ -584,10 +565,9 @@ elseif(EMSCRIPTEN)
     endif()
     set(PC_WEB_CACHE_VERSION "acgc-${PC_WEB_BUILD_TAG}")
     message(STATUS "PWA build tag: ${PC_WEB_BUILD_TAG} (SW cache: ${PC_WEB_CACHE_VERSION})")
-    # Both files are real .html / .js source; configure_file just stamps
-    # in the @PC_WEB_BUILD_TAG@ / @PC_WEB_CACHE_VERSION@ markers. Kept on
-    # the real extensions so editors / linters / formatters treat them as
-    # plain HTML/JS — see the comments next to each @VAR@ in the sources.
+    # configure_file stamps @PC_WEB_BUILD_TAG@ / @PC_WEB_CACHE_VERSION@
+    # into sw.js and shell.html — kept on real .html/.js extensions so
+    # editors/linters treat them as ordinary sources.
     configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/web/sw.js"
         "${CMAKE_BINARY_DIR}/web/sw.js"
@@ -602,10 +582,9 @@ elseif(EMSCRIPTEN)
     # works without them, the manifest just won't have art).
     file(GLOB _PWA_ICONS "${CMAKE_CURRENT_SOURCE_DIR}/web/icon-*.png")
     _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/" ${_PWA_ICONS})
-    # Copy nipplejs (vendored library for the touch analog stick). The copy
-    # runs every build (not gated on configure-time existence), so dropping
-    # the file in or updating its bytes is picked up without re-running
-    # CMake. If the file is missing the build fails with a clear error.
+    # nipplejs (touch analog stick library). Not gated by configure-time
+    # EXISTS check so dropping in or updating the file picks up without
+    # re-running CMake; missing file fails the build with a clear error.
     add_custom_command(TARGET ac_pc POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_CURRENT_SOURCE_DIR}/web/nipplejs.min.js"
@@ -614,7 +593,6 @@ elseif(EMSCRIPTEN)
         COMMENT "Copying nipplejs.min.js (touch analog stick)"
     )
 else()
-    # Desktop: standalone executable
     add_executable(ac_pc ${_AC_SOURCES} ${RC_FILE})
 
     # Link SDL2 without SDL2main (we define SDL_MAIN_HANDLED)

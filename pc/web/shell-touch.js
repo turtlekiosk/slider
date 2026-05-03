@@ -378,11 +378,17 @@
      * style: simplified ↔ full. The in-menu Style dropdown was removed
      * since this button covers the same action. */
     if (styleSwap) {
+        function updateStyleSwapTitle() {
+            var next = settings.style === 'full' ? 'simplified' : 'full';
+            styleSwap.title = 'Switch to ' + next + ' touch controls';
+        }
+        updateStyleSwapTitle();
         styleSwap.addEventListener('click', function(ev) {
             ev.preventDefault();
             settings.style = settings.style === 'full' ? 'simplified' : 'full';
             saveSettings(settings);
             applyStyle();
+            updateStyleSwapTitle();
         });
     }
     if (enabledSel && opacityRng && opacityVal) {

@@ -215,6 +215,22 @@ body.tc-bias-top #container {
     text-decoration-color: #ccc;
 }
 #rom-instructions a:visited { color: #ddd; }
+#rom-install-btn {
+    font: inherit;
+    color: #ddd;
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.30);
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin: 0 2px;
+    cursor: pointer;
+    transition: background 0.1s, border-color 0.1s;
+}
+#rom-install-btn:hover,
+#rom-install-btn:focus-visible {
+    background: rgba(255,255,255,0.18);
+    border-color: rgba(255,255,255,0.55);
+}
 #rom-drop {
     /* Hidden until refreshRomStatus has resolved the ROM check;
      * otherwise the drop zone briefly appears before we know

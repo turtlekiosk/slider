@@ -142,6 +142,7 @@ void VIWaitForRetrace(void) {
                pc_frame_counter, frame_ms, work_ms - swap_ms - pace_ms, swap_ms, pace_ms, audio_fill);
     }
 
+#ifndef __EMSCRIPTEN__
     {
         static Uint64 fps_start = 0;
         static int fps_count = 0;
@@ -158,6 +159,7 @@ void VIWaitForRetrace(void) {
             fps_count = 0;
         }
     }
+#endif
 
     frame_start_time = SDL_GetPerformanceCounter();
 

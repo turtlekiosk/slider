@@ -131,7 +131,8 @@
         <ol id="rom-instructions">
             <li>Although this is a port and not an emulator, no assets are distributed here. A disc image file of AC is still necessary to play the game for this reason.</li>
             <li>Thank you to <a href="https://github.com/ACreTeam/ac-decomp">ACreTeam</a> and <a href="https://github.com/flyngmt/ACGC-PC-Port">flyngmt</a> for their work on the decomp and PC port of ACGC, on which this project is built on top of.</li>
-            <li>This software is provided as-is, without warranty of any kind. There's no guarantee it won't corrupt your save data at some point, so export your save data as often as necessary.</li>
+            <li>This software is provided as-is, without warranty of any kind. There's no guarantee it won't corrupt your save data at some point, so export your save data as often as necessary. I have not playtested the entire game, at this stage there are very likely to be places where the game crashes before you have an opportunity to save.</li>
+            <li id="rom-install-item">This page is a PWA (Progressive Web App) which means you can save it locally on your device for an app-like experience with offline support. <button id="rom-install-btn" type="button" style="display:none">Install</button><span id="rom-install-hint" style="display:none">Tap your browser's <em>Share</em> menu and choose <strong>Add to Home Screen</strong>, </span><span id="rom-install-fallback">Open your browser's menu and press Install / Add to Home Screen.</span></li>
         </ol>
         <label id="rom-drop" for="rom-file">
             <div class="primary">Drag a USA (GAFE01 Rev 0) disc image here, or click to select</div>
@@ -143,7 +144,7 @@
 
         <div id="rom-saves">
             <div class="rom-saves-heading">Memory card slots (optional)</div>
-            <div class="rom-saves-help">Import an existing .gci save before booting. Skip if starting fresh.</div>
+            <div class="rom-saves-help">Import an existing .gci save before booting. Ignore to start a fresh save.</div>
             <div class="rom-saves-grid">
                 <div class="rom-saves-slot" data-slot="a">
                     <div class="rom-saves-slot-label">Card A</div>
@@ -171,9 +172,9 @@
         <button id="rom-start" type="button" disabled>Start</button>
     </div>
 
-    <button id="tc-style-swap" type="button" aria-label="Swap touch control style" title="Swap touch controls"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 3l4 4l-4 4m4-4H4m4 14l-4-4l4-4m-4 4h16"/></svg></button>
-    <button id="fullscreen-toggle" type="button" aria-label="Toggle fullscreen" title="Fullscreen"><svg class="fs-icon-expand" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 15l6 6M15 9l6-6m0 13v5h-5m5-13V3h-5M3 16v5h5m-5 0l6-6M3 8V3h5m1 6L3 3"/></svg><svg class="fs-icon-collapse" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 15l6 6m-6-6v4.8m0-4.8h4.8M9 19.8V15m0 0H4.2M9 15l-6 6M15 4.2V9m0 0h4.8M15 9l6-6M9 4.2V9m0 0H4.2M9 9L3 3"/></svg></button>
-    <button id="settings-gear" type="button" aria-label="Settings" title="Settings"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0a2.34 2.34 0 0 0 3.319 1.915a2.34 2.34 0 0 1 2.33 4.033a2.34 2.34 0 0 0 0 3.831a2.34 2.34 0 0 1-2.33 4.033a2.34 2.34 0 0 0-3.319 1.915a2.34 2.34 0 0 1-4.659 0a2.34 2.34 0 0 0-3.32-1.915a2.34 2.34 0 0 1-2.33-4.033a2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></g></svg></button>
+    <button id="tc-style-swap" type="button" aria-label="Toggle touch controls" title="Toggle touch controls (simplified ↔ full)"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m16 3l4 4l-4 4m4-4H4m4 14l-4-4l4-4m-4 4h16"/></svg></button>
+    <button id="fullscreen-toggle" type="button" aria-label="Toggle fullscreen" title="Enter fullscreen"><svg class="fs-icon-expand" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 15l6 6M15 9l6-6m0 13v5h-5m5-13V3h-5M3 16v5h5m-5 0l6-6M3 8V3h5m1 6L3 3"/></svg><svg class="fs-icon-collapse" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 15l6 6m-6-6v4.8m0-4.8h4.8M9 19.8V15m0 0H4.2M9 15l-6 6M15 4.2V9m0 0h4.8M15 9l6-6M9 4.2V9m0 0H4.2M9 9L3 3"/></svg></button>
+    <button id="settings-gear" type="button" aria-label="Settings" title="Open settings"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0a2.34 2.34 0 0 0 3.319 1.915a2.34 2.34 0 0 1 2.33 4.033a2.34 2.34 0 0 0 0 3.831a2.34 2.34 0 0 1-2.33 4.033a2.34 2.34 0 0 0-3.319 1.915a2.34 2.34 0 0 1-4.659 0a2.34 2.34 0 0 0-3.32-1.915a2.34 2.34 0 0 1-2.33-4.033a2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></g></svg></button>
 
     <dialog id="settings-menu" aria-labelledby="settings-title">
         <div class="menu-body">
@@ -538,9 +539,10 @@
         // a tie-breaker if anything mismatches.
         (function checkPersistedRomEarly() {
             if (typeof indexedDB === 'undefined') return;
-            var dbName = 'EM_FS_' + window.location.pathname;
+            // IDBFS stores per mountpoint: pc_web_mount_rom mounts on /orig,
+            // so the database is EM_FS_/orig (not EM_FS_<page-path>).
             var req;
-            try { req = indexedDB.open(dbName); }
+            try { req = indexedDB.open('EM_FS_/orig'); }
             catch (e) { return; }
             req.onerror = function() { /* ignore */ };
             req.onsuccess = function() {
@@ -554,10 +556,8 @@
                     var get   = tx.objectStore('FILE_DATA').get('/orig/user-rom.iso');
                     get.onsuccess = function() {
                         var entry = get.result;
-                        // Only override if the picker is still in its
-                        // pre-runtime "Loading runtime…" state — don't
-                        // clobber a status the runtime path has set.
-                        if (entry && entry.contents && typeof FS === 'undefined') {
+                        // Don't clobber a status the runtime path has already set.
+                        if (entry && entry.contents && !_romImported) {
                             var size = entry.contents.byteLength || entry.contents.length || 0;
                             setRomDropVisible(false);
                             setRomStatus('ROM ready (' +
@@ -816,6 +816,59 @@
         if (navigator.storage && navigator.storage.persist) {
             navigator.storage.persist().catch(function() { /* ignore */ });
         }
+
+        // PWA install affordance. Three paths:
+        //   - Chrome/Edge fire `beforeinstallprompt` when installable;
+        //     stash it and reveal the inline Install button which calls
+        //     prompt() from a user gesture.
+        //   - iOS Safari has no API — show the manual "Share → Add to
+        //     Home Screen" hint when running on iOS in a browser tab.
+        //   - Anywhere else, leave the generic fallback text in place.
+        (function wireInstallAffordance() {
+            var btn      = document.getElementById('rom-install-btn');
+            var hint     = document.getElementById('rom-install-hint');
+            var fallback = document.getElementById('rom-install-fallback');
+            var item     = document.getElementById('rom-install-item');
+            if (!btn || !item) return;
+
+            // Already running as an installed PWA → hide the whole list item.
+            var installed = window.matchMedia &&
+                            window.matchMedia('(display-mode: standalone)').matches;
+            if (installed || window.navigator.standalone) {
+                item.style.display = 'none';
+                return;
+            }
+
+            var deferredPrompt = null;
+            var FALLBACK_CHAINED = "or open your browser's menu and press Install / Add to Home Screen.";
+            window.addEventListener('beforeinstallprompt', function(ev) {
+                ev.preventDefault();
+                deferredPrompt = ev;
+                btn.style.display = '';
+                fallback.textContent = FALLBACK_CHAINED;
+            });
+            btn.addEventListener('click', function() {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.finally(function() {
+                    deferredPrompt = null;
+                    btn.style.display = 'none';
+                });
+            });
+            window.addEventListener('appinstalled', function() {
+                deferredPrompt = null;
+                item.style.display = 'none';
+            });
+
+            // iOS Safari fallback (no beforeinstallprompt event).
+            var ua = navigator.userAgent || '';
+            var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+            var isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+            if (isIOS && isSafari) {
+                hint.style.display = '';
+                fallback.textContent = FALLBACK_CHAINED;
+            }
+        })();
 
         // Prompt before the user closes the tab / navigates away so an
         // accidental close doesn't lose unsaved progress. The dialog text

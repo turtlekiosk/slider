@@ -412,6 +412,7 @@ static int mv_fish_skip_null(int idx, int dir) {
 /* WINDOW TITLE & CAMERA RESET */
 
 static void mv_update_title(GAME_MODEL_VIEWER* mv) {
+#ifndef __EMSCRIPTEN__
     char title[160];
     int cat = mv->category;
     int idx = mv->cat_index[cat];
@@ -419,6 +420,7 @@ static void mv_update_title(GAME_MODEL_VIEWER* mv) {
     snprintf(title, sizeof(title), "Model Viewer [%s %d/%d] %s",
              mv_cat_name(cat), idx + 1, count, mv_model_name(cat, idx));
     SDL_SetWindowTitle(g_pc_window, title);
+#endif
 }
 
 static void mv_reset_camera(GAME_MODEL_VIEWER* mv) {
@@ -887,5 +889,7 @@ void pc_model_viewer_init(GAME* game) {
 void pc_model_viewer_cleanup(GAME* game) {
     (void)game;
     g_pc_model_viewer_no_cull = 0;
+#ifndef __EMSCRIPTEN__
     SDL_SetWindowTitle(g_pc_window, PC_WINDOW_TITLE);
+#endif
 }
