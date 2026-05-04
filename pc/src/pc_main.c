@@ -338,7 +338,7 @@ static int pc_confirm_quit(void) {
     };
     const SDL_MessageBoxData data = {
         SDL_MESSAGEBOX_INFORMATION, g_pc_window,
-        "Animal Crossing", "Are you sure you want to quit?",
+        PC_WINDOW_TITLE, "Are you sure you want to quit?",
         2, buttons, NULL
     };
     int button = 0;

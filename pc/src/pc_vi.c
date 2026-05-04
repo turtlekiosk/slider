@@ -153,7 +153,7 @@ void VIWaitForRetrace(void) {
             double secs = (double)(now - fps_start) / (double)perf_freq;
             double fps = (double)fps_count / secs;
             char title[64];
-            snprintf(title, sizeof(title), "Animal Crossing - %.1f FPS", fps);
+            snprintf(title, sizeof(title), PC_WINDOW_TITLE " - %.1f FPS", fps);
             SDL_SetWindowTitle(g_pc_window, title);
             fps_start = now;
             fps_count = 0;
