@@ -1022,16 +1022,21 @@
         // Synchronously cut the audio graph from the destination so SDL's
         // ScriptProcessorNode can't repeat its last buffer (or click on
         // underrun) while the main thread is blocked by a modal dialog.
-        // The GainNode disconnect lives on the audio thread, so it takes
-        // effect even though JS is paused. Falls back to disconnecting the
-        // raw SDL node if the gain stage hasn't been wired up yet.
+        // Records [node, target] pairs in _audioConnections so reconnect
+        // restores exactly what was severed — whether that was the gain
+        // stage (normal case) or the raw SDL node (gain not yet wired
+        // because the dialog opened before the first audio gesture).
+        var _audioConnections = [];
         function disconnectAudio() {
-            if (_audioChain.gain) {
-                try { _audioChain.gain.disconnect(); _gainDisconnected = true; } catch (e) {}
-            } else {
-                var node = getAudioOutputNode();
-                if (node) { try { node.disconnect(); } catch (e) {} }
-            }
+            if (_audioConnections.length > 0) return; /* already disconnected */
+            var ctx = getAudioContext();
+            if (!ctx) return;
+            var head = _audioChain.gain || getAudioOutputNode();
+            if (!head) return;
+            try {
+                head.disconnect();
+                _audioConnections.push([head, ctx.destination]);
+            } catch (e) {}
         }
         // Wrap a synchronous, main-thread-blocking call (e.g. window.confirm)
         // with audio disconnected for its duration. Used for in-page modal
@@ -1041,14 +1046,10 @@
             try { return fn(); }
             finally { reconnectAudio(); }
         }
-        // Track whether we've disconnected the gain on beforeunload, so
-        // focus can put it back if the user cancels the close dialog.
-        var _gainDisconnected = false;
         function reconnectAudio() {
-            var ctx = getAudioContext();
-            if (_gainDisconnected && _audioChain.gain && ctx) {
-                try { _audioChain.gain.connect(ctx.destination); } catch (e) {}
-                _gainDisconnected = false;
+            while (_audioConnections.length) {
+                var conn = _audioConnections.pop();
+                try { conn[0].connect(conn[1]); } catch (e) {}
             }
             resumeAudio();
         }
