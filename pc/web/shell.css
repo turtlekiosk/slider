@@ -678,6 +678,11 @@ body.tc-bias-top #container {
     --tc-bg-pressed-alpha: 0.45;
     --tc-stroke-alpha:     0.40;
     --tc-label-alpha:      0.92;
+    /* Label/arrow base color — JS swaps this to a dark tone when the
+     * background opacity gets high enough that white-on-white-ish would
+     * be unreadable. Stored as an RGB triplet so the alpha can be
+     * applied separately by callers. */
+    --tc-label-rgb:        255, 255, 255;
 
     /* Layout-shared positioning knobs. Both portrait (layout-a) and
      * landscape (layout-b) full-mode use the same vertical anchor for
@@ -742,7 +747,7 @@ body.tc-bias-top #container {
  * scale with the viewBox / button-size ratio. */
 #touch-controls .tc-label {
     font-size: 24px;
-    fill: rgba(255, 255, 255, var(--tc-label-alpha));
+    fill: rgba(var(--tc-label-rgb), var(--tc-label-alpha));
     font-family: "Fragment Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-weight: 600;
     text-anchor: middle;
@@ -759,8 +764,8 @@ body.tc-bias-top #container {
    both would double-blend at the stroke seam, producing a visible
    outline around the triangle. */
 #touch-controls .tc-arrow {
-    fill: #fff;
-    stroke: #fff;
+    fill: rgb(var(--tc-label-rgb));
+    stroke: rgb(var(--tc-label-rgb));
     stroke-width: 4;
     stroke-linejoin: round;
     opacity: var(--tc-label-alpha);

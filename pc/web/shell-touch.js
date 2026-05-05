@@ -157,10 +157,16 @@
         // the button text alongside the background. Keep a small floor
         // so the labels don't disappear entirely at the low end.
         var label  = Math.max(0.15, Math.min(1, sliderAlpha + 0.10)).toFixed(3);
+        // White labels lose contrast once the white-tinted background is
+        // bright enough to wash them out. Switch the label/arrow base
+        // color to a dark tone past that threshold so letters and d-pad
+        // arrows stay legible at high opacity.
+        var labelRgb = sliderAlpha >= 0.45 ? '70, 70, 70' : '255, 255, 255';
         root.style.setProperty('--tc-bg-alpha',         bg);
         root.style.setProperty('--tc-bg-pressed-alpha', press);
         root.style.setProperty('--tc-stroke-alpha',     stroke);
         root.style.setProperty('--tc-label-alpha',      label);
+        root.style.setProperty('--tc-label-rgb',        labelRgb);
     }
     function applyAll() { applyVisibility(); applyLayout(); applyStyle(); applyOpacity(); }
 
