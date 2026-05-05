@@ -846,9 +846,18 @@ int mCD_InitGameStart_bg(int player_no, int card_private_idx, int start_cond, s3
                                  Now_Private->reset_count);
                     }
                 }
-                /* Arm reset code: if player quits without saving, next load detects it */
+                /* Arm reset code and persist it immediately. Without the
+                 * write, the new reset_code lives only in memory until
+                 * the next autosave — and if the player closes the tab
+                 * before any autosave fires, the GCI still holds the
+                 * prior value (likely 0), so next reload skips Resetti.
+                 * The GC original writes inside InitGameStart's state
+                 * machine for the same reason. */
                 Now_Private->reset_code = (u32)RANDOM_F(USHT_MAX_S);
                 Now_Private->reset_code++;
+                if (pc_save_ready) {
+                    pc_save_write_gci();
+                }
             }
 
             /* Handle foreigner start conditions */
@@ -892,11 +901,12 @@ int mCD_SaveHome_bg(int param_1, int* chan) {
      * every load even after being killed. */
     mCkRh_SavePlayTime(Common_Get(player_no));
 
-    /* Clear reset code before saving — marks this as a proper shutdown */
-    if (Now_Private != NULL) {
-        Now_Private->reset_code = 0;
-    }
-
+    /* Persist whatever reset_code is currently in memory. InitGameStart
+     * arms a non-zero reset_code at session start; every autosave below
+     * carries that value to the card. The web port has no explicit
+     * "Save & Quit" affordance — closing the tab is equivalent to a
+     * GameCube hard reset — so Resetti firing on every reload is the
+     * correct GC-equivalent behavior. */
     if (slot == mCD_SLOT_B && l_card_b_gci_path[0] != '\0') {
         /* Visiting Card B's town — save to Card B GCI */
         char tmp_path[300];
@@ -911,13 +921,6 @@ int mCD_SaveHome_bg(int param_1, int* chan) {
     if (!result) {
         OSReport("[PC] mCD_SaveHome_bg: save failed!\n");
         return mCD_TRANS_ERR_IOERROR;
-    }
-
-    /* Re-arm reset code after successful save — if player quits without
-     * saving again, we'll detect it next load */
-    if (Now_Private != NULL) {
-        Now_Private->reset_code = (u32)RANDOM_F(USHT_MAX_S);
-        Now_Private->reset_code++;
     }
 
     return mCD_TRANS_ERR_NONE;
