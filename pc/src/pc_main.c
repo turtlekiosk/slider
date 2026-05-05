@@ -139,57 +139,57 @@ unsigned int pc_crash_get_addr(void) {
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
-/* Mount IndexedDB-backed filesystem on /save and block until the load-from-IDB
- * callback fires. Uses Asyncify to sleep without freezing the page. */
-static void pc_web_mount_saves(void) {
-    EM_ASM({
+/* Mount /save (IDBFS) and resolve once the IDB→MEMFS pull completes. Uses
+ * EM_ASYNC_JS so JSPI can suspend the wasm with a single Promise rather
+ * than the EM_ASM-kickoff + emscripten_sleep poll-loop pattern, which
+ * doesn't reliably resume under JSPI. */
+EM_ASYNC_JS(void, pc_web_mount_saves, (), {
+    return new Promise(function(resolve) {
         FS.mkdir('/save');
         FS.mount(IDBFS, {}, '/save');
-        Module.__save_ready = 0;
         FS.syncfs(true, function(err) {
             if (err) console.warn('IDBFS load err:', err);
             Module.__save_ready = 1;
             if (typeof window._onSaveReady === 'function') window._onSaveReady();
+            resolve();
         });
     });
-    while (!EM_ASM_INT({ return Module.__save_ready ? 1 : 0; })) {
-        emscripten_sleep(10);
-    }
-}
-/* Mount IndexedDB-backed filesystem on /orig (where pc_disc.c looks for the
- * disc image) and pull any previously-uploaded ROM bytes back into the VFS. */
-static void pc_web_mount_rom(void) {
-    EM_ASM({
+});
+/* Mount /orig (IDBFS, where pc_disc.c looks for the disc image) and pull
+ * any previously-uploaded ROM bytes back into MEMFS. */
+EM_ASYNC_JS(void, pc_web_mount_rom, (), {
+    return new Promise(function(resolve) {
         try { FS.mkdir('/orig'); } catch (e) { /* already exists */ }
         FS.mount(IDBFS, {}, '/orig');
-        Module.__rom_ready = 0;
         FS.syncfs(true, function(err) {
             if (err) console.warn('IDBFS /orig load err:', err);
             Module.__rom_ready = 1;
             if (typeof window._onRomReady === 'function') window._onRomReady();
+            resolve();
         });
     });
-    while (!EM_ASM_INT({ return Module.__rom_ready ? 1 : 0; })) {
-        emscripten_sleep(10);
+});
+/* Show shell.html's upload overlay and resolve once the user has picked a
+ * GC-valid ROM and the bytes are flushed to IndexedDB. shell.html sets
+ * Module.__rom_uploaded = 1 from the Start button click handler; we poll
+ * that flag inside the awaited Promise so this stays a single suspension
+ * point from JSPI's perspective. */
+EM_ASYNC_JS(void, pc_web_prompt_for_rom, (), {
+    Module.__rom_uploaded = 0;
+    if (typeof showRomPicker === 'function') {
+        showRomPicker();
+    } else {
+        console.error('showRomPicker() missing from shell.html');
+        Module.__rom_uploaded = 1;
     }
-}
-/* Show the upload overlay defined in shell.html, then block (yielding via
- * Asyncify) until the user picks a file that passes the GC magic-word check
- * and the bytes have been flushed to IndexedDB. */
-static void pc_web_prompt_for_rom(void) {
-    EM_ASM({
-        Module.__rom_uploaded = 0;
-        if (typeof showRomPicker === 'function') {
-            showRomPicker();
-        } else {
-            console.error('showRomPicker() missing from shell.html');
-            Module.__rom_uploaded = 1; /* unblock so we don't deadlock */
-        }
+    return new Promise(function(resolve) {
+        var check = function() {
+            if (Module.__rom_uploaded) resolve();
+            else setTimeout(check, 50);
+        };
+        check();
     });
-    while (!EM_ASM_INT({ return Module.__rom_uploaded ? 1 : 0; })) {
-        emscripten_sleep(50);
-    }
-}
+});
 #endif
 
 void pc_platform_init(void) {

@@ -75,13 +75,13 @@
              on the children stay consistent; in style-full it becomes a
              3×3 grid and the four arrows fill the cardinal cells. -->
         <div id="tc-dpad-cluster">
-            <div id="tc-dpad-up"    class="tc-button" data-tc-button="0x0008" aria-label="Up">
+            <div id="tc-dpad-up" class="tc-button" data-tc-button="0x0008" aria-label="Up">
                 <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><polygon points="50,43 60,57 40,57" class="tc-arrow" /></svg>
             </div>
-            <div id="tc-dpad-down"  class="tc-button" data-tc-button="0x0004" aria-label="Down">
+            <div id="tc-dpad-down" class="tc-button" data-tc-button="0x0004" aria-label="Down">
                 <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><polygon points="50,57 40,43 60,43" class="tc-arrow" /></svg>
             </div>
-            <div id="tc-dpad-left"  class="tc-button" data-tc-button="0x0001" aria-label="Left">
+            <div id="tc-dpad-left" class="tc-button" data-tc-button="0x0001" aria-label="Left">
                 <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" class="tc-bg" /><polygon points="43,50 57,40 57,60" class="tc-arrow" /></svg>
             </div>
             <div id="tc-dpad-right" class="tc-button" data-tc-button="0x0002" aria-label="Right">
@@ -112,16 +112,16 @@
              In `layout-a.style-full` it becomes a flex row pinned just
              above the cluster region. -->
         <div id="tc-shoulder-row">
-            <div id="tc-l"     class="tc-button" data-tc-button="0x0040" aria-label="L">
+            <div id="tc-l" class="tc-button" data-tc-button="0x0040" aria-label="L">
                 <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">L</text></svg>
             </div>
             <div id="tc-start" class="tc-button" data-tc-button="0x1000" aria-label="Start">
                 <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">START</text></svg>
             </div>
-            <div id="tc-z"     class="tc-button" data-tc-button="0x0010" aria-label="Z">
+            <div id="tc-z" class="tc-button" data-tc-button="0x0010" aria-label="Z">
                 <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">Z</text></svg>
             </div>
-            <div id="tc-r"     class="tc-button" data-tc-button="0x0020" aria-label="R">
+            <div id="tc-r" class="tc-button" data-tc-button="0x0020" aria-label="R">
                 <svg viewBox="0 0 100 50"><rect x="2" y="2" width="96" height="46" rx="14" class="tc-bg" /><text x="50" y="27" class="tc-label">R</text></svg>
             </div>
         </div>
@@ -129,6 +129,14 @@
 
     <div id="rom-picker" aria-hidden="true">
         <h1>Slider – A Web Port of Animal Crossing</h1>
+        <div id="webkit-warning" role="alert" style="display:none">
+            <strong>Warning:</strong> Safari and <b>all</b> iOS browsers have a known
+            memory leak (<a href="https://bugs.webkit.org/show_bug.cgi?id=304810"
+            target="_blank" rel="noopener">WebKit bug 304810</a>) that causes
+            this application's memory usage to climb until the page crashes after about a minute.
+            For a stable session try a Chrome, Edge, or any other Chromium-based browser
+            on a desktop OS or Chrome on Android.
+        </div>
         <ol id="rom-instructions">
             <li>Although this is a port and not an emulator, no assets are distributed here. A disc image file of AC is still necessary to play the game for this reason.</li>
             <li>Thank you to <a href="https://github.com/ACreTeam/ac-decomp">ACreTeam</a> and <a href="https://github.com/flyngmt/ACGC-PC-Port">flyngmt</a> for their work on the decomp and PC port of ACGC, on which this project is built on top of.</li>
@@ -242,6 +250,29 @@
     <script type="text/javascript">
         var statusEl = document.getElementById('status');
         var progressEl = document.getElementById('progress');
+
+        /* WebKit-bug-304810 disclaimer: Asyncify-instrumented wasm leaks
+         * "Page" memory under Safari/iOS until the tab crashes. Detection
+         * needs to handle two cases:
+         *   - Real Safari (any platform): UA contains "Safari" but not the
+         *     markers other browsers add (Chrome / CriOS / FxiOS / Edg).
+         *   - iPadOS spoofing as macOS Safari: navigator.platform reports
+         *     "MacIntel" with maxTouchPoints>1, since modern iPads send a
+         *     desktop-Safari UA by default.
+         * Every iOS browser wraps WebKit too, so iPhone/iPad UAs always
+         * match regardless of branding. */
+        (function () {
+            var ua = navigator.userAgent;
+            var isIOSDevice = /iPad|iPhone|iPod/.test(ua);
+            var isIPadOSSpoof = navigator.platform === 'MacIntel' &&
+                                navigator.maxTouchPoints > 1;
+            var isSafari = /Safari/.test(ua) &&
+                           !/Chrome|CriOS|FxiOS|EdgiOS|Edg\//.test(ua);
+            if (isIOSDevice || isIPadOSSpoof || isSafari) {
+                var warn = document.getElementById('webkit-warning');
+                if (warn) warn.style.display = '';
+            }
+        })();
 
         /* JS-side RAF keepalive. Chromium's intensive timer throttling
          * applies to RAF callbacks scheduled by JS as a separate axis

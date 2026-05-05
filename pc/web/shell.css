@@ -202,6 +202,24 @@ body.tc-bias-top #container {
     box-sizing: border-box;
 }
 #rom-instructions li { margin: 6px 0; }
+#webkit-warning {
+    max-width: 600px;
+    width: 100%;
+    line-height: 1.5;
+    font-size: 13px;
+    color: #f4d27a;
+    background: rgba(190, 100, 30, 0.18);
+    border: 1px solid rgba(244, 210, 122, 0.45);
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-sizing: border-box;
+}
+#webkit-warning a {
+    color: #ffe6a8;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+#webkit-warning strong { color: #ffd068; }
 #rom-instructions a {
     color: #ddd;
     text-decoration: underline;

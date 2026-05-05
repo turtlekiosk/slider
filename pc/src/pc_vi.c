@@ -2,20 +2,13 @@
 #include "pc_platform.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-/* Yield to the browser via Asyncify until the next requestAnimationFrame
+/* Yield to the browser via Asyncify/JSPI until the next requestAnimationFrame
  * fires. Replaces emscripten_sleep(N) here because Chromium on Snapdragon
  * 8 Gen 3 phones throttles setTimeout aggressively when the page looks
  * idle between presses — a 4 ms sleep would actually take 100–200 ms,
  * producing a visible stutter on each press. RAF is bound to the
  * compositor and always fires each display frame, so a wasm tick can't
  * overrun the frame budget waiting for a delayed timer. */
-/* Yield to whichever fires first: the next requestAnimationFrame OR a
- * setTimeout backstop. Chromium on Snapdragon 8 Gen 3 + adaptive AMOLED
- * throttles BOTH timing primitives independently when the page looks
- * idle — RAF gets aligned to a low panel refresh, and setTimeout aligns
- * to compositor frames. Racing them ensures whichever one is currently
- * firing fastest wakes the wasm. The 17 ms backstop matches the 60 fps
- * frame budget; if RAF would have delivered sooner, RAF still wins. */
 EM_ASYNC_JS(void, pc_yield_raf, (), {
     await new Promise(function(resolve) {
         var done = false;
@@ -24,6 +17,7 @@ EM_ASYNC_JS(void, pc_yield_raf, (), {
         setTimeout(fire, 17);
     });
 });
+
 #endif
 
 #define VI_TVMODE_NTSC_INT    0
@@ -89,18 +83,10 @@ void VIWaitForRetrace(void) {
         t_before_pace = t_after_swap;
     }
 #ifdef __EMSCRIPTEN__
-    /* Emscripten: yield to the browser via Asyncify so rAF can paint.
+    /* Emscripten: yield to the browser via Asyncify/JSPI so rAF can paint.
      * Audio is also pumped here since there's no producer thread. */
     extern void pc_audio_pump_if_needed(void);
     pc_audio_pump_if_needed();
-    /* Yield to RAF as the browser-paced wakeup. Replaces emscripten_sleep
-     * because Chromium on Snapdragon 8 Gen 3 was throttling setTimeout to
-     * 100–200 ms between user inputs, producing a stutter on every press.
-     * RAF fires reliably each compositor frame regardless of throttling.
-     *
-     * At 60 Hz that's a single RAF per frame; at 120 Hz we yield twice
-     * (~8.3 ms each) to preserve the game's 60 fps logical clock. The
-     * elapsed-time check makes this self-correcting on any refresh rate. */
     if (!g_pc_no_framelimit && frame_start_time) {
         for (int i = 0; i < 4; i++) {
             pc_yield_raf();
