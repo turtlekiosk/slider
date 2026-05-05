@@ -443,6 +443,7 @@ body.tc-bias-top #container {
 }
 #settings-gear,
 #fullscreen-toggle,
+#audio-toggle,
 #tc-style-swap {
     display: none;
     position: fixed;
@@ -467,14 +468,19 @@ body.tc-bias-top #container {
     align-items: center;
     justify-content: center;
 }
-#settings-gear     { right: calc(8px  + env(safe-area-inset-right)); }
-#fullscreen-toggle { right: calc(48px + env(safe-area-inset-right)); font-size: 16px; }
-#tc-style-swap     { right: calc(88px + env(safe-area-inset-right)); font-size: 16px; }
+#settings-gear     { right: calc(8px   + env(safe-area-inset-right)); }
+#fullscreen-toggle { right: calc(48px  + env(safe-area-inset-right)); font-size: 16px; }
+#audio-toggle      { right: calc(88px  + env(safe-area-inset-right)); font-size: 16px; }
+#tc-style-swap     { right: calc(128px + env(safe-area-inset-right)); font-size: 16px; }
 #fullscreen-toggle .fs-icon-collapse { display: none; }
 #fullscreen-toggle.is-fullscreen .fs-icon-expand   { display: none; }
 #fullscreen-toggle.is-fullscreen .fs-icon-collapse { display: inline; }
+#audio-toggle .audio-icon-off { display: none; }
+#audio-toggle.is-muted .audio-icon-on  { display: none; }
+#audio-toggle.is-muted .audio-icon-off { display: inline; }
 #settings-gear:hover,
 #fullscreen-toggle:hover,
+#audio-toggle:hover,
 #tc-style-swap:hover {
     opacity: 1;
     background: rgba(0,0,0,0.7);
@@ -521,6 +527,25 @@ body.tc-bias-top #container {
     color: #aaa;
 }
 #settings-menu h3:first-of-type { margin-top: 0; }
+#settings-install-section .settings-install-help {
+    margin: 0 0 8px;
+    font-size: 13px;
+    opacity: 0.7;
+    line-height: 1.4;
+}
+#settings-install-btn {
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    cursor: pointer;
+}
+#settings-install-btn:hover {
+    background: rgba(255, 255, 255, 0.14);
+}
 #settings-menu .row {
     display: flex;
     gap: 8px;

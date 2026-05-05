@@ -139,10 +139,7 @@ unsigned int pc_crash_get_addr(void) {
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
-/* Mount /save (IDBFS) and resolve once the IDB→MEMFS pull completes. Uses
- * EM_ASYNC_JS so JSPI can suspend the wasm with a single Promise rather
- * than the EM_ASM-kickoff + emscripten_sleep poll-loop pattern, which
- * doesn't reliably resume under JSPI. */
+/* Mount /save (IDBFS) and resolve once the IDB→MEMFS pull completes. */
 EM_ASYNC_JS(void, pc_web_mount_saves, (), {
     return new Promise(function(resolve) {
         FS.mkdir('/save');
@@ -155,8 +152,7 @@ EM_ASYNC_JS(void, pc_web_mount_saves, (), {
         });
     });
 });
-/* Mount /orig (IDBFS, where pc_disc.c looks for the disc image) and pull
- * any previously-uploaded ROM bytes back into MEMFS. */
+/* Mount /orig (IDBFS, where pc_disc.c looks for the disc image). */
 EM_ASYNC_JS(void, pc_web_mount_rom, (), {
     return new Promise(function(resolve) {
         try { FS.mkdir('/orig'); } catch (e) { /* already exists */ }
@@ -169,11 +165,8 @@ EM_ASYNC_JS(void, pc_web_mount_rom, (), {
         });
     });
 });
-/* Show shell.html's upload overlay and resolve once the user has picked a
- * GC-valid ROM and the bytes are flushed to IndexedDB. shell.html sets
- * Module.__rom_uploaded = 1 from the Start button click handler; we poll
- * that flag inside the awaited Promise so this stays a single suspension
- * point from JSPI's perspective. */
+/* Show shell.html's upload overlay and resolve once Module.__rom_uploaded
+ * flips (set by the Start button click handler in shell.html). */
 EM_ASYNC_JS(void, pc_web_prompt_for_rom, (), {
     Module.__rom_uploaded = 0;
     if (typeof showRomPicker === 'function') {

@@ -2,13 +2,11 @@
 #include "pc_platform.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-/* Yield to the browser via Asyncify/JSPI until the next requestAnimationFrame
- * fires. Replaces emscripten_sleep(N) here because Chromium on Snapdragon
- * 8 Gen 3 phones throttles setTimeout aggressively when the page looks
- * idle between presses — a 4 ms sleep would actually take 100–200 ms,
- * producing a visible stutter on each press. RAF is bound to the
- * compositor and always fires each display frame, so a wasm tick can't
- * overrun the frame budget waiting for a delayed timer. */
+/* Yield to the browser until the next rAF. Replaces emscripten_sleep
+ * because Chromium on Snapdragon 8 Gen 3 throttles setTimeout to 100–
+ * 200 ms when the page looks idle between presses, producing a visible
+ * stutter on each press. rAF is compositor-bound and always fires per
+ * display frame regardless of throttling. */
 EM_ASYNC_JS(void, pc_yield_raf, (), {
     await new Promise(function(resolve) {
         var done = false;
@@ -83,8 +81,7 @@ void VIWaitForRetrace(void) {
         t_before_pace = t_after_swap;
     }
 #ifdef __EMSCRIPTEN__
-    /* Emscripten: yield to the browser via Asyncify/JSPI so rAF can paint.
-     * Audio is also pumped here since there's no producer thread. */
+    /* Single-threaded wasm: pump audio inline since there's no producer thread. */
     extern void pc_audio_pump_if_needed(void);
     pc_audio_pump_if_needed();
     if (!g_pc_no_framelimit && frame_start_time) {

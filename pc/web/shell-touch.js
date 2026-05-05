@@ -369,37 +369,46 @@
     }
 
     // ---- Settings dialog wiring ------------------------------------
-    var enabledSel = document.getElementById('tc-enabled-select');
     var styleSwap  = document.getElementById('tc-style-swap');
     var opacityRng = document.getElementById('tc-opacity-range');
     var opacityVal = document.getElementById('tc-opacity-value');
 
-    /* Floating swap button (top-right, next to fullscreen) — toggles
-     * style: simplified ↔ full. The in-menu Style dropdown was removed
-     * since this button covers the same action. */
+    /* Floating swap button (top-right, next to fullscreen) — cycles the
+     * touch overlay through simplified → full → off → simplified. The
+     * "off" stop sets settings.enabled='off' so the layout dropdown in
+     * the (now-removed) settings dialog and the rendered overlay agree. */
     if (styleSwap) {
+        function currentMode() {
+            if (settings.enabled === 'off') return 'off';
+            return settings.style === 'full' ? 'full' : 'simplified';
+        }
+        function nextMode(mode) {
+            if (mode === 'simplified') return 'full';
+            if (mode === 'full')       return 'off';
+            return 'simplified';
+        }
         function updateStyleSwapTitle() {
-            var next = settings.style === 'full' ? 'simplified' : 'full';
-            styleSwap.title = 'Switch to ' + next + ' touch controls';
+            styleSwap.title = 'Switch to ' + nextMode(currentMode()) + ' touch controls';
         }
         updateStyleSwapTitle();
         styleSwap.addEventListener('click', function(ev) {
             ev.preventDefault();
-            settings.style = settings.style === 'full' ? 'simplified' : 'full';
+            var next = nextMode(currentMode());
+            if (next === 'off') {
+                settings.enabled = 'off';
+            } else {
+                settings.enabled = 'on';
+                settings.style = next;
+            }
             saveSettings(settings);
             applyStyle();
+            applyVisibility();
             updateStyleSwapTitle();
         });
     }
-    if (enabledSel && opacityRng && opacityVal) {
-        enabledSel.value = settings.enabled;
+    if (opacityRng && opacityVal) {
         opacityRng.value = settings.opacity;
         opacityVal.textContent = settings.opacity + '%';
-
-        enabledSel.addEventListener('change', function() {
-            settings.enabled = enabledSel.value;
-            saveSettings(settings); applyVisibility();
-        });
         opacityRng.addEventListener('input', function() {
             settings.opacity = parseInt(opacityRng.value, 10);
             opacityVal.textContent = settings.opacity + '%';

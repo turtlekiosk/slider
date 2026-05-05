@@ -469,19 +469,11 @@ elseif(EMSCRIPTEN)
         ${_pc_web_debug_flags}
         -sASYNCIFY=1
         -sASYNCIFY_STACK_SIZE=4194304    # 4 MB: AC's main loop is deep
-        # KNOWN ISSUE: Safari (and all iOS browsers, which wrap WebKit)
-        # leak "Page" memory under Asyncify-instrumented wasm — see WebKit
-        # bug #304810 (open). Chrome on the same workload stays bounded at
-        # <1 GB while Safari climbs to 7+ GB and OOMs the tab.
-        # JSPI is the textbook fix but isn't a viable replacement today:
-        # Safari/iOS don't expose WebAssembly.Suspending publicly, and
-        # Firefox keeps it behind javascript.options.wasm_js_promise_-
-        # integration in about:config (default off). Shipping JSPI-only
-        # would limit the audience to Chromium-family browsers.
-        # We stay on Asyncify for reach and accept the Safari/iOS leak
-        # until either WebKit ships the fix or JSPI lights up by default
-        # in Firefox/Safari, at which point we can flip via dual-build or
-        # outright switch.
+        # WebKit bug #304810 leaks "Page" memory under any Asyncify-
+        # instrumented wasm — Safari/iOS climb to 7+ GB and OOM. JSPI
+        # would fix it but isn't viable: Safari/iOS don't expose
+        # WebAssembly.Suspending and Firefox gates JSPI behind an
+        # about:config flag. Stay on Asyncify until that lands.
         -sEXIT_RUNTIME=0
         -sFORCE_FILESYSTEM=1
         -lidbfs.js
