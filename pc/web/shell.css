@@ -395,6 +395,7 @@ body.tc-bias-top #container {
     min-height: 0;
     margin-top: 0;
 }
+#settings-install-section { margin-top: 24px; }
 #settings-menu .rom-saves-status:empty { display: none; }
 .rom-saves-status.error { color: #f88; opacity: 1; }
 .rom-saves-status.ok    { color: #6c0; opacity: 1; }

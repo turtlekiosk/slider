@@ -388,7 +388,10 @@
             return 'simplified';
         }
         function updateStyleSwapTitle() {
-            styleSwap.title = 'Switch to ' + nextMode(currentMode()) + ' touch controls';
+            var next = nextMode(currentMode());
+            styleSwap.title = next === 'off'
+                ? 'Hide touch controls'
+                : 'Switch to ' + next + ' touch controls';
         }
         updateStyleSwapTitle();
         styleSwap.addEventListener('click', function(ev) {
