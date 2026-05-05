@@ -60,6 +60,12 @@ body::after {
     animation: _refresh-keepalive 1s linear infinite;
     will-change: opacity;
 }
+/* Status colors used across rom picker, save slots, and settings menu. */
+:root {
+    --status-err: #f88;
+    --status-ok:  #6c0;
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -289,9 +295,9 @@ body.tc-bias-top #container {
     max-width: 600px;
 }
 #rom-status.error,
-#rom-runtime-status.error { color: #f88; opacity: 1; }
+#rom-runtime-status.error { color: var(--status-err); opacity: 1; }
 #rom-status.ok,
-#rom-runtime-status.ok    { color: #6c0; opacity: 1; }
+#rom-runtime-status.ok    { color: var(--status-ok); opacity: 1; }
 #rom-status .status-spinner,
 #rom-runtime-status .status-spinner {
     flex: 0 0 auto;
@@ -353,7 +359,7 @@ body.tc-bias-top #container {
     width: 14px;
     height: 14px;
 }
-.rom-saves-slot.has-data .rom-saves-slot-state { opacity: 1; color: #6c0; }
+.rom-saves-slot.has-data .rom-saves-slot-state { opacity: 1; color: var(--status-ok); }
 .rom-saves-slot-actions {
     display: flex;
     gap: 6px;
@@ -397,8 +403,8 @@ body.tc-bias-top #container {
 }
 #settings-install-section { margin-top: 24px; }
 #settings-menu .rom-saves-status:empty { display: none; }
-.rom-saves-status.error { color: #f88; opacity: 1; }
-.rom-saves-status.ok    { color: #6c0; opacity: 1; }
+.rom-saves-status.error { color: var(--status-err); opacity: 1; }
+.rom-saves-status.ok    { color: var(--status-ok); opacity: 1; }
 
 #rom-start {
     margin-top: 8px;
@@ -594,7 +600,7 @@ body.tc-bias-top #container {
 }
 #settings-menu button.action:hover:not(:disabled) {
     background: rgba(74,153,89,0.12);
-    border-color: #6c0;
+    border-color: var(--status-ok);
 }
 #settings-menu button.action:disabled {
     opacity: 0.5;
@@ -615,8 +621,8 @@ body.tc-bias-top #container {
     min-height: 1.2em;
     margin-top: 4px;
 }
-#settings-menu .status.error { color: #f88; opacity: 1; }
-#settings-menu .status.ok    { color: #6c0; opacity: 1; }
+#settings-menu .status.error { color: var(--status-err); opacity: 1; }
+#settings-menu .status.ok    { color: var(--status-ok); opacity: 1; }
 #settings-menu table.controls {
     width: 100%;
     border-collapse: collapse;
@@ -672,6 +678,24 @@ body.tc-bias-top #container {
     --tc-bg-pressed-alpha: 0.45;
     --tc-stroke-alpha:     0.40;
     --tc-label-alpha:      0.92;
+
+    /* Layout-shared positioning knobs. Both portrait (layout-a) and
+     * landscape (layout-b) full-mode use the same vertical anchor for
+     * the upper row and the same lower-row zone height. Per-layout
+     * rules below only override the values that genuinely differ
+     * (widths, dpad-cluster offset, face-button sizes). */
+    --tc-upper-bottom: 170px;   /* upper row bottom anchor */
+    --tc-cstick-h:     200px;   /* lower row zone height */
+    --tc-dpad-cell:     40px;   /* dpad-cluster grid cell size */
+
+    /* Face button sizes — defaults match layout-a; layout-b overrides
+     * via `#touch-controls.layout-b { --tc-face-a-size: ... }`. */
+    --tc-face-a-size: 70px;
+    --tc-face-b-size: 56px;
+    --tc-face-y-size: 50px;
+    --tc-face-x-size: 50px;
+    --tc-face-y-dy: 20px;       /* Y vertical nudge (slightly larger in layout-b) */
+
     position: fixed;
     inset: 0;
     pointer-events: none;
@@ -798,30 +822,37 @@ body.tc-bias-top #container {
 #touch-controls.layout-a #tc-stick-hint { bottom: 78px; }
 #touch-controls.layout-b #tc-stick-hint { bottom: 98px; left: 100px; }
 
+/* ===== Simplified mode — face button sizes (layout-agnostic) =====
+   A/B/Y/X/Start sizes are identical between portrait and landscape;
+   only positions differ. The per-layout blocks below set right/bottom
+   anchors and inherit these sizes. D-pad is hidden in both layouts
+   (its uses — letter writing, pattern editor, item arrangement, NES
+   emulator — all benefit from a wider screen anyway; players who
+   need it rotate to Layout B and toggle to style-full). */
+#touch-controls.style-simplified #tc-a     { width: 86px; height: 86px; }
+#touch-controls.style-simplified #tc-b     { width: 70px; height: 70px; }
+#touch-controls.style-simplified #tc-y     { width: 64px; height: 64px; }
+#touch-controls.style-simplified #tc-x     { width: 64px; height: 64px; }
+#touch-controls.style-simplified #tc-start { width: 64px; height: 32px; }
+#touch-controls #tc-dpad { display: none; }
+
 /* ===== Layout A — portrait / default =====
-   D-pad is hidden in portrait — its uses (letter writing, pattern
-   editor, item arrangement, NES emulator) all benefit from a wider
-   screen anyway. Players who need it rotate to Layout B.
    Start is stacked above Y in the right cluster so it's reachable
    by the right thumb instead of needing a stretch to the top. */
 #touch-controls.layout-a #tc-stick-zone { left: 0; bottom: 0; width: 50%; height: 60%; }
-#touch-controls.layout-a #tc-dpad  { display: none; }
-#touch-controls.layout-a #tc-a     { right: 28px; bottom: 90px;  width: 86px;  height: 86px;  }
-#touch-controls.layout-a #tc-b     { right: 110px;bottom: 38px;  width: 70px;  height: 70px;  }
-#touch-controls.layout-a #tc-y     { right: 100px;bottom: 152px; width: 64px;  height: 64px;  }
-#touch-controls.layout-a #tc-x     { right: 28px; bottom: 176px; width: 64px;  height: 64px;  }
-#touch-controls.layout-a #tc-start { right: 70px; bottom: 240px; width: 64px;  height: 32px;  }
+#touch-controls.layout-a #tc-a     { right: 28px;  bottom: 90px;  }
+#touch-controls.layout-a #tc-b     { right: 110px; bottom: 38px;  }
+#touch-controls.layout-a #tc-y     { right: 100px; bottom: 152px; }
+#touch-controls.layout-a #tc-x     { right: 28px;  bottom: 176px; }
+#touch-controls.layout-a #tc-start { right: 70px;  bottom: 240px; }
 
-/* ===== Layout B — landscape / split =====
-   D-pad hidden here too — its uses are rare and dedicated thumb
-   real estate is better given to the stick. */
-#touch-controls.layout-b #tc-stick-zone { left: 0;   top: 0; width: 40%; height: 100%; }
-#touch-controls.layout-b #tc-dpad  { display: none; }
-#touch-controls.layout-b #tc-a     { right: 36px;  bottom: 110px; width: 86px;  height: 86px;  }
-#touch-controls.layout-b #tc-b     { right: 118px; bottom: 50px;  width: 70px;  height: 70px;  }
-#touch-controls.layout-b #tc-y     { right: 108px; bottom: 172px; width: 64px;  height: 64px;  }
-#touch-controls.layout-b #tc-x     { right: 36px;  bottom: 196px; width: 64px;  height: 64px;  }
-#touch-controls.layout-b #tc-start { right: 80px;  bottom: 260px; width: 64px;  height: 32px;  }
+/* ===== Layout B — landscape / split ===== */
+#touch-controls.layout-b #tc-stick-zone { left: 0; top: 0; width: 40%; height: 100%; }
+#touch-controls.layout-b #tc-a     { right: 36px;  bottom: 110px; }
+#touch-controls.layout-b #tc-b     { right: 118px; bottom: 50px;  }
+#touch-controls.layout-b #tc-y     { right: 108px; bottom: 172px; }
+#touch-controls.layout-b #tc-x     { right: 36px;  bottom: 196px; }
+#touch-controls.layout-b #tc-start { right: 80px;  bottom: 260px; }
 
 /* ===== Style modifiers =====
    .style-simplified (default) hides the GameCube-faceplate extras
@@ -1030,30 +1061,55 @@ body.tc-bias-top #container {
 #touch-controls.style-full #tc-face-cluster #tc-a { grid-area: A; }
 #touch-controls.style-full #tc-face-cluster #tc-b { grid-area: B; }
 
+/* ----- Style-full shared rules (apply to both layouts) =====
+   Anchor and sizing tokens shared between layout-a and layout-b live
+   on `#touch-controls` as custom properties. Per-layout blocks below
+   only set what genuinely differs — primarily horizontal positioning
+   (widths, side anchors), the dpad-cluster's bottom offset, and the
+   shoulder-row arrangement. */
+
+/* Lower row: cstick height + dpad grid sizing identical across layouts. */
+#touch-controls.style-full #tc-cstick-zone  { right: 0; bottom: 0; top: auto; height: var(--tc-cstick-h); }
+#touch-controls.style-full #tc-dpad-cluster { left: auto; right: auto; top: auto;
+    grid-template-columns: var(--tc-dpad-cell) var(--tc-dpad-cell) var(--tc-dpad-cell);
+    grid-template-rows:    var(--tc-dpad-cell) var(--tc-dpad-cell) var(--tc-dpad-cell); }
+
+/* Face cluster shape — column widths and row heights track the per-
+ * layout button sizes via custom properties. The X+Y stack is bottom-
+ * aligned so it packs against A's top edge; B floats up via translate
+ * to clear A. */
+#touch-controls.style-full #tc-face-cluster {
+    bottom: var(--tc-upper-bottom);
+    top: auto;
+    grid-template-columns: var(--tc-face-b-size) var(--tc-face-a-size);
+    grid-template-rows:    18px 18px var(--tc-face-a-size) var(--tc-face-b-size);
+}
+#touch-controls.style-full #tc-face-cluster #tc-a { width: var(--tc-face-a-size); height: var(--tc-face-a-size); }
+#touch-controls.style-full #tc-face-cluster #tc-b { width: var(--tc-face-b-size); height: var(--tc-face-b-size); transform: translateY(-30px); }
+#touch-controls.style-full #tc-face-cluster #tc-y { width: var(--tc-face-y-size); height: var(--tc-face-y-size); align-self: end; transform: translateY(var(--tc-face-y-dy)); }
+#touch-controls.style-full #tc-face-cluster #tc-x { width: var(--tc-face-x-size); height: var(--tc-face-x-size); align-self: end; justify-self: start; transform: translate(8px, 10px); }
+
+/* Shoulder buttons share their sizes across layouts; only positioning
+ * differs (flex bar in portrait, absolute top-edge row in landscape). */
+#touch-controls.style-full #tc-l     { width: 52px; height: 28px; }
+#touch-controls.style-full #tc-r     { width: 52px; height: 28px; }
+#touch-controls.style-full #tc-z     { width: 44px; height: 28px; }
+#touch-controls.style-full #tc-start { width: 56px; height: 28px; }
+
 /* ----- Layout A (portrait) — full set =====
    D-pad cluster lower-left, stick zone above; face cluster upper-
    right, c-stick lower-right (mirror). Shoulder row is a flex bar
    pinned just above the cluster region so L/Start/Z/R distribute
-   evenly across the screen width. */
-/* Upper row sits just above the visible top of the lower row (cstick
+   evenly across the screen width.
+   Upper row sits just above the visible top of the lower row (cstick
    hint top ≈ 155 px from viewport bottom; dpad-cluster top ≈ 148 px)
    with a small margin, so the layout always packs the upper row
    directly above the lower row no matter how tall the viewport gets —
    keeps the controls in thumb reach on iPads. */
-#touch-controls.layout-a.style-full #tc-stick-zone     { left: 0;     bottom: 170px; width: 45%;  height: 200px; }
-#touch-controls.layout-a.style-full #tc-cstick-zone    { right: 0;    bottom: 0;     width: 45%;  height: 200px; }
-#touch-controls.layout-a.style-full #tc-dpad-cluster   { left: 40px;  bottom: 28px;  grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
-/* Face cluster row sizes match each button's height; columns 56/70 so
-   col 1 holds B and Y at their natural widths and col 2 fits A. The
-   X and Y rows are shorter than the buttons themselves and the items
-   are bottom-aligned (`align-self: end`) — that pulls the X+Y stack
-   down to sit tight against A's top edge while letting them overflow
-   upward into empty cluster space. */
-#touch-controls.layout-a.style-full #tc-face-cluster   { right: 14px; bottom: 170px; grid-template-columns: 56px 70px;       grid-template-rows: 18px 18px 70px 56px; }
-#touch-controls.layout-a.style-full #tc-face-cluster #tc-a { width: 70px; height: 70px; }
-#touch-controls.layout-a.style-full #tc-face-cluster #tc-b { width: 56px; height: 56px; transform: translateY(-30px); }
-#touch-controls.layout-a.style-full #tc-face-cluster #tc-y { width: 50px; height: 50px; align-self: end; transform: translateY(20px); }
-#touch-controls.layout-a.style-full #tc-face-cluster #tc-x { width: 50px; height: 50px; align-self: end; justify-self: start; transform: translate(8px, 10px); }
+#touch-controls.layout-a.style-full #tc-stick-zone     { left: 0;     bottom: var(--tc-upper-bottom); width: 45%; height: var(--tc-cstick-h); }
+#touch-controls.layout-a.style-full #tc-cstick-zone    { width: 45%; }
+#touch-controls.layout-a.style-full #tc-dpad-cluster   { left: 40px; bottom: 28px; }
+#touch-controls.layout-a.style-full #tc-face-cluster   { right: 14px; }
 #touch-controls.layout-a.style-full #tc-shoulder-row {
     display: flex;
     position: absolute;
@@ -1070,10 +1126,6 @@ body.tc-bias-top #container {
     position: static;
     pointer-events: auto;
 }
-#touch-controls.layout-a.style-full #tc-l     { width: 52px; height: 28px; }
-#touch-controls.layout-a.style-full #tc-r     { width: 52px; height: 28px; }
-#touch-controls.layout-a.style-full #tc-z     { width: 44px; height: 28px; }
-#touch-controls.layout-a.style-full #tc-start { width: 56px; height: 28px; }
 
 /* ----- Layout B (landscape) — full set =====
    Layout (~800×400 viewport):
@@ -1082,32 +1134,18 @@ body.tc-bias-top #container {
      - upper-right  : face cluster A/B/X/Y
      - lower-right  : C-stick zone (below face)
      - top edge     : L, Start, Z, R
-   This mirrors the user's preferred portrait-mode arrangement (stick
-   above the directional pad on the left; face buttons above the
-   C-stick on the right) so the same thumb path works in both
-   orientations. Bottom elements (D-pad and C-stick) are inset from
-   the screen edges relative to the top elements (stick zone and
-   face cluster) to give the layout a wider-top / narrower-bottom
-   trapezoidal silhouette and reduce overlap with touch zones. */
-/* Fixed pixel heights instead of viewport-% so the bottom-row zone
-   bounds don't grow on taller windows. Upper row (stick + face) is
-   bottom-anchored just above the visible top of the lower row so it
-   tracks the bottom row instead of being glued near the viewport top —
-   keeps the controls in thumb reach on iPads. */
-#touch-controls.layout-b.style-full #tc-stick-zone   { left: 0;     bottom: 170px; top: auto;     width: 30%; height: 280px; }
-#touch-controls.layout-b.style-full #tc-cstick-zone  { right: 0;    bottom: 0;     top: auto;     width: 25%; height: 200px; }
-#touch-controls.layout-b.style-full #tc-dpad-cluster { left: 100px; bottom: 40px;  top: auto; grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
-#touch-controls.layout-b.style-full #tc-face-cluster { right: 30px; bottom: 170px; top: auto;     grid-template-columns: 60px 76px;       grid-template-rows: 18px 18px 76px 60px; }
-#touch-controls.layout-b.style-full #tc-face-cluster #tc-a { width: 76px; height: 76px; }
-#touch-controls.layout-b.style-full #tc-face-cluster #tc-b { width: 60px; height: 60px; transform: translateY(-30px); }
-#touch-controls.layout-b.style-full #tc-face-cluster #tc-y { width: 56px; height: 56px; align-self: end; transform: translateY(22px); }
-#touch-controls.layout-b.style-full #tc-face-cluster #tc-x { width: 50px; height: 50px; align-self: end; justify-self: start; transform: translate(8px, 10px); }
-/* Top-edge row. L sits between the stick zone (left 0–30%) and Start;
-   R and Z are pulled inward from the right edge so they don't cover
-   the settings-gear and fullscreen-toggle buttons (top: 8px, right:
-   8 / 48 px), and the whole row reads as more centered relative to
-   the viewport. */
-#touch-controls.layout-b.style-full #tc-l     { left: 240px;  top: 14px;  bottom: auto; right: auto; width: 52px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-r     { right: 240px; top: 14px;  bottom: auto; left: auto;  width: 52px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-z     { right: 300px; top: 14px;  bottom: auto; left: auto;  width: 44px; height: 28px; }
-#touch-controls.layout-b.style-full #tc-start { left: 50%;    top: 14px;  bottom: auto; transform: translateX(-50%); width: 56px; height: 28px; right: auto; }
+   This mirrors the portrait-mode arrangement (stick above d-pad on
+   the left; face above c-stick on the right) so the thumb path is
+   the same in both orientations. */
+#touch-controls.layout-b { --tc-face-a-size: 76px; --tc-face-b-size: 60px; --tc-face-y-size: 56px; --tc-face-y-dy: 22px; }
+#touch-controls.layout-b.style-full #tc-stick-zone   { left: 0;     bottom: var(--tc-upper-bottom); top: auto; width: 30%; height: 280px; }
+#touch-controls.layout-b.style-full #tc-cstick-zone  { width: 25%; }
+#touch-controls.layout-b.style-full #tc-dpad-cluster { left: 100px; bottom: 40px; }
+#touch-controls.layout-b.style-full #tc-face-cluster { right: 30px; }
+/* Top-edge shoulder row. L sits between the stick zone (left 0–30%)
+   and Start; R and Z are pulled inward from the right edge so they
+   don't cover the settings-gear / fullscreen-toggle buttons. */
+#touch-controls.layout-b.style-full #tc-l     { left: 240px;  top: 14px; bottom: auto; right: auto; }
+#touch-controls.layout-b.style-full #tc-r     { right: 240px; top: 14px; bottom: auto; left: auto; }
+#touch-controls.layout-b.style-full #tc-z     { right: 300px; top: 14px; bottom: auto; left: auto; }
+#touch-controls.layout-b.style-full #tc-start { left: 50%;    top: 14px; bottom: auto; right: auto; transform: translateX(-50%); }
