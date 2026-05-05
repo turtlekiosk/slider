@@ -1035,7 +1035,12 @@ body.tc-bias-top #container {
    right, c-stick lower-right (mirror). Shoulder row is a flex bar
    pinned just above the cluster region so L/Start/Z/R distribute
    evenly across the screen width. */
-#touch-controls.layout-a.style-full #tc-stick-zone     { left: 0;     bottom: 130px; width: 45%;  height: 200px; }
+/* Upper row sits just above the visible top of the lower row (cstick
+   hint top ≈ 155 px from viewport bottom; dpad-cluster top ≈ 148 px)
+   with a small margin, so the layout always packs the upper row
+   directly above the lower row no matter how tall the viewport gets —
+   keeps the controls in thumb reach on iPads. */
+#touch-controls.layout-a.style-full #tc-stick-zone     { left: 0;     bottom: 170px; width: 45%;  height: 200px; }
 #touch-controls.layout-a.style-full #tc-cstick-zone    { right: 0;    bottom: 0;     width: 45%;  height: 200px; }
 #touch-controls.layout-a.style-full #tc-dpad-cluster   { left: 40px;  bottom: 28px;  grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
 /* Face cluster row sizes match each button's height; columns 56/70 so
@@ -1044,7 +1049,7 @@ body.tc-bias-top #container {
    are bottom-aligned (`align-self: end`) — that pulls the X+Y stack
    down to sit tight against A's top edge while letting them overflow
    upward into empty cluster space. */
-#touch-controls.layout-a.style-full #tc-face-cluster   { right: 14px; bottom: 130px; grid-template-columns: 56px 70px;       grid-template-rows: 18px 18px 70px 56px; }
+#touch-controls.layout-a.style-full #tc-face-cluster   { right: 14px; bottom: 170px; grid-template-columns: 56px 70px;       grid-template-rows: 18px 18px 70px 56px; }
 #touch-controls.layout-a.style-full #tc-face-cluster #tc-a { width: 70px; height: 70px; }
 #touch-controls.layout-a.style-full #tc-face-cluster #tc-b { width: 56px; height: 56px; transform: translateY(-30px); }
 #touch-controls.layout-a.style-full #tc-face-cluster #tc-y { width: 50px; height: 50px; align-self: end; transform: translateY(20px); }
@@ -1054,7 +1059,7 @@ body.tc-bias-top #container {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 340px;
+    bottom: 410px;
     align-items: center;
     justify-content: space-between;
     padding: 0 14px;
@@ -1084,10 +1089,15 @@ body.tc-bias-top #container {
    the screen edges relative to the top elements (stick zone and
    face cluster) to give the layout a wider-top / narrower-bottom
    trapezoidal silhouette and reduce overlap with touch zones. */
-#touch-controls.layout-b.style-full #tc-stick-zone   { left: 0;     top: 0;        bottom: auto;  width: 30%; height: 50%; }
-#touch-controls.layout-b.style-full #tc-cstick-zone  { right: 0;    bottom: 0;     top: auto;     width: 25%; height: 35%; }
-#touch-controls.layout-b.style-full #tc-dpad-cluster { left: 100px; bottom: calc(17.5% - 60px); top: auto; grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
-#touch-controls.layout-b.style-full #tc-face-cluster { right: 30px; top: 80px;     bottom: auto;  grid-template-columns: 60px 76px;       grid-template-rows: 18px 18px 76px 60px; }
+/* Fixed pixel heights instead of viewport-% so the bottom-row zone
+   bounds don't grow on taller windows. Upper row (stick + face) is
+   bottom-anchored just above the visible top of the lower row so it
+   tracks the bottom row instead of being glued near the viewport top —
+   keeps the controls in thumb reach on iPads. */
+#touch-controls.layout-b.style-full #tc-stick-zone   { left: 0;     bottom: 170px; top: auto;     width: 30%; height: 280px; }
+#touch-controls.layout-b.style-full #tc-cstick-zone  { right: 0;    bottom: 0;     top: auto;     width: 25%; height: 200px; }
+#touch-controls.layout-b.style-full #tc-dpad-cluster { left: 100px; bottom: 40px;  top: auto; grid-template-columns: 40px 40px 40px; grid-template-rows: 40px 40px 40px; }
+#touch-controls.layout-b.style-full #tc-face-cluster { right: 30px; bottom: 170px; top: auto;     grid-template-columns: 60px 76px;       grid-template-rows: 18px 18px 76px 60px; }
 #touch-controls.layout-b.style-full #tc-face-cluster #tc-a { width: 76px; height: 76px; }
 #touch-controls.layout-b.style-full #tc-face-cluster #tc-b { width: 60px; height: 60px; transform: translateY(-30px); }
 #touch-controls.layout-b.style-full #tc-face-cluster #tc-y { width: 56px; height: 56px; align-self: end; transform: translateY(22px); }
