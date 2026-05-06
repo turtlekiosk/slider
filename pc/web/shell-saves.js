@@ -17,8 +17,8 @@
 // Reads GCI saves out of the IDBFS-backed /save tree and triggers
 // browser downloads. Exposed as window.exportSave(slot?) so a UI
 // element can be wired up later. `slot`:
-//   'a'  → only Card A's primary GCI (DobutsunomoriP_MURA.gci)
-//   'b'  → every .gci found in /save/card_b/ (Card B is BYO town;
+//   'a'  → only Slot A's primary GCI (DobutsunomoriP_MURA.gci)
+//   'b'  → every .gci found in /save/card_b/ (Slot B is BYO town;
 //          filename is whatever the user dropped in)
 //   omit → both A and B (default)
 // Returns the count of files that were downloaded (0 if nothing).
@@ -49,7 +49,14 @@ function _exportOneFile(path, baseName, stamp) {
     } catch (e) {
         return false;
     }
-    var stampedName = baseName.replace(/\.gci$/i, '') + '-' + stamp + '.gci';
+    // Prefer the town name as the filename prefix — it's far more
+    // recognizable than the GC's internal "DobutsunomoriP_MURA". Fall
+    // back to the original base name if the .gci is unreadable, blank-
+    // named, or a non-AC file. Sanitize to filesystem-safe chars.
+    var townName = parseGciTownName(bytes);
+    var sanitized = townName ? townName.replace(/[^A-Za-z0-9_-]/g, '_') : '';
+    var prefix = sanitized || baseName.replace(/\.gci$/i, '');
+    var stampedName = prefix + '-' + stamp + '.gci';
     _downloadBytes(bytes, stampedName);
     console.log('[save-export] downloaded', stampedName,
                 '(' + bytes.length + ' bytes from ' + path + ')');
@@ -64,6 +71,55 @@ function _listGcisIn(dir) {
         return [];
     }
 }
+
+// ----- Town name extraction (US AC, GAFE01 Rev 0) -----
+// .gci layout for AC US: 0x40-byte header, then OTHERS block (0x26000),
+// then the main Save struct copy. Within Save, mLd_land_info_c sits at
+// offset 0x9120 with name[8] as its first field. So the town name's 8
+// bytes live at .gci offset 0x40 + 0x26000 + 0x9120 = 0x2F160.
+//
+// AC's character encoding mostly aligns with ASCII for the bytes that
+// the US OSK can produce — A-Z/a-z/0-9/space and a small set of
+// punctuation pass through directly. Bytes outside that range are
+// either accented Latin characters (uncommon in US names — the OSK
+// doesn't surface them) or special symbols (heart, music note, etc.);
+// we render those as '?' since they have no readable Latin equivalent.
+var _TOWN_NAME_OFFSET = 0x40 + 0x26000 + 0x9120; // 0x2F160
+var _TOWN_NAME_LENGTH = 8;
+function _decodeAcCharUS(b) {
+    if (b === 0x00)                        return null; // terminator
+    if (b === 0x20)                        return ' ';
+    if (b >= 0x30 && b <= 0x39)            return String.fromCharCode(b); // 0-9
+    if (b >= 0x41 && b <= 0x5A)            return String.fromCharCode(b); // A-Z
+    if (b >= 0x61 && b <= 0x7A)            return String.fromCharCode(b); // a-z
+    if (b === 0x21 || b === 0x26 || b === 0x27 ||
+        b === 0x2C || b === 0x2D || b === 0x2E ||
+        b === 0x3F || b === 0x40)          return String.fromCharCode(b);
+    return '?';
+}
+function parseGciTownName(bytes) {
+    if (!bytes || bytes.length < _TOWN_NAME_OFFSET + _TOWN_NAME_LENGTH) return null;
+    var name = '';
+    for (var i = 0; i < _TOWN_NAME_LENGTH; i++) {
+        var ch = _decodeAcCharUS(bytes[_TOWN_NAME_OFFSET + i]);
+        if (ch === null) break;
+        name += ch;
+    }
+    name = name.replace(/\s+$/, '');
+    return name || null;
+}
+function _readFirstGciBytes(dir) {
+    var files = _listGcisIn(dir);
+    if (files.length === 0) return null;
+    try { return FS.readFile(dir + '/' + files[0]); }
+    catch (e) { return null; }
+}
+function getSlotTownName(slot) {
+    var dir = (slot === 'a') ? CARD_A_DIR : (slot === 'b') ? CARD_B_DIR : null;
+    if (!dir || typeof FS === 'undefined') return null;
+    return parseGciTownName(_readFirstGciBytes(dir));
+}
+window.getSlotTownName = getSlotTownName;
 function exportSave(slot) {
     if (typeof FS === 'undefined') {
         console.warn('[save-export] FS not ready');
@@ -97,13 +153,13 @@ window.exportSave = exportSave;
 // ----- Save import -----
 // Writes a GCI into the IDBFS-backed /save tree. Symmetric to
 // exportSave; intended to be wired to a UI element later.
-//   slot: 'a' (overwrites the canonical Card A save) or 'b'
+//   slot: 'a' (overwrites the canonical Slot A save) or 'b'
 //         (drops the file into card_b/ for visiting)
 //   src : File / Blob / ArrayBuffer / Uint8Array
 // Returns a Promise that resolves to true on success, false on
 // validation/IO failure. Validation: GCI header gameName must
 // be "GAFE" (USA AC); for slot 'a' the embedded fileName must
-// additionally be "DobutsunomoriP_MURA" so a rogue Card B GCI
+// additionally be "DobutsunomoriP_MURA" so a rogue Slot B GCI
 // can't clobber the real save.
 function _toUint8Array(src) {
     return new Promise(function(resolve, reject) {
@@ -151,7 +207,7 @@ function importSave(slot, src) {
         var path;
         if (slot === 'a') {
             if (embeddedName !== 'DobutsunomoriP_MURA') {
-                console.warn('[save-import] Card A requires DobutsunomoriP_MURA, got "' +
+                console.warn('[save-import] Slot A requires DobutsunomoriP_MURA, got "' +
                              embeddedName + '"');
                 return false;
             }
@@ -217,8 +273,8 @@ function clearStamp(slot) {
 window._stampSave = stampSave;
 
 // Slot summary helpers — shared by the ROM picker and the settings menu.
-// The .gci filename is uninformative on its own (Card A always uses the
-// same name, Card B varies by town but the user already knows what
+// The .gci filename is uninformative on its own (Slot A always uses the
+// same name, Slot B varies by town but the user already knows what
 // they imported). Show size and a relative timestamp instead.
 function _formatBytes(n) {
     if (n < 1024) return n + ' B';
@@ -267,6 +323,10 @@ function summarizeSlot(slot, dir, files, verb) {
             } catch (e) {}
         }
     }
+    // Size + time only. Town name is rendered separately on its own
+    // line by the slot-UI code (see refreshSlotUi); the summary
+    // string is also reused inside confirmation dialogs where a tight
+    // one-liner without the town reads better.
     var parts = [];
     if (files.length > 1) parts.push(files.length + ' files');
     if (totalSize > 0)    parts.push(_formatBytes(totalSize));
@@ -274,9 +334,31 @@ function summarizeSlot(slot, dir, files, verb) {
     if (rel)              parts.push((verb || 'imported') + ' ' + rel);
     return parts.length ? parts.join(' · ') : 'Save data present';
 }
+// Renders a populated slot's state into stateEl as two lines:
+//   line 1: "Town: <name>"   (omitted if the .gci is unparseable)
+//   line 2: size + time summary from summarizeSlot
+// Used by both the ROM-picker slot UI (refreshSlotUi in this file)
+// and the in-game settings-menu slot UI (refreshSettingsSlot in
+// shell.html). Empty-state ("Empty") is handled by the caller —
+// this helper assumes files.length > 0.
+function _renderSlotStateInto(stateEl, slot, dir, files, verb) {
+    var townName = parseGciTownName(_readFirstGciBytes(dir));
+    var summary  = summarizeSlot(slot, dir, files, verb);
+    stateEl.innerHTML = '';
+    if (townName) {
+        var line1 = document.createElement('div');
+        line1.textContent = 'Town: ' + townName;
+        stateEl.appendChild(line1);
+    }
+    var line2 = document.createElement('div');
+    line2.textContent = summary;
+    line2.className = 'rom-saves-slot-state-info';
+    stateEl.appendChild(line2);
+}
+window._renderSlotStateInto = _renderSlotStateInto;
 
 // ----- ROM picker: optional save-slot import -----
-// Two slot blocks (Card A / Card B). Each has Import + Remove.
+// Two slot blocks (Slot A / Slot B). Each has Import + Remove.
 // Import reuses the same window.importSave path as the in-game
 // settings menu (so header/filename validation is identical).
 // Remove unlinks every .gci in that slot's directory and persists
@@ -331,7 +413,7 @@ function summarizeSlot(slot, dir, files, verb) {
         if (s.btnRemove) s.btnRemove.style.display = '';
         if (files.length > 0) {
             s.el.classList.add('has-data');
-            stateEl.textContent = summarizeSlot(slot, s.dir, files);
+            _renderSlotStateInto(stateEl, slot, s.dir, files, 'imported');
             if (s.btnRemove) s.btnRemove.disabled = false;
             if (s.btnExport) s.btnExport.style.display = '';
         } else {
@@ -351,7 +433,7 @@ function summarizeSlot(slot, dir, files, verb) {
         if (s && typeof FS !== 'undefined') {
             var existing = listGcis(s.dir);
             if (existing.length > 0) {
-                var label  = 'Card ' + slot.toUpperCase();
+                var label  = 'Slot ' + slot.toUpperCase();
                 var detail = summarizeSlot(slot, s.dir, existing, 'last saved');
                 var msg = label + ' already has save data (' + detail + ').\n\n' +
                           'Importing will overwrite it. Continue?';
@@ -369,7 +451,7 @@ function summarizeSlot(slot, dir, files, verb) {
         if (!s || typeof FS === 'undefined') return;
         var files = listGcis(s.dir);
         if (files.length === 0) return;
-        var label  = 'Card ' + slot.toUpperCase();
+        var label  = 'Slot ' + slot.toUpperCase();
         var detail = summarizeSlot(slot, s.dir, files, 'last saved');
         var msg = 'Delete ' + label + ' save data (' + detail + ')?\n\nThis cannot be undone.';
         if (!withAudioSilenced(function() { return confirm(msg); })) {

@@ -174,7 +174,7 @@
             <div class="rom-saves-help">Import an existing .gci save before booting. Ignore to start a fresh save.</div>
             <div class="rom-saves-grid">
                 <div class="rom-saves-slot" data-slot="a">
-                    <div class="rom-saves-slot-label">Card A</div>
+                    <div class="rom-saves-slot-label">Slot A</div>
                     <div class="rom-saves-slot-state checking"><svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="14" x="1"  y="4" fill="currentColor"><animate id="SVGslot9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGslota89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4"><animate fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3"><animate id="SVGslota89dAd4w" fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/></rect></svg><span>Checking…</span></div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="rom-import-a" style="display:none">Import…</button>
@@ -183,7 +183,7 @@
                     </div>
                 </div>
                 <div class="rom-saves-slot" data-slot="b">
-                    <div class="rom-saves-slot-label">Card B</div>
+                    <div class="rom-saves-slot-label">Slot B</div>
                     <div class="rom-saves-slot-state checking"><svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="14" x="1"  y="4" fill="currentColor"><animate id="SVGslot9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGslota89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4"><animate fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3"><animate id="SVGslota89dAd4w" fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/></rect></svg><span>Checking…</span></div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="rom-import-b" style="display:none">Import…</button>
@@ -211,7 +211,7 @@
             <h3>Saves</h3>
             <div id="settings-saves" class="rom-saves-grid">
                 <div class="rom-saves-slot" data-slot="a">
-                    <div class="rom-saves-slot-label">Card A</div>
+                    <div class="rom-saves-slot-label">Slot A</div>
                     <div class="rom-saves-slot-state checking"><svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="14" x="1"  y="4" fill="currentColor"><animate id="SVGslot9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGslota89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4"><animate fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3"><animate id="SVGslota89dAd4w" fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/></rect></svg><span>Checking…</span></div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="settings-import-a" style="display:none">Import…</button>
@@ -220,7 +220,7 @@
                     </div>
                 </div>
                 <div class="rom-saves-slot" data-slot="b">
-                    <div class="rom-saves-slot-label">Card B</div>
+                    <div class="rom-saves-slot-label">Slot B</div>
                     <div class="rom-saves-slot-state checking"><svg class="status-spinner" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><rect width="6" height="14" x="1"  y="4" fill="currentColor"><animate id="SVGslot9ovaHbIP" fill="freeze" attributeName="opacity" begin="0;SVGslota89dAd4w.end-0.25s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="9"  y="4" fill="currentColor" opacity=".4"><animate fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.15s" dur="0.75s" values="1;.2"/></rect><rect width="6" height="14" x="17" y="4" fill="currentColor" opacity=".3"><animate id="SVGslota89dAd4w" fill="freeze" attributeName="opacity" begin="SVGslot9ovaHbIP.begin+0.3s" dur="0.75s" values="1;.2"/></rect></svg><span>Checking…</span></div>
                     <div class="rom-saves-slot-actions">
                         <button class="rom-saves-btn" type="button" id="settings-import-b" style="display:none">Import…</button>
@@ -1204,7 +1204,7 @@
             if (s.btnRemove) s.btnRemove.style.display = '';
             if (files.length > 0) {
                 s.el.classList.add('has-data');
-                stateEl.textContent = summarizeSlot(slot, s.dir, files, 'last saved');
+                window._renderSlotStateInto(stateEl, slot, s.dir, files, 'last saved');
                 if (s.btnRemove) s.btnRemove.disabled = false;
                 if (s.btnExport) s.btnExport.style.display = '';
             } else {
@@ -1267,7 +1267,7 @@
             if (s && typeof FS !== 'undefined') {
                 var existing = settingsListGcis(s.dir);
                 if (existing.length > 0) {
-                    var label  = 'Card ' + slot.toUpperCase();
+                    var label  = 'Slot ' + slot.toUpperCase();
                     var detail = summarizeSlot(slot, s.dir, existing, 'last saved');
                     var msg = label + ' already has save data (' + detail + ').\n\n' +
                               'Importing will overwrite it. Continue?';
@@ -1285,7 +1285,7 @@
             if (!s || typeof FS === 'undefined') return;
             var files = settingsListGcis(s.dir);
             if (files.length === 0) return;
-            var label  = 'Card ' + slot.toUpperCase();
+            var label  = 'Slot ' + slot.toUpperCase();
             var detail = summarizeSlot(slot, s.dir, files, 'last saved');
             var msg = 'Delete ' + label + ' save data (' + detail + ')?\n\nThis cannot be undone.';
             if (!withAudioSilenced(function() { return confirm(msg); })) {

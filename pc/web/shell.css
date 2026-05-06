@@ -368,7 +368,21 @@ body.tc-bias-top #container {
     width: 14px;
     height: 14px;
 }
-.rom-saves-slot.has-data .rom-saves-slot-state { opacity: 1; color: var(--status-ok); }
+.rom-saves-slot.has-data .rom-saves-slot-state {
+    opacity: 1;
+    color: var(--status-ok);
+    /* Two-line layout: "Town: <name>" on top, size+time below.
+     * Override the empty/loading state's horizontal flex so the
+     * detail line sits under the town line instead of beside it. */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+.rom-saves-slot-state-info {
+    font-size: 11px;
+    opacity: 0.75;
+    color: #ddd;
+}
 .rom-saves-slot-actions {
     display: flex;
     gap: 6px;
@@ -407,8 +421,12 @@ body.tc-bias-top #container {
     margin-top: 8px;
 }
 #settings-menu .rom-saves-status {
+    /* Keep min-height collapsed so the :empty rule below can hide the
+     * element entirely when there's no message — but give a real
+     * margin-top once a message appears so it doesn't crowd the slot
+     * grid above it. */
     min-height: 0;
-    margin-top: 0;
+    margin-top: 12px;
 }
 #settings-install-section { margin-top: 24px; }
 #settings-menu .rom-saves-status:empty { display: none; }
