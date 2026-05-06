@@ -20,12 +20,35 @@
          live in shell.css. -->
     <link rel="preload" href="fonts/work-sans-400.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/fragment-mono-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/fragment-mono-bold.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="shell.css">
     <title>Slider</title>
+    <!-- Force preserveDrawingBuffer:true on the wasm's WebGL context so
+         the post-process overlay (shell-postfx.js) can sample the
+         game's drawing buffer after each swap. Must run before SDL/
+         Emscripten requests the context. Negligible perf cost; iOS
+         Safari and Chromium both handle this silently. -->
+    <script>
+    (function () {
+        var orig = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+            if (type === 'webgl' || type === 'webgl2' ||
+                type === 'experimental-webgl') {
+                attrs = attrs || {};
+                attrs.preserveDrawingBuffer = true;
+            }
+            return orig.call(this, type, attrs);
+        };
+    })();
+    </script>
 </head>
 <body>
     <div id="container">
         <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+        <!-- Post-process overlay used by shell-postfx.js (ASCII filter +
+             CRT shader). Hidden by default; positioned absolutely on top
+             of #canvas via shell.css. -->
+        <canvas id="postfx-overlay" aria-hidden="true"></canvas>
     </div>
     <div id="status" style="display: none;"></div>
     <div id="progress"></div>
@@ -225,6 +248,17 @@
                 <label for="tc-opacity-range">Opacity</label>
                 <input id="tc-opacity-range" type="range" min="10" max="80" step="5" />
                 <span id="tc-opacity-value" style="opacity:0.7; font-variant-numeric: tabular-nums; min-width: 3em; text-align: right;"></span>
+            </div>
+
+            <h3>Display</h3>
+            <div class="row">
+                <label for="postfx-mode-select">Filter</label>
+                <select id="postfx-mode-select">
+                    <option value="off">Off</option>
+                    <option value="crt-basic">CRT Basic</option>
+                    <option value="crt-full">CRT Full</option>
+                    <option value="ascii">ASCII</option>
+                </select>
             </div>
 
             <h3>Control Assignments</h3>
@@ -1339,6 +1373,17 @@
          user-configurable via the settings dialog and persist in
          localStorage. -->
     <script src="shell-touch.js" defer></script>
+    <!-- Display post-process filter (off by default; toggle in the
+         settings menu's Display section). Shader sources are split into
+         three sibling files so they read as plain GLSL with editor
+         highlighting; they attach to window.acgcPostfxShaders. Deferred
+         scripts execute in document order, so the shader files are
+         guaranteed to populate the namespace before shell-postfx.js
+         reads from it. -->
+    <script src="shaders/postfx-vs.js" defer></script>
+    <script src="shaders/postfx-fs-ascii.js" defer></script>
+    <script src="shaders/postfx-fs-crt.js" defer></script>
+    <script src="shell-postfx.js" defer></script>
 
     {{{ SCRIPT }}}
 </body>

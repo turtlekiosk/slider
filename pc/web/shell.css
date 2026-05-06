@@ -120,6 +120,18 @@ body.tc-bias-top #container {
     width: 100%;
     height: 100%;
 }
+/* Post-process overlay (shell-postfx.js — ASCII / CRT). Positioned
+   absolutely over #canvas; the JS keeps left/top/width/height in
+   sync with the game canvas's bounding rect each frame. Hidden by
+   default — the shader module flips display:block when the user
+   picks a non-off mode in the settings menu. */
+#postfx-overlay {
+    position: fixed;
+    display: none;
+    pointer-events: none;
+    image-rendering: pixelated;
+    z-index: 2;
+}
 /* Only when the viewport is narrower than 4:3 do we letterbox: pin
    width to 100vw and derive height from the 4:3 aspect so the bottom
    of the canvas leaves room for the touch overlay / URL bar instead

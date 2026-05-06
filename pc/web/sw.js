@@ -22,6 +22,10 @@ const CORE_ASSETS = [
     './shell-touch.js',
     './shell-saves.js',
     './shell-rom.js',
+    './shell-postfx.js',
+    './shaders/postfx-vs.js',
+    './shaders/postfx-fs-ascii.js',
+    './shaders/postfx-fs-crt.js',
     /* Self-hosted webfonts referenced by shell.css @font-face blocks.
      * Pre-caching them is the only way to keep typography correct
      * offline — the SW's runtime fetch handler skips opaque/cors

@@ -515,6 +515,7 @@ elseif(EMSCRIPTEN)
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-touch.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-saves.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-rom.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-postfx.js"
     )
     _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/" ${_PWA_FILES})
 
@@ -524,6 +525,15 @@ elseif(EMSCRIPTEN)
         add_custom_command(TARGET ac_pc POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/web/fonts")
         _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/fonts/" ${_PWA_FONTS})
+    endif()
+
+    # Postfx shader sources live in shaders/ so shell-postfx.js's
+    # <script src="shaders/..."> tags resolve at the same origin path.
+    file(GLOB _PWA_SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/web/shaders/*.js")
+    if(_PWA_SHADERS)
+        add_custom_command(TARGET ac_pc POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/web/shaders")
+        _pc_web_copy_each("${CMAKE_BINARY_DIR}/web/shaders/" ${_PWA_SHADERS})
     endif()
 
     # SW cache key = git short SHA. Append a "-dirty-<timestamp>" suffix
@@ -540,8 +550,10 @@ elseif(EMSCRIPTEN)
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-touch.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-saves.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-rom.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell-postfx.js"
         "${CMAKE_CURRENT_SOURCE_DIR}/web/manifest.webmanifest"
         ${_PWA_FONTS}
+        ${_PWA_SHADERS}
     )
     find_package(Git QUIET)
     set(_pc_web_sha "")
