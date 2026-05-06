@@ -467,7 +467,7 @@ window._renderSlotStateInto = _renderSlotStateInto;
                 return;
             }
             clearStamp(slot);
-            setStatus('Deleted Card ' + slot.toUpperCase() + ' save data.', 'ok');
+            setStatus('Deleted Slot ' + slot.toUpperCase() + ' save data.', 'ok');
             refreshSlotUi(slot);
         });
     }
@@ -477,7 +477,7 @@ window._renderSlotStateInto = _renderSlotStateInto;
             var n = window.exportSave(slot);
             if (n > 0) {
                 setStatus('Exported ' + n + ' file' + (n === 1 ? '' : 's') +
-                          ' from Card ' + slot.toUpperCase() + '.', 'ok');
+                          ' from Slot ' + slot.toUpperCase() + '.', 'ok');
             } else {
                 setStatus('No save found in slot ' + slot.toUpperCase() + '.', 'error');
             }
@@ -497,11 +497,11 @@ window._renderSlotStateInto = _renderSlotStateInto;
         var f = this.files && this.files[0];
         if (!f) return;
         var slot = this.dataset.slot;
-        setStatus('Importing to Card ' + slot.toUpperCase() + '…');
+        setStatus('Importing to Slot ' + slot.toUpperCase() + '…');
         window.importSave(slot, f).then(function(ok) {
             if (ok) {
                 stampSave(slot);
-                setStatus('Imported to Card ' + slot.toUpperCase() +
+                setStatus('Imported to Slot ' + slot.toUpperCase() +
                           '. Will load when the game boots.', 'ok');
             } else {
                 setStatus('Import failed — see console for details.', 'error');
