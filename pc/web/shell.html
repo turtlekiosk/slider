@@ -55,11 +55,6 @@
     <div id="loading-overlay" aria-hidden="true">
         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="0" fill="currentColor"><animate id="SVG0cdVlcnN" fill="freeze" attributeName="r" begin="0;SVGftllRbIv.begin+0.6s" calcMode="spline" dur="1.2s" keySplines=".52,.6,.25,.99" values="0;11"/><animate fill="freeze" attributeName="opacity" begin="0;SVGftllRbIv.begin+0.6s" calcMode="spline" dur="1.2s" keySplines=".52,.6,.25,.99" values="1;0"/></circle><circle cx="12" cy="12" r="0" fill="currentColor"><animate id="SVGftllRbIv" fill="freeze" attributeName="r" begin="SVG0cdVlcnN.begin+0.6s" calcMode="spline" dur="1.2s" keySplines=".52,.6,.25,.99" values="0;11"/><animate fill="freeze" attributeName="opacity" begin="SVG0cdVlcnN.begin+0.6s" calcMode="spline" dur="1.2s" keySplines=".52,.6,.25,.99" values="1;0"/></circle></svg>
     </div>
-    <!-- @PC_WEB_BUILD_TAG@ is stamped in at build time by configure_file()
-         in pc/CMakeLists.txt. If you open this file directly without
-         building, you'll see the literal "@PC_WEB_BUILD_TAG@" text. -->
-    <div id="build-tag" title="Build identifier">@PC_WEB_BUILD_TAG@</div>
-
     <!-- Touch gamepad overlay. Visibility/layout/opacity driven by the
          settings dialog (Touch Controls section). Bridges to the wasm via
          Module._pc_input_touch_button / _pc_input_touch_stick (defined in
@@ -270,6 +265,9 @@
             </table>
         </div>
         <div class="menu-footer">
+            <!-- @PC_WEB_BUILD_TAG@ is stamped in at build time by
+                 configure_file() in pc/CMakeLists.txt. -->
+            <span id="build-tag" title="Build identifier">@PC_WEB_BUILD_TAG@</span>
             <button id="btn-close-menu" type="button">Close</button>
         </div>
     </dialog>
