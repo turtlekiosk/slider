@@ -8,6 +8,11 @@
  *   crt-basic    — curvature + subtle scanlines + soft vignette
  *   crt-full     — adds RGB-triad aperture grille, heavier scanlines,
  *                  brightness compensation; punchier arcade-monitor look
+ *   lcd          — Mattias-style sub-pixel grid (RGB column stripes +
+ *                  row gaps + backlight floor); handheld-screen look
+ *   halftone     — 4-ink CMYK halftone with rotated screens, riso-
+ *                  style spot inks, per-ink misregistration, and
+ *                  paper grain on warm cream substrate
  *
  * Self-contained module. Wires into the settings menu via the
  * #postfx-mode-select <select>. Persists state under SETTINGS_KEY.
@@ -66,7 +71,7 @@
     };
 
     /* ---- settings ---------------------------------------------------- */
-    /* Mode: off | ascii | crt-basic | crt-full */
+    /* Mode: off | ascii | crt-basic | crt-full | lcd | halftone */
     var DEFAULTS = { mode: 'off' };
     function loadSettings() {
         try {
@@ -103,14 +108,17 @@
 
     /* ---- shaders -----------------------------------------------------
      * Source lives in shaders/postfx-vs.js, postfx-fs-ascii.js,
-     * postfx-fs-crt.js, which attach to window.acgcPostfxShaders.
-     * shell.html loads those files before this one (script tags are
-     * deferred and execute in document order), so the namespace is
-     * populated by the time we read it here. */
+     * postfx-fs-crt.js, postfx-fs-lcd.js, postfx-fs-halftone.js,
+     * which attach to window.acgcPostfxShaders. shell.html loads
+     * those files before this one (script tags are deferred and
+     * execute in document order), so the namespace is populated by
+     * the time we read it. */
     var SHADER_SRC = window.acgcPostfxShaders || {};
-    var VS       = SHADER_SRC.vs;
-    var FS_ASCII = SHADER_SRC.fsAscii;
-    var FS_CRT   = SHADER_SRC.fsCrt;
+    var VS         = SHADER_SRC.vs;
+    var FS_ASCII   = SHADER_SRC.fsAscii;
+    var FS_CRT     = SHADER_SRC.fsCrt;
+    var FS_LCD     = SHADER_SRC.fsLcd;
+    var FS_HT      = SHADER_SRC.fsHalftone;
 
     function compile(gl, type, src) {
         var s = gl.createShader(type);
@@ -136,10 +144,10 @@
 
     /* ---- module state ------------------------------------------------ */
     var mainCanvas, overlay, gl, vao;
-    var progAscii = null, progCrt = null;
+    var progAscii = null, progCrt = null, progLcd = null, progHt = null;
     var gameTex, atlasTex;
     var rafId = null;
-    var uAscii = {}, uCrt = {};
+    var uAscii = {}, uCrt = {}, uLcd = {}, uHt = {};
     var initFailed = false;
 
     function init() {
@@ -147,10 +155,11 @@
         mainCanvas = document.getElementById('canvas');
         overlay    = document.getElementById('postfx-overlay');
         if (!mainCanvas || !overlay) { initFailed = true; return false; }
-        if (!VS || !FS_ASCII || !FS_CRT) {
+        if (!VS || !FS_ASCII || !FS_CRT || !FS_LCD || !FS_HT) {
             console.error('[postfx] shader sources missing; '
-                + 'shaders/postfx-vs.js, postfx-fs-ascii.js, postfx-fs-crt.js '
-                + 'must be loaded before shell-postfx.js');
+                + 'shaders/postfx-vs.js, postfx-fs-ascii.js, postfx-fs-crt.js, '
+                + 'postfx-fs-lcd.js, postfx-fs-halftone.js must be loaded '
+                + 'before shell-postfx.js');
             initFailed = true; return false;
         }
 
@@ -165,10 +174,14 @@
         var vs    = compile(gl, gl.VERTEX_SHADER,   VS);
         var fsA   = compile(gl, gl.FRAGMENT_SHADER, FS_ASCII);
         var fsC   = compile(gl, gl.FRAGMENT_SHADER, FS_CRT);
-        if (!vs || !fsA || !fsC) { initFailed = true; return false; }
+        var fsL   = compile(gl, gl.FRAGMENT_SHADER, FS_LCD);
+        var fsH   = compile(gl, gl.FRAGMENT_SHADER, FS_HT);
+        if (!vs || !fsA || !fsC || !fsL || !fsH) { initFailed = true; return false; }
         progAscii = link(gl, vs, fsA);
         progCrt   = link(gl, vs, fsC);
-        if (!progAscii || !progCrt) { initFailed = true; return false; }
+        progLcd   = link(gl, vs, fsL);
+        progHt    = link(gl, vs, fsH);
+        if (!progAscii || !progCrt || !progLcd || !progHt) { initFailed = true; return false; }
 
         vao = gl.createVertexArray();
         gl.bindVertexArray(vao);
@@ -193,6 +206,12 @@
         uCrt.grilleAmt     = gl.getUniformLocation(progCrt, 'u_grille_amt');
         uCrt.boost         = gl.getUniformLocation(progCrt, 'u_boost');
         uCrt.scanIntensity = gl.getUniformLocation(progCrt, 'u_scan_intensity');
+
+        uLcd.game          = gl.getUniformLocation(progLcd, 'u_game');
+        uLcd.canvasSize    = gl.getUniformLocation(progLcd, 'u_canvasSize');
+
+        uHt.game           = gl.getUniformLocation(progHt, 'u_game');
+        uHt.canvasSize     = gl.getUniformLocation(progHt, 'u_canvasSize');
 
         gameTex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, gameTex);
@@ -253,6 +272,16 @@
             gl.uniform1f(uCrt.grilleAmt, preset.grille);
             gl.uniform1f(uCrt.boost, preset.boost);
             gl.uniform1f(uCrt.scanIntensity, preset.scanIntensity);
+        } else if (settings.mode === 'lcd') {
+            gl.useProgram(progLcd);
+            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
+            gl.uniform1i(uLcd.game, 0);
+            gl.uniform2f(uLcd.canvasSize, overlay.width, overlay.height);
+        } else if (settings.mode === 'halftone') {
+            gl.useProgram(progHt);
+            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
+            gl.uniform1i(uHt.game, 0);
+            gl.uniform2f(uHt.canvasSize, overlay.width, overlay.height);
         } else {
             /* ascii */
             gl.useProgram(progAscii);
@@ -274,7 +303,8 @@
 
     function setMode(mode) {
         if (mode !== 'off' && mode !== 'ascii' &&
-            mode !== 'crt-basic' && mode !== 'crt-full') mode = 'off';
+            mode !== 'crt-basic' && mode !== 'crt-full' &&
+            mode !== 'lcd' && mode !== 'halftone') mode = 'off';
         settings.mode = mode;
         saveSettings(settings);
         var ov = document.getElementById('postfx-overlay');

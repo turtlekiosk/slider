@@ -12,6 +12,12 @@ void GXSetTevColorOp(u32 stage, u32 op, u32 bias, u32 scale, GXBool clamp, u32 o
 void GXSetTevAlphaOp(u32 stage, u32 op, u32 bias, u32 scale, GXBool clamp, u32 out_reg);
 
 typedef struct { u8 r, g, b, a; } GXColor;
+/* Mirror of include/dolphin/gx/GXStruct.h's GXColorS10. Defined here so
+ * pc_gx.c can match the canonical GXSetTevColorS10 signature without
+ * pulling in the full GXStruct.h transitive include set. Layout must
+ * stay byte-identical to the decomp's struct or wasm callers corrupt
+ * the bytes — same hazard as the GXSetTevColor/Kcolor green-tint fix. */
+typedef struct { s16 r, g, b, a; } GXColorS10;
 
 /* --- Global GX State --- */
 PCGXState g_gx;
@@ -1269,14 +1275,19 @@ void GXSetTevColor(GXTevRegID id, GXColor color) {
     }
 }
 
-void GXSetTevColorS10(u32 id, s16 r, s16 g, s16 b, s16 a) {
+/* Header signature is `void GXSetTevColorS10(GXTevRegID, GXColorS10)`. The
+ * struct is 8 bytes (4× s16), so on wasm it's passed by value via a different
+ * ABI than 4 individual s16 scalars — the implementation must match the
+ * struct form. GXColorS10 fields range -1024..1023; normalize by 255 to
+ * keep parity with the u8-color path's 0..1 mapping. */
+void GXSetTevColorS10(GXTevRegID id, GXColorS10 color) {
     pc_gx_flush_if_begin_complete();
     DIRTY(PC_GX_DIRTY_TEV_COLORS);
-    if (id < GX_MAX_TEVREG) {
-        g_gx.tev_colors[id][0] = r / 255.0f;
-        g_gx.tev_colors[id][1] = g / 255.0f;
-        g_gx.tev_colors[id][2] = b / 255.0f;
-        g_gx.tev_colors[id][3] = a / 255.0f;
+    if ((u32)id < GX_MAX_TEVREG) {
+        g_gx.tev_colors[id][0] = color.r / 255.0f;
+        g_gx.tev_colors[id][1] = color.g / 255.0f;
+        g_gx.tev_colors[id][2] = color.b / 255.0f;
+        g_gx.tev_colors[id][3] = color.a / 255.0f;
     }
 }
 

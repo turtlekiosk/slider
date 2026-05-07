@@ -26,6 +26,8 @@ const CORE_ASSETS = [
     './shaders/postfx-vs.js',
     './shaders/postfx-fs-ascii.js',
     './shaders/postfx-fs-crt.js',
+    './shaders/postfx-fs-lcd.js',
+    './shaders/postfx-fs-halftone.js',
     /* Self-hosted webfonts referenced by shell.css @font-face blocks.
      * Pre-caching them is the only way to keep typography correct
      * offline — the SW's runtime fetch handler skips opaque/cors
