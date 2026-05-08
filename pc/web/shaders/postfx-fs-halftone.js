@@ -8,7 +8,7 @@ uniform sampler2D u_game;
 uniform vec2  u_canvasSize;
 
 // Halftone screen geometry.
-const float CELL_PX   = 12.0;   // canvas px per halftone cell
+const float CELL_PX   = 7.0;    // canvas px per halftone cell
 const float DOT_BLUR  = 0.05;   // dot edge softness, in cell-uv units
 const float DOT_GAIN  = 0.62;   // dot radius scale: r = sqrt(cov) * GAIN.
                                 // Above 0.5, dots can spill into neighbor

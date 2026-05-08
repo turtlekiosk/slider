@@ -10,7 +10,7 @@
  *                  brightness compensation; punchier arcade-monitor look
  *   lcd          — Mattias-style sub-pixel grid (RGB column stripes +
  *                  row gaps + backlight floor); handheld-screen look
- *   halftone     — 4-ink CMYK halftone with rotated screens, riso-
+ *   cmyk-halftone — 4-ink CMYK halftone with rotated screens, riso-
  *                  style spot inks, per-ink misregistration, and
  *                  paper grain on warm cream substrate
  *
@@ -71,7 +71,7 @@
     };
 
     /* ---- settings ---------------------------------------------------- */
-    /* Mode: off | ascii | crt-basic | crt-full | lcd | halftone */
+    /* Mode: off | ascii | crt-basic | crt-full | lcd | cmyk-halftone */
     var DEFAULTS = { mode: 'off' };
     function loadSettings() {
         try {
@@ -111,8 +111,8 @@
      * postfx-fs-crt.js, postfx-fs-lcd.js, postfx-fs-halftone.js,
      * which attach to window.acgcPostfxShaders. shell.html loads
      * those files before this one (script tags are deferred and
-     * execute in document order), so the namespace is populated by
-     * the time we read it. */
+     * execute in document order), so the namespace is populated
+     * by the time we read it. */
     var SHADER_SRC = window.acgcPostfxShaders || {};
     var VS         = SHADER_SRC.vs;
     var FS_ASCII   = SHADER_SRC.fsAscii;
@@ -277,7 +277,7 @@
             gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
             gl.uniform1i(uLcd.game, 0);
             gl.uniform2f(uLcd.canvasSize, overlay.width, overlay.height);
-        } else if (settings.mode === 'halftone') {
+        } else if (settings.mode === 'cmyk-halftone') {
             gl.useProgram(progHt);
             gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
             gl.uniform1i(uHt.game, 0);
@@ -304,7 +304,7 @@
     function setMode(mode) {
         if (mode !== 'off' && mode !== 'ascii' &&
             mode !== 'crt-basic' && mode !== 'crt-full' &&
-            mode !== 'lcd' && mode !== 'halftone') mode = 'off';
+            mode !== 'lcd' && mode !== 'cmyk-halftone') mode = 'off';
         settings.mode = mode;
         saveSettings(settings);
         var ov = document.getElementById('postfx-overlay');
