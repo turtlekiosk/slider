@@ -70,7 +70,8 @@ static void eMH_mv(eEC_Effect_c* effect, GAME* game) {
             /* Spawn 16 twinkle effects at random points around the central effect */
             for (i = 0; i < 16; i++) {
                 xyz_t pos = effect->position;
-                s16 rnd_angle = RANDOM_F(66536.0f); // lol nice typo here.. should be 65536.0f
+                /* RANDOM_F returns floats up to 66536, well past s16 max — direct cast is UB. */
+                s16 rnd_angle = (s16)(int)RANDOM_F(66536.0f); // lol nice typo here.. should be 65536.0f
                 f32 z = 20.0f * cos_s(rnd_angle);
                 f32 x = 20.0f * sin_s(rnd_angle);
                 f32 y = -10.0f + RANDOM_F(25.0f);

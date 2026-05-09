@@ -34,8 +34,12 @@ extern "C" {
 
 /* radians -> short angle */
 #define RAD2SHORT_ANGLE(rad) ((s16)(int)((rad) * (65536.0f / (2.0f * F_PI))))
-#define RAD2SHORTANGLE(rad) ((s16)((32768.0f / F_PI) * ((f32)(rad))))
-#define RAD2SHORT_ANGLE2(rad) ((s16)((rad) * (65536.0f / (2.0f * F_PI))))
+/* Direct float→s16 cast was UB when the value falls outside s16 range
+ * (e.g. rad = π → 32768.0f, one past s16 max). Same fix as
+ * DEG2SHORT_ANGLE: cast through int first. */
+#define RAD2SHORTANGLE(rad) ((s16)(int)((32768.0f / F_PI) * ((f32)(rad))))
+/* Same UB as RAD2SHORTANGLE — float→s16 direct cast. Cast through int. */
+#define RAD2SHORT_ANGLE2(rad) ((s16)(int)((rad) * (65536.0f / (2.0f * F_PI))))
 
 /* short angle -> radians */
 #define SHORT2RAD_ANGLE(s) ((((f32)(s)) / (65536.0f / (2.0f * F_PI))))

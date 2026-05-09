@@ -2506,7 +2506,8 @@ static void Camera2_Staff_Roll_DistAngle(GAME_PLAY* play, ACTOR* speaker, ACTOR*
     temp = ((f32)camera->main_data.staff_roll.rotation_x_delta / CAMERA2_STAFFROLL_CENTER_X_ROT_STEP_DIVISOR) * 65536.0f;
 
     angle->x = (s16)(sin_s(temp) * 5000.0f);
-    angle->y = (s16)((-(f32)camera->main_data.staff_roll.rotation_y_delta / CAMERA2_STAFFROLL_CENTER_Y_ROT_STEP_DIVISOR) * 65535.0f) +
+    /* Cast through int — float * 65535.0f can exceed s16 range and direct float->s16 cast is UB at -O3. */
+    angle->y = (s16)(int)((-(f32)camera->main_data.staff_roll.rotation_y_delta / CAMERA2_STAFFROLL_CENTER_Y_ROT_STEP_DIVISOR) * 65535.0f) +
                camera->main_data.staff_roll.last_direction.y + (u16)SHT_MIN_S;
     angle->z = 0;
 

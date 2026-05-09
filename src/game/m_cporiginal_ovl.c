@@ -540,8 +540,10 @@ static void mCO_set_frame_main_dl(Submenu* submenu, GAME* game, int folder) {
     int j;
     int k;
 
-    tex_x = (u16)(-pos_x * 4.0f);
-    tex_y = (u16)(-pos_y * 4.0f);
+    /* Cast through int — direct cast of a negative float to unsigned is UB
+     * (the negation here makes the operand negative for positive pos_x/y). */
+    tex_x = (u16)(int)(-pos_x * 4.0f);
+    tex_y = (u16)(int)(-pos_y * 4.0f);
 
     OPEN_POLY_OPA_DISP(graph);
 

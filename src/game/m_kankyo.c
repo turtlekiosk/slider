@@ -1479,8 +1479,10 @@ static void mEnv_set_time(Kankyo* kankyo) {
     rgba_t light_color;
     int shadows_affected;
 
-    /* Convert day seconds from [0, 86400) -> [-0.5, 0.5) -> [-32768, 32768) (seconds -> bin-angle) */
-    s16 time_angle = ((Common_Get(time).now_sec - mTM_SECONDS_IN_HALFDAY) / (f32)mTM_SECONDS_IN_DAY) * 65536.0f;
+    /* Convert day seconds from [0, 86400) -> [-0.5, 0.5) -> [-32768, 32768) (seconds -> bin-angle).
+     * Cast through int — the float result hits 32768.0f at the boundary which is past s16 max,
+     * direct float->s16 cast is UB and clang at -O3 emits `unreachable`. */
+    s16 time_angle = (s16)(int)(((Common_Get(time).now_sec - mTM_SECONDS_IN_HALFDAY) / (f32)mTM_SECONDS_IN_DAY) * 65536.0f);
     f32 sin = sin_s(time_angle); // unused
     f32 cos = cos_s(time_angle); // unused
     mEnv_MakeShadowInfo(kankyo);
