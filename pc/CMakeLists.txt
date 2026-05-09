@@ -450,10 +450,15 @@ elseif(EMSCRIPTEN)
     )
     # `-g` and `-sASSERTIONS=2` are debug-only — they bloat the wasm by
     # 50–100 MB and add per-allocation overhead, pushing iOS Safari past
-    # its per-tab memory budget in release.
+    # its per-tab memory budget in release. RelWithDebInfo keeps Release
+    # optimization but adds DWARF symbols so wasm stack traces resolve
+    # to function names — useful for debugging release-only crashes
+    # (e.g. call_indirect signature mismatches the optimizer exposes).
     set(_pc_web_debug_flags "")
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(_pc_web_debug_flags -g -sASSERTIONS=2)
+    elseif(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+        set(_pc_web_debug_flags -g)
     endif()
     target_link_options(ac_pc PRIVATE
         -sUSE_SDL=2

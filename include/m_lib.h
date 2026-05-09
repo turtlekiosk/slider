@@ -42,8 +42,21 @@ extern "C" {
 #define SHORT2RAD_ANGLE2(s) ((f32)(s) * ((2.0f * F_PI) / 65536.0f))
 #define SHORTANGLE2RAD(sangle) ((F_PI / 32768.0f) * ((f32)(sangle)))
 
-/* degrees -> short angle */
-#define DEG2SHORT_ANGLE(deg) ((s16)((deg) * (65536.0f / 360.0f)))
+/* degrees -> short angle.
+ *
+ * Direct float→s16 cast is undefined behavior when the value falls
+ * outside the s16 range (e.g. DEG2SHORT_ANGLE(180.0f) = 32768.0f, which
+ * is one past s16's 32767 max). PowerPC tolerates the UB by producing
+ * the bitwise-truncated result (-32768), and so does clang at -O0; but
+ * clang at -O3 sees the UB at compile time and replaces dependent code
+ * paths with `unreachable`, which traps at runtime in the wasm build.
+ *
+ * The float→int→s16 chain is well-defined on every target the codebase
+ * runs on: float→int is safe for any value that fits in int32 (true for
+ * all angle inputs in this codebase), and signed int→s16 narrowing is
+ * implementation-defined-as-bitwise-truncation on all of clang/gcc/MSVC
+ * /CodeWarrior. Result is identical to what PowerPC produced. */
+#define DEG2SHORT_ANGLE(deg) ((s16)(int)((deg) * (65536.0f / 360.0f)))
 #define DEG2SHORT_ANGLE2(deg) ((int)((deg) * (65536.0f / 360.0f)))
 #define DEG2SHORT_ANGLE3(deg) ((deg) * (65536.0f / 360.0f))
 
