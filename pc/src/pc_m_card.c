@@ -901,12 +901,17 @@ int mCD_SaveHome_bg(int param_1, int* chan) {
      * every load even after being killed. */
     mCkRh_SavePlayTime(Common_Get(player_no));
 
-    /* Persist whatever reset_code is currently in memory. InitGameStart
-     * arms a non-zero reset_code at session start; every autosave below
-     * carries that value to the card. The web port has no explicit
-     * "Save & Quit" affordance — closing the tab is equivalent to a
-     * GameCube hard reset — so Resetti firing on every reload is the
-     * correct GC-equivalent behavior. */
+    /* Clear reset_code: this function is only reached via the in-game
+     * restart NPC (ac_npc_restart_talk.c_inc) — i.e. the player chose
+     * Save & Quit / Save & Continue. On GC the same clear happens in
+     * mCD_SaveHome_bg_set_data when _04 == 0 (m_card.c:3324). The PC
+     * stub bypasses that state machine, so without this line reset_code
+     * stays at the value InitGameStart armed and Resetti appears every
+     * reload regardless of whether the player saved. */
+    if (Now_Private != NULL) {
+        Now_Private->reset_code = 0;
+    }
+
     if (slot == mCD_SLOT_B && l_card_b_gci_path[0] != '\0') {
         /* Visiting Card B's town — save to Card B GCI */
         char tmp_path[300];
