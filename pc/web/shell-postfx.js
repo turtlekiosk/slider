@@ -1,42 +1,45 @@
-/* Display post-process filter. Lives entirely in the web layer —
- * captures the wasm's WebGL canvas each frame, runs a shader on a
- * second canvas overlay, and presents that on top of the game.
+/* Display post-process filter — ASCII mode only.
  *
- * Supported modes:
- *   off          — overlay hidden, game renders directly
- *   ascii        — character-cell ASCII art tinted by underlying color
- *   crt-basic    — curvature + subtle scanlines + soft vignette
- *   crt-full     — adds RGB-triad aperture grille, heavier scanlines,
- *                  brightness compensation; punchier arcade-monitor look
- *   lcd          — Mattias-style sub-pixel grid (RGB column stripes +
- *                  row gaps + backlight floor); handheld-screen look
- *   cmyk-halftone — 4-ink CMYK halftone with rotated screens, riso-
- *                  style spot inks, per-ink misregistration, and
- *                  paper grain on warm cream substrate
+ * The other filters (CRT / LCD / CMYK halftone) live in C now: see
+ * pc/src/pc_postfx.c. They run as a final fullscreen pass inside the
+ * wasm's own GL context, sampling an FBO that the game renders into.
  *
- * Self-contained module. Wires into the settings menu via the
- * #postfx-mode-select <select>. Persists state under SETTINGS_KEY.
+ * ASCII stayed in JS because its glyph atlas is built at runtime via
+ * Canvas2D (rendering monospace characters into a small texture), and
+ * porting that to C would need an offline rasterizer. So this module
+ * now:
+ *   - owns the dropdown + localStorage persistence (single source of
+ *     truth for the active mode);
+ *   - pushes mode → wasm via Module._pc_postfx_set_mode(intCode) each
+ *     time it changes, so C selects the right shader (or OFF for
+ *     ascii/off). Integer codes (MODE_CODES) match the
+ *     PC_POSTFX_* enum in pc/include/pc_postfx.h — keep in sync;
+ *   - runs the ASCII overlay loop only when mode === 'ascii'.
  *
- * Requires preserveDrawingBuffer:true on the main canvas's WebGL
- * context — otherwise the buffer is cleared on swap and we'd capture
- * black. The patch lives in shell.html (runs before wasm init). */
+ * preserveDrawingBuffer:true on the main canvas (forced in shell.html)
+ * is still needed because ASCII samples mainCanvas via texImage2D. */
 (function () {
     var SETTINGS_KEY = 'acgc.postfx.v1';
 
+    /* Mode-string → wasm enum code. Must match PC_POSTFX_* in
+     * pc/include/pc_postfx.h. 'ascii' maps to OFF because C doesn't
+     * render ASCII — the JS overlay loop below does. */
+    var MODE_CODES = {
+        'off':            0,
+        'crt-basic':      1,
+        'crt-full':       2,
+        'lcd':            3,
+        'cmyk-halftone':  4,
+        'ascii':          0
+    };
+
     /* ---- ASCII config ------------------------------------------------ */
-    /* Paul Bourke's classic 69-char brightness ramp. Hand-sorted by
-     * Bourke from least to most ink density; sortRampByDensity below
-     * re-sorts based on the actual rendered font, which mostly agrees
-     * with Bourke's ordering and corrects the few divergences. */
+    /* Paul Bourke's 69-char brightness ramp, then re-sorted by measured
+     * ink density of the actual rendered font (corrects the few places
+     * Bourke's hand-sort diverges from what the font produces). */
     var CHARS  = ' .\'`^",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$';
     var CELL   = 4;
 
-    /* Sort the ramp by actual measured ink density. Renders each char
-     * to a temp canvas at the atlas cell size, sums alpha across the
-     * cell to get a coverage score, sorts ascending. Done once at
-     * module load using the same font that buildAtlas() uses, so the
-     * sorting matches the rendered atlas regardless of which fallback
-     * font the browser picks for any given codepoint. */
     CHARS = (function sortRampByDensity(chars) {
         var c = document.createElement('canvas');
         c.width = CELL;
@@ -59,17 +62,6 @@
         return entries.map(function (m) { return m.ch; }).join('');
     })(CHARS);
 
-    /* CRT preset uniform values. crt-basic stays subtle (no grille, no
-     * boost, light scanlines) for clean rendering on high-DPR mobile
-     * displays where the per-pixel RGB-triad pattern of crt-full would
-     * moiré. crt-full adds the grille and bumps scanlines/brightness
-     * for a punchier arcade-monitor look — best on lower-DPR desktop
-     * displays where the grille pattern lands cleanly on pixels. */
-    var CRT_PRESETS = {
-        'crt-basic': { grille: 0.0,  boost: 1.0,  scanIntensity: 0.10 },
-        'crt-full':  { grille: 0.18, boost: 1.18, scanIntensity: 0.40 }
-    };
-
     /* ---- settings ---------------------------------------------------- */
     /* Mode: off | ascii | crt-basic | crt-full | lcd | cmyk-halftone */
     var DEFAULTS = { mode: 'off' };
@@ -86,9 +78,6 @@
     var settings = loadSettings();
 
     /* ---- glyph atlas (ASCII) ----------------------------------------- */
-    /* Renders the ramp into a (CHARS.length * CELL) × CELL canvas. White
-     * glyphs on transparent black; the shader uses the red channel as a
-     * coverage mask. */
     function buildAtlas() {
         var c = document.createElement('canvas');
         c.width  = CHARS.length * CELL;
@@ -107,18 +96,12 @@
     }
 
     /* ---- shaders -----------------------------------------------------
-     * Source lives in shaders/postfx-vs.js, postfx-fs-ascii.js,
-     * postfx-fs-crt.js, postfx-fs-lcd.js, postfx-fs-halftone.js,
-     * which attach to window.acgcPostfxShaders. shell.html loads
-     * those files before this one (script tags are deferred and
-     * execute in document order), so the namespace is populated
-     * by the time we read it. */
+     * Only the ASCII vs/fs are loaded now. shaders/postfx-vs.js and
+     * postfx-fs-ascii.js attach to window.acgcPostfxShaders before this
+     * file runs. */
     var SHADER_SRC = window.acgcPostfxShaders || {};
     var VS         = SHADER_SRC.vs;
     var FS_ASCII   = SHADER_SRC.fsAscii;
-    var FS_CRT     = SHADER_SRC.fsCrt;
-    var FS_LCD     = SHADER_SRC.fsLcd;
-    var FS_HT      = SHADER_SRC.fsHalftone;
 
     function compile(gl, type, src) {
         var s = gl.createShader(type);
@@ -144,10 +127,10 @@
 
     /* ---- module state ------------------------------------------------ */
     var mainCanvas, overlay, gl, vao;
-    var progAscii = null, progCrt = null, progLcd = null, progHt = null;
+    var progAscii = null;
     var gameTex, atlasTex;
     var rafId = null;
-    var uAscii = {}, uCrt = {}, uLcd = {}, uHt = {};
+    var uAscii = {};
     var initFailed = false;
 
     function init() {
@@ -155,10 +138,9 @@
         mainCanvas = document.getElementById('canvas');
         overlay    = document.getElementById('postfx-overlay');
         if (!mainCanvas || !overlay) { initFailed = true; return false; }
-        if (!VS || !FS_ASCII || !FS_CRT || !FS_LCD || !FS_HT) {
-            console.error('[postfx] shader sources missing; '
-                + 'shaders/postfx-vs.js, postfx-fs-ascii.js, postfx-fs-crt.js, '
-                + 'postfx-fs-lcd.js, postfx-fs-halftone.js must be loaded '
+        if (!VS || !FS_ASCII) {
+            console.error('[postfx] ASCII shader sources missing; '
+                + 'shaders/postfx-vs.js and postfx-fs-ascii.js must load '
                 + 'before shell-postfx.js');
             initFailed = true; return false;
         }
@@ -171,17 +153,11 @@
         });
         if (!gl) { initFailed = true; return false; }
 
-        var vs    = compile(gl, gl.VERTEX_SHADER,   VS);
-        var fsA   = compile(gl, gl.FRAGMENT_SHADER, FS_ASCII);
-        var fsC   = compile(gl, gl.FRAGMENT_SHADER, FS_CRT);
-        var fsL   = compile(gl, gl.FRAGMENT_SHADER, FS_LCD);
-        var fsH   = compile(gl, gl.FRAGMENT_SHADER, FS_HT);
-        if (!vs || !fsA || !fsC || !fsL || !fsH) { initFailed = true; return false; }
-        progAscii = link(gl, vs, fsA);
-        progCrt   = link(gl, vs, fsC);
-        progLcd   = link(gl, vs, fsL);
-        progHt    = link(gl, vs, fsH);
-        if (!progAscii || !progCrt || !progLcd || !progHt) { initFailed = true; return false; }
+        var vs = compile(gl, gl.VERTEX_SHADER,   VS);
+        var fs = compile(gl, gl.FRAGMENT_SHADER, FS_ASCII);
+        if (!vs || !fs) { initFailed = true; return false; }
+        progAscii = link(gl, vs, fs);
+        if (!progAscii) { initFailed = true; return false; }
 
         vao = gl.createVertexArray();
         gl.bindVertexArray(vao);
@@ -189,29 +165,16 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
         gl.bufferData(gl.ARRAY_BUFFER,
             new Float32Array([-1, -1,  3, -1, -1,  3]), gl.STATIC_DRAW);
-        /* Both programs use the same a_pos attribute layout. */
-        var aLocA = gl.getAttribLocation(progAscii, 'a_pos');
-        gl.enableVertexAttribArray(aLocA);
-        gl.vertexAttribPointer(aLocA, 2, gl.FLOAT, false, 0, 0);
+        var aLoc = gl.getAttribLocation(progAscii, 'a_pos');
+        gl.enableVertexAttribArray(aLoc);
+        gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
         gl.bindVertexArray(null);
 
-        uAscii.game        = gl.getUniformLocation(progAscii, 'u_game');
-        uAscii.atlas       = gl.getUniformLocation(progAscii, 'u_atlas');
-        uAscii.canvasSize  = gl.getUniformLocation(progAscii, 'u_canvasSize');
-        uAscii.cell        = gl.getUniformLocation(progAscii, 'u_cell');
-        uAscii.numGlyphs   = gl.getUniformLocation(progAscii, 'u_numGlyphs');
-
-        uCrt.game          = gl.getUniformLocation(progCrt, 'u_game');
-        uCrt.canvasSize    = gl.getUniformLocation(progCrt, 'u_canvasSize');
-        uCrt.grilleAmt     = gl.getUniformLocation(progCrt, 'u_grille_amt');
-        uCrt.boost         = gl.getUniformLocation(progCrt, 'u_boost');
-        uCrt.scanIntensity = gl.getUniformLocation(progCrt, 'u_scan_intensity');
-
-        uLcd.game          = gl.getUniformLocation(progLcd, 'u_game');
-        uLcd.canvasSize    = gl.getUniformLocation(progLcd, 'u_canvasSize');
-
-        uHt.game           = gl.getUniformLocation(progHt, 'u_game');
-        uHt.canvasSize     = gl.getUniformLocation(progHt, 'u_canvasSize');
+        uAscii.game       = gl.getUniformLocation(progAscii, 'u_game');
+        uAscii.atlas      = gl.getUniformLocation(progAscii, 'u_atlas');
+        uAscii.canvasSize = gl.getUniformLocation(progAscii, 'u_canvasSize');
+        uAscii.cell       = gl.getUniformLocation(progAscii, 'u_cell');
+        uAscii.numGlyphs  = gl.getUniformLocation(progAscii, 'u_numGlyphs');
 
         gameTex = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, gameTex);
@@ -250,7 +213,7 @@
 
     function frame() {
         rafId = null;
-        if (settings.mode === 'off') return;
+        if (settings.mode !== 'ascii') return;
         if (!gl && !init()) return;
         if (!syncSize()) {
             rafId = requestAnimationFrame(frame); return;
@@ -263,36 +226,14 @@
             rafId = requestAnimationFrame(frame); return;
         }
 
-        if (settings.mode === 'crt-basic' || settings.mode === 'crt-full') {
-            var preset = CRT_PRESETS[settings.mode];
-            gl.useProgram(progCrt);
-            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
-            gl.uniform1i(uCrt.game, 0);
-            gl.uniform2f(uCrt.canvasSize, overlay.width, overlay.height);
-            gl.uniform1f(uCrt.grilleAmt, preset.grille);
-            gl.uniform1f(uCrt.boost, preset.boost);
-            gl.uniform1f(uCrt.scanIntensity, preset.scanIntensity);
-        } else if (settings.mode === 'lcd') {
-            gl.useProgram(progLcd);
-            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
-            gl.uniform1i(uLcd.game, 0);
-            gl.uniform2f(uLcd.canvasSize, overlay.width, overlay.height);
-        } else if (settings.mode === 'cmyk-halftone') {
-            gl.useProgram(progHt);
-            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
-            gl.uniform1i(uHt.game, 0);
-            gl.uniform2f(uHt.canvasSize, overlay.width, overlay.height);
-        } else {
-            /* ascii */
-            gl.useProgram(progAscii);
-            gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
-            gl.uniform1i(uAscii.game, 0);
-            gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, atlasTex);
-            gl.uniform1i(uAscii.atlas, 1);
-            gl.uniform2f(uAscii.canvasSize, overlay.width, overlay.height);
-            gl.uniform1f(uAscii.cell, CELL);
-            gl.uniform1f(uAscii.numGlyphs, CHARS.length);
-        }
+        gl.useProgram(progAscii);
+        gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, gameTex);
+        gl.uniform1i(uAscii.game, 0);
+        gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, atlasTex);
+        gl.uniform1i(uAscii.atlas, 1);
+        gl.uniform2f(uAscii.canvasSize, overlay.width, overlay.height);
+        gl.uniform1f(uAscii.cell, CELL);
+        gl.uniform1f(uAscii.numGlyphs, CHARS.length);
 
         gl.bindVertexArray(vao);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
@@ -301,15 +242,32 @@
         rafId = requestAnimationFrame(frame);
     }
 
+    /* Push the current mode into the wasm-side postfx state. Safe to
+     * call before Module is ready — we no-op until the export exists
+     * and then re-push on runtime-init via the boot path below. */
+    function pushModeToWasm(mode) {
+        if (typeof Module === 'undefined') return;
+        var fn = Module._pc_postfx_set_mode;
+        if (!fn) return;
+        var code = MODE_CODES[mode];
+        if (code === undefined) code = 0;
+        try { fn(code); } catch (e) { /* wasm not ready yet */ }
+    }
+
     function setMode(mode) {
         if (mode !== 'off' && mode !== 'ascii' &&
             mode !== 'crt-basic' && mode !== 'crt-full' &&
             mode !== 'lcd' && mode !== 'cmyk-halftone') mode = 'off';
         settings.mode = mode;
         saveSettings(settings);
+
+        /* C-side handles crt/lcd/halftone; ascii/off pass through and
+         * leave the JS overlay to do its thing (or nothing). */
+        pushModeToWasm(mode);
+
         var ov = document.getElementById('postfx-overlay');
-        if (ov) ov.style.display = (mode === 'off') ? 'none' : 'block';
-        if (mode !== 'off' && rafId === null) {
+        if (ov) ov.style.display = (mode === 'ascii') ? 'block' : 'none';
+        if (mode === 'ascii' && rafId === null) {
             rafId = requestAnimationFrame(frame);
         }
     }
@@ -329,7 +287,19 @@
             sel.value = settings.mode;
             sel.addEventListener('change', function () { setMode(sel.value); });
         }
+        /* Apply settings now. pushModeToWasm() is a no-op if the wasm
+         * runtime hasn't initialized yet; we re-push from
+         * onRuntimeInitialized so the C side picks up the saved mode
+         * once it's listening. */
         setMode(settings.mode);
+
+        if (typeof Module !== 'undefined') {
+            var prev = Module.onRuntimeInitialized;
+            Module.onRuntimeInitialized = function () {
+                if (prev) try { prev(); } catch (e) {}
+                pushModeToWasm(settings.mode);
+            };
+        }
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', boot);

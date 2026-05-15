@@ -1,6 +1,7 @@
 /* pc_main.c - PC entry point: SDL2/GL init, crash protection, boot sequence */
 #include "pc_platform.h"
 #include "pc_gx_internal.h"
+#include "pc_postfx.h"
 #include "pc_texture_pack.h"
 #include "pc_settings.h"
 #include "pc_keybindings.h"
@@ -321,6 +322,10 @@ void pc_platform_update_window_size(void) {
 }
 
 void pc_platform_swap_buffers(void) {
+    /* Resolve the postfx FBO to the default framebuffer with the active
+     * filter shader before presenting. No-op outside web or when mode
+     * is off/ascii. */
+    pc_postfx_end_frame();
     SDL_GL_SwapWindow(g_pc_window);
 }
 

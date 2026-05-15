@@ -1373,18 +1373,15 @@
          user-configurable via the settings dialog and persist in
          localStorage. -->
     <script src="shell-touch.js" defer></script>
-    <!-- Display post-process filter (off by default; toggle in the
-         settings menu's Display section). Shader sources are split into
-         three sibling files so they read as plain GLSL with editor
-         highlighting; they attach to window.acgcPostfxShaders. Deferred
-         scripts execute in document order, so the shader files are
-         guaranteed to populate the namespace before shell-postfx.js
-         reads from it. -->
+    <!-- Display post-process filter dropdown wiring. CRT / LCD / CMYK
+         halftone run in C now (pc/src/pc_postfx.c) as a final pass on
+         the wasm's GL context. Only ASCII still uses this JS overlay;
+         shell-postfx.js owns the dropdown + localStorage and pushes the
+         selected mode to C via Module.ccall. The deferred attribute
+         orders execution: postfx-vs.js + postfx-fs-ascii.js populate
+         window.acgcPostfxShaders before shell-postfx.js reads it. -->
     <script src="shaders/postfx-vs.js" defer></script>
     <script src="shaders/postfx-fs-ascii.js" defer></script>
-    <script src="shaders/postfx-fs-crt.js" defer></script>
-    <script src="shaders/postfx-fs-lcd.js" defer></script>
-    <script src="shaders/postfx-fs-halftone.js" defer></script>
     <script src="shell-postfx.js" defer></script>
 
     {{{ SCRIPT }}}
