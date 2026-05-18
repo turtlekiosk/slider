@@ -20,7 +20,7 @@ void aESS_act_proc(NPC_ACTOR* actorx, GAME_PLAY* play, int act_idx) {
 #ifdef TARGET_PC
     static aESS_PROC act_proc[] = { &aESS_act_init_proc, aESS_none, aESS_none };
 #else
-    static aESS_PROC act_proc[] = { &aESS_act_init_proc, (aESS_PROC)mActor_NONE_PROC1, (aESS_PROC)mActor_NONE_PROC1 };
+    static aESS_PROC act_proc[] = { &aESS_act_init_proc, _none_aESS_PROC, _none_aESS_PROC };
 #endif
     act_proc[act_idx](soncho, play);
 }
@@ -93,15 +93,15 @@ void aESS_setup_think_proc(ACTOR* actorx, int think_proc_idk) {
     };
 #else
     static aESS_think_info dt_tbl[5] = {
-        { (aESS_PROC)mActor_NONE_PROC1, (aNPC_TALK_REQUEST_PROC)aESS_norm_talk_request,
+        { _none_aESS_PROC, (aNPC_TALK_REQUEST_PROC)aESS_norm_talk_request,
           (aNPC_TALK_END_CHECK_PROC)aESS_norm_talk_end_chk, TRUE },
-        { (aESS_PROC)mActor_NONE_PROC1, (aNPC_TALK_REQUEST_PROC)mActor_NONE_PROC1,
-          (aNPC_TALK_END_CHECK_PROC)mActor_NONE_PROC1, TRUE },
-        { aESS_speech_start_wait, (aNPC_TALK_REQUEST_PROC)mActor_NONE_PROC1,
-          (aNPC_TALK_END_CHECK_PROC)mActor_NONE_PROC1, FALSE },
-        { (aESS_PROC)mActor_NONE_PROC1, (aNPC_TALK_REQUEST_PROC)aESS_force_talk_request,
+        { _none_aESS_PROC, _none_aNPC_TALK_REQUEST_PROC,
+          _none_aNPC_TALK_END_CHECK_PROC, TRUE },
+        { aESS_speech_start_wait, _none_aNPC_TALK_REQUEST_PROC,
+          _none_aNPC_TALK_END_CHECK_PROC, FALSE },
+        { _none_aESS_PROC, (aNPC_TALK_REQUEST_PROC)aESS_force_talk_request,
           (aNPC_TALK_END_CHECK_PROC)aESS_force_talk_end_chk, TRUE },
-        { (aESS_PROC)mActor_NONE_PROC1, (aNPC_TALK_REQUEST_PROC)aESS_norm_talk_request,
+        { _none_aESS_PROC, (aNPC_TALK_REQUEST_PROC)aESS_norm_talk_request,
           (aNPC_TALK_END_CHECK_PROC)aESS_norm_talk_end_chk, TRUE },
     };
 #endif

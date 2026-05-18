@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """
-Replace (TYPE)&none_proc1 / (TYPE)none_proc1 casts with references to
-typed stubs, guarded by #ifdef TARGET_PC.
+Replace (TYPE)&none_proc1 / (TYPE)none_proc1 / (TYPE)mActor_NONE_PROC1 casts
+with references to typed stubs, guarded by #ifdef TARGET_PC.
+
+`mActor_NONE_PROC1` is a macro (include/m_actor.h) that already expands to
+`((mActor_proc)none_proc1)`; wrapping it in *another* cast yields a double-
+cast that hides `none_proc1` from a literal-token regex but still trips
+wasm call_indirect when invoked through the outer pointer type.
 
 Algorithm:
  1. Scan all .h/.c/.c_inc for `typedef RET (*NAME)(ARGS);` -> typedef map.
@@ -11,9 +16,9 @@ Algorithm:
  4. For each TU root R, compute transitive closure of includes. Collect TYPES used
     in casts across the closure. Generate one stub-block (per unique type) at the
     top of R, just after the first contiguous run of #include lines.
- 5. Replace casts (`(TYPE)&none_proc1` / `(TYPE)none_proc1`) with `_none_<TYPE>` in
-    EVERY file (.c and .c_inc). Files that aren't TU roots get casts replaced but
-    no stub block — their TU root provides the stubs.
+ 5. Replace casts (`(TYPE)&?none_proc1` / `(TYPE)&?mActor_NONE_PROC1`) with
+    `_none_<TYPE>` in EVERY file (.c and .c_inc). Files that aren't TU roots get
+    casts replaced but no stub block — their TU root provides the stubs.
 """
 import re
 from pathlib import Path
@@ -23,7 +28,9 @@ ROOT = Path("/Users/calvin/Developer/explore/ACGC-PC-Port")
 SRC  = ROOT / "src"
 INC  = ROOT / "include"
 
-CAST_RE = re.compile(r'\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*&?\s*none_proc1\b')
+CAST_RE = re.compile(
+    r'\(\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*&?\s*(?:none_proc1|mActor_NONE_PROC1)\b'
+)
 TYPEDEF_RE = re.compile(
     r'typedef\s+([^;()]+?)\s*\(\s*\*\s*([A-Za-z_][A-Za-z0-9_]*)\s*\)\s*\(([^;]*?)\)\s*;',
     re.DOTALL,
@@ -37,13 +44,19 @@ _C_KEYWORDS_AND_TYPES = {
     "size_t","ssize_t","BOOL","bool","true","false",
 }
 
+def _is_source_file(p):
+    """True for .h/.c/.c_inc and the .c.inc typo variant (RTC NPC files)."""
+    if p.suffix in (".h", ".c", ".c_inc"):
+        return True
+    return p.name.endswith(".c.inc")
+
 def scan_typedefs():
     typedefs = {}
     for base in (INC, SRC, ROOT / "pc" / "include"):
         if not base.exists():
             continue
         for p in base.rglob("*"):
-            if p.suffix not in (".h", ".c", ".c_inc"):
+            if not _is_source_file(p):
                 continue
             try:
                 text = p.read_text(errors="replace")
@@ -208,7 +221,8 @@ def find_insert_position(text):
 
 def resolve_include(host_file, inc_path):
     """Resolve a `#include "..."` or <...> to a Path, restricted to .c/.c_inc."""
-    if not (inc_path.endswith(".c") or inc_path.endswith(".c_inc")):
+    if not (inc_path.endswith(".c") or inc_path.endswith(".c_inc")
+            or inc_path.endswith(".c.inc")):
         return None
     candidates = [
         host_file.parent / inc_path,
@@ -242,6 +256,7 @@ def main():
     all_files = set()
     for p in SRC.rglob("*.c"):     all_files.add(p.resolve())
     for p in SRC.rglob("*.c_inc"): all_files.add(p.resolve())
+    for p in SRC.rglob("*.c.inc"): all_files.add(p.resolve())  # typo variant (RTC NPC)
 
     includes_of = defaultdict(set)   # file -> set of files it includes
     included_by = defaultdict(set)   # file -> set of files that include it
@@ -314,6 +329,16 @@ def main():
             continue
 
         resolved_types = sorted(t for t in types_in_tu if t in typedefs)
+        if not resolved_types:
+            continue
+
+        # Skip types whose stub is already defined in the TU root (idempotent re-runs).
+        root_text = file_text.get(r, "")
+        existing = set(re.findall(
+            r'\bstatic\b[^\n;{}]*?\b_none_([A-Za-z_][A-Za-z0-9_]*)\s*\(',
+            root_text,
+        ))
+        resolved_types = [t for t in resolved_types if t not in existing]
         if not resolved_types:
             continue
 

@@ -147,10 +147,10 @@ static int aES2_talk_end_chk(ACTOR* actorx, GAME* game) {
     static aEV_SONCHO2_TALK_PROC proc[6] = {
         aES2_talk_before_give,
         aES2_talk_give,
-        (aEV_SONCHO2_TALK_PROC)mActor_NONE_PROC1,
-        (aEV_SONCHO2_TALK_PROC)mActor_NONE_PROC1,
-        (aEV_SONCHO2_TALK_PROC)mActor_NONE_PROC1,
-        (aEV_SONCHO2_TALK_PROC)mActor_NONE_PROC1,
+        _none_aEV_SONCHO2_TALK_PROC,
+        _none_aEV_SONCHO2_TALK_PROC,
+        _none_aEV_SONCHO2_TALK_PROC,
+        _none_aEV_SONCHO2_TALK_PROC,
     };
 #endif
 
