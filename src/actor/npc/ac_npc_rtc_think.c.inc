@@ -75,7 +75,7 @@ static aNPC_SUB_PROC aNRTC_proc_table[] = {
 #ifdef TARGET_PC
     &aNRTC_think_none,
 #else
-    (aNPC_SUB_PROC)mActor_NONE_PROC1,
+    _none_aNPC_SUB_PROC,
 #endif
 };
 // clang-format on

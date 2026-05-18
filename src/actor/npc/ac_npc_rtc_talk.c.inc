@@ -206,7 +206,7 @@ static void aNRTC_change_talk_proc(NPC_RTC_ACTOR* rtc, int idx) {
 #ifdef TARGET_PC
         &aNRTC_talk_none,
 #else
-        (aNRTC_PROC)&none_proc1,
+        _none_aNRTC_PROC,
 #endif
     };
     // clang-format on
