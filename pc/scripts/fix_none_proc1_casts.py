@@ -150,7 +150,7 @@ def find_insert_position(text):
     # (b) first c/c_inc include
     for m in re.finditer(r'^[ \t]*#include\s+["<]([^">]+)[">]', text, re.MULTILINE):
         p = m.group(1)
-        if p.endswith(".c") or p.endswith(".c_inc"):
+        if p.endswith(".c") or p.endswith(".c_inc") or p.endswith(".c.inc"):
             anchor = min(anchor, m.start())
             break
 
