@@ -27,6 +27,9 @@
 #include "pc_save_bswap.h"
 #include "pc_settings.h"
 #include "m_cockroach.h"
+#include "m_all_grow_ovl.h"
+#include "m_home.h"
+#include "lb_rtc.h"
 #include "game.h"
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
@@ -290,6 +293,38 @@ static void pc_ensure_save_dirs(void) {
 }
 
 static int pc_save_write_gci_to(const char* gci_path, const char* tmp_path);
+
+/* mCD_get_land_copyProtect */
+static u16 pc_get_land_copy_protect(void) {
+    u16 code = (u16)RANDOM(0xFFF0);
+    return (u16)(code + 1);
+}
+
+/* Money rock / Wisp / Copy Protect*/
+static void pc_save_pre_write_side_effects(void) {
+    Private_c* priv = Now_Private;
+    u16 copy_protect;
+    int i;
+
+    mCkRh_SavePlayTime(Common_Get(player_no));
+
+    if (priv != NULL) {
+        priv->reset_code = 0;
+
+        for (i = 0; i < mPr_POCKETS_SLOT_COUNT; i++) {
+            if (ITEM_IS_WISP(priv->inventory.pockets[i])) {
+                mPr_SetPossessionItem(priv, i, EMPTY_NO, mPr_ITEM_COND_NORMAL);
+            }
+        }
+    }
+
+    mAGrw_ClearMoneyStoneShineGround();
+
+    copy_protect = pc_get_land_copy_protect();
+    Common_Set(copy_protect, copy_protect);
+    Save_Set(copy_protect, copy_protect);
+    Save_Set(travel_hard_time, lbRTC_HardTime());
+}
 
 static int pc_save_write_gci(void) {
     return pc_save_write_gci_to(PC_GCI_PATH, PC_GCI_TMP_PATH);
@@ -895,22 +930,7 @@ int mCD_SaveHome_bg(int param_1, int* chan) {
     int slot = mCD_GetThisLandSlotNo();
     int result;
 
-    /* Update cockroach "last visited" timestamp before saving.
-     * On GC this was done in mCD_SaveHome_bg_set_data (m_card.c).
-     * Without it, the day gap never resets and cockroaches respawn
-     * every load even after being killed. */
-    mCkRh_SavePlayTime(Common_Get(player_no));
-
-    /* Clear reset_code: this function is only reached via the in-game
-     * restart NPC (ac_npc_restart_talk.c_inc) — i.e. the player chose
-     * Save & Quit / Save & Continue. On GC the same clear happens in
-     * mCD_SaveHome_bg_set_data when _04 == 0 (m_card.c:3324). The PC
-     * stub bypasses that state machine, so without this line reset_code
-     * stays at the value InitGameStart armed and Resetti appears every
-     * reload regardless of whether the player saved. */
-    if (Now_Private != NULL) {
-        Now_Private->reset_code = 0;
-    }
+    pc_save_pre_write_side_effects();
 
     if (slot == mCD_SLOT_B && l_card_b_gci_path[0] != '\0') {
         /* Visiting Card B's town — save to Card B GCI */
